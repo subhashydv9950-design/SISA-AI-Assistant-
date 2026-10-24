@@ -8303,6 +8303,390 @@ renderSchedule();
 })();
 </script>
 <!-- =============== PART 2V END =============== -->
+  <!-- =====================================================
+ SISA AI ASSISTANT — PART 2W
+ CONTENT IDEA VAULT
+===================================================== -->
+
+<style>
+#sisaIdeaOpen{
+ position:fixed;right:12px;bottom:470px;z-index:9998;
+ background:#8b5cf6;color:#fff;border:0;border-radius:12px;
+ padding:12px 15px;font-weight:700;box-shadow:0 4px 18px #0005;
+}
+#sisaIdeaPanel{
+ display:none;position:fixed;inset:0;z-index:100000;
+ background:#090711;color:#f5f3ff;padding:18px;
+ overflow:auto;font-family:Arial,sans-serif;
+}
+#sisaIdeaPanel .idea-box{
+ max-width:650px;margin:20px auto;background:#171323;
+ border:1px solid #49356c;border-radius:18px;padding:17px;
+}
+#sisaIdeaPanel input,#sisaIdeaPanel textarea,
+#sisaIdeaPanel select{
+ width:100%;box-sizing:border-box;margin:6px 0 12px;
+ padding:12px;border-radius:10px;border:1px solid #51416d;
+ background:#0e0b18;color:#fff;
+}
+#sisaIdeaPanel button{
+ border:0;border-radius:9px;padding:10px 13px;
+ margin:4px;background:#8b5cf6;color:white;font-weight:600;
+}
+#sisaIdeaPanel .idea-card{
+ background:#211a30;border:1px solid #49356c;
+ border-radius:12px;padding:12px;margin:10px 0;
+ overflow-wrap:anywhere;
+}
+#sisaIdeaPanel .idea-muted{color:#b7accd;font-size:12px}
+</style>
+
+<button id="sisaIdeaOpen">💡 Idea Vault</button>
+
+<div id="sisaIdeaPanel">
+ <div class="idea-box">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+   <h2 id="sisaIdeaHeading">💡 Content Idea Vault</h2>
+   <button id="sisaIdeaClose">✕</button>
+  </div>
+
+  <p class="idea-muted" id="sisaIdeaDescription">
+   Save your ideas and turn them into post drafts.
+  </p>
+
+  <label for="sisaIdeaTitle">Idea title</label>
+  <input id="sisaIdeaTitle" placeholder="e.g. 5 travel destinations">
+
+  <label for="sisaIdeaCategory">Category</label>
+  <select id="sisaIdeaCategory">
+   <option value="General">General</option>
+   <option value="Travel">Travel</option>
+   <option value="Food">Food</option>
+   <option value="Fashion">Fashion</option>
+   <option value="Business">Business</option>
+   <option value="Photography">Photography</option>
+   <option value="Gaming">Gaming</option>
+   <option value="Education">Education</option>
+   <option value="Fitness">Fitness</option>
+  </select>
+
+  <label for="sisaIdeaNotes">Content notes</label>
+  <textarea id="sisaIdeaNotes" rows="4"
+   placeholder="Write your post idea here..."></textarea>
+
+  <button id="sisaIdeaSave">＋ Save Idea</button>
+  <button id="sisaIdeaClear">Clear Form</button>
+
+  <hr style="border-color:#49356c;margin:18px 0">
+
+  <input id="sisaIdeaSearch" placeholder="🔍 Search saved ideas...">
+
+  <select id="sisaIdeaFilter">
+   <option value="all">All categories</option>
+   <option value="General">General</option>
+   <option value="Travel">Travel</option>
+   <option value="Food">Food</option>
+   <option value="Fashion">Fashion</option>
+   <option value="Business">Business</option>
+   <option value="Photography">Photography</option>
+   <option value="Gaming">Gaming</option>
+   <option value="Education">Education</option>
+   <option value="Fitness">Fitness</option>
+  </select>
+
+  <div id="sisaIdeaList"></div>
+ </div>
+</div>
+
+<script>
+(function(){
+ "use strict";
+
+ const KEY = "sisa_idea_vault_v1";
+ const $ = id => document.getElementById(id);
+
+ let ideas = [];
+
+ try {
+  const saved = JSON.parse(localStorage.getItem(KEY) || "[]");
+  ideas = Array.isArray(saved) ? saved : [];
+ } catch(e) {
+  ideas = [];
+ }
+
+ const words = {
+  en:{
+   heading:"💡 Content Idea Vault",
+   desc:"Save your ideas and turn them into post drafts.",
+   title:"Idea title",category:"Category",notes:"Content notes",
+   save:"＋ Save Idea",clear:"Clear Form",search:"🔍 Search saved ideas...",
+   all:"All categories",empty:"No ideas found.",use:"Use in Post",
+   remove:"Delete",saved:"Idea saved successfully!",
+   missing:"Please enter an idea title or notes.",
+   confirm:"Delete this idea?",loaded:"Idea added to the post form."
+  },
+  hi:{
+   heading:"💡 कंटेंट आइडिया वॉल्ट",
+   desc:"अपने आइडिया सेव करें और उन्हें पोस्ट ड्राफ्ट में बदलें।",
+   title:"आइडिया का नाम",category:"श्रेणी",notes:"कंटेंट की जानकारी",
+   save:"＋ आइडिया सेव करें",clear:"फॉर्म साफ करें",search:"🔍 आइडिया खोजें...",
+   all:"सभी श्रेणियाँ",empty:"कोई आइडिया नहीं मिला।",use:"पोस्ट में इस्तेमाल करें",
+   remove:"डिलीट करें",saved:"आइडिया सेव हो गया!",
+   missing:"आइडिया का नाम या जानकारी लिखें।",
+   confirm:"क्या यह आइडिया डिलीट करना है?",loaded:"आइडिया पोस्ट फॉर्म में डाल दिया गया।"
+  },
+  es:{
+   heading:"💡 Biblioteca de ideas",
+   desc:"Guarda ideas y conviértelas en borradores.",
+   title:"Título de la idea",category:"Categoría",notes:"Notas del contenido",
+   save:"＋ Guardar idea",clear:"Limpiar formulario",search:"🔍 Buscar ideas...",
+   all:"Todas las categorías",empty:"No se encontraron ideas.",use:"Usar en publicación",
+   remove:"Eliminar",saved:"¡Idea guardada!",missing:"Escribe un título o unas notas.",
+   confirm:"¿Eliminar esta idea?",loaded:"Idea añadida al formulario."
+  },
+  fr:{
+   heading:"💡 Bibliothèque d’idées",
+   desc:"Enregistrez vos idées et transformez-les en brouillons.",
+   title:"Titre de l’idée",category:"Catégorie",notes:"Notes du contenu",
+   save:"＋ Enregistrer",clear:"Effacer",search:"🔍 Rechercher...",
+   all:"Toutes les catégories",empty:"Aucune idée trouvée.",use:"Utiliser",
+   remove:"Supprimer",saved:"Idée enregistrée !",
+   missing:"Saisissez un titre ou des notes.",confirm:"Supprimer cette idée ?",
+   loaded:"Idée ajoutée au formulaire."
+  },
+  de:{
+   heading:"💡 Ideenbibliothek",
+   desc:"Ideen speichern und in Beitragsentwürfe umwandeln.",
+   title:"Ideentitel",category:"Kategorie",notes:"Inhaltsnotizen",
+   save:"＋ Idee speichern",clear:"Formular leeren",search:"🔍 Ideen suchen...",
+   all:"Alle Kategorien",empty:"Keine Ideen gefunden.",use:"Für Beitrag nutzen",
+   remove:"Löschen",saved:"Idee gespeichert!",
+   missing:"Bitte Titel oder Notizen eingeben.",
+   confirm:"Diese Idee löschen?",loaded:"Idee ins Beitragsformular übernommen."
+  },
+  zh:{
+   heading:"💡 内容创意库",desc:"保存创意并将其转换为帖子草稿。",
+   title:"创意标题",category:"分类",notes:"内容备注",
+   save:"＋ 保存创意",clear:"清空表单",search:"🔍 搜索创意...",
+   all:"所有分类",empty:"没有找到创意。",use:"用于帖子",
+   remove:"删除",saved:"创意已保存！",missing:"请输入标题或备注。",
+   confirm:"删除此创意？",loaded:"创意已添加到帖子表单。"
+  },
+  ja:{
+   heading:"💡 コンテンツアイデア",desc:"アイデアを保存して投稿の下書きにします。",
+   title:"アイデアのタイトル",category:"カテゴリー",notes:"内容メモ",
+   save:"＋ 保存",clear:"入力をクリア",search:"🔍 アイデアを検索...",
+   all:"すべてのカテゴリー",empty:"アイデアがありません。",use:"投稿に使用",
+   remove:"削除",saved:"保存しました！",missing:"タイトルかメモを入力してください。",
+   confirm:"このアイデアを削除しますか？",loaded:"投稿フォームに追加しました。"
+  },
+  ko:{
+   heading:"💡 콘텐츠 아이디어 보관함",desc:"아이디어를 저장하고 게시물 초안으로 만드세요.",
+   title:"아이디어 제목",category:"카테고리",notes:"콘텐츠 메모",
+   save:"＋ 아이디어 저장",clear:"양식 지우기",search:"🔍 아이디어 검색...",
+   all:"모든 카테고리",empty:"아이디어가 없습니다.",use:"게시물에 사용",
+   remove:"삭제",saved:"저장되었습니다!",missing:"제목이나 메모를 입력하세요.",
+   confirm:"이 아이디어를 삭제할까요?",loaded:"게시물 양식에 추가했습니다."
+  },
+  bn:{
+   heading:"💡 কনটেন্ট আইডিয়া ভল্ট",desc:"আইডিয়া সংরক্ষণ করুন এবং পোস্টের খসড়া তৈরি করুন।",
+   title:"আইডিয়ার শিরোনাম",category:"বিভাগ",notes:"কনটেন্টের নোট",
+   save:"＋ আইডিয়া সংরক্ষণ",clear:"ফর্ম পরিষ্কার",search:"🔍 আইডিয়া খুঁজুন...",
+   all:"সব বিভাগ",empty:"কোনো আইডিয়া পাওয়া যায়নি।",use:"পোস্টে ব্যবহার",
+   remove:"মুছুন",saved:"আইডিয়া সংরক্ষিত!",missing:"শিরোনাম বা নোট লিখুন।",
+   confirm:"এই আইডিয়াটি মুছবেন?",loaded:"পোস্ট ফর্মে যোগ হয়েছে।"
+  },
+  ru:{
+   heading:"💡 Библиотека идей",desc:"Сохраняйте идеи и превращайте их в черновики.",
+   title:"Название идеи",category:"Категория",notes:"Заметки",
+   save:"＋ Сохранить идею",clear:"Очистить форму",search:"🔍 Поиск идей...",
+   all:"Все категории",empty:"Идеи не найдены.",use:"Использовать в посте",
+   remove:"Удалить",saved:"Идея сохранена!",missing:"Введите название или заметки.",
+   confirm:"Удалить эту идею?",loaded:"Идея добавлена в форму публикации."
+  },
+  pt:{
+   heading:"💡 Biblioteca de ideias",desc:"Guarde ideias e transforme-as em rascunhos.",
+   title:"Título da ideia",category:"Categoria",notes:"Notas do conteúdo",
+   save:"＋ Salvar ideia",clear:"Limpar formulário",search:"🔍 Buscar ideias...",
+   all:"Todas as categorias",empty:"Nenhuma ideia encontrada.",use:"Usar na publicação",
+   remove:"Excluir",saved:"Ideia salva!",missing:"Digite um título ou notas.",
+   confirm:"Excluir esta ideia?",loaded:"Ideia adicionada ao formulário."
+  }
+ };
+
+ function lang(){
+  return String(
+   window.SISA_LANGUAGE?.current ||
+   localStorage.getItem("sisa_language") || "en"
+  ).toLowerCase();
+ }
+
+ function tr(key){
+  const code = lang();
+  return (words[code] && words[code][key]) ||
+         words.en[key] || key;
+ }
+
+ function saveData(){
+  try {
+   localStorage.setItem(KEY, JSON.stringify(ideas));
+  } catch(e) {
+   alert("Unable to save. Your browser storage may be full.");
+  }
+ }
+
+ function clearForm(){
+  $("sisaIdeaTitle").value = "";
+  $("sisaIdeaNotes").value = "";
+  $("sisaIdeaCategory").value = "General";
+ }
+
+ function applyLanguage(){
+  $("sisaIdeaHeading").textContent = tr("heading");
+  $("sisaIdeaDescription").textContent = tr("desc");
+  $("sisaIdeaSave").textContent = tr("save");
+  $("sisaIdeaClear").textContent = tr("clear");
+  $("sisaIdeaSearch").placeholder = tr("search");
+
+  const labels = $("sisaIdeaPanel").querySelectorAll("label");
+  if(labels[0]) labels[0].textContent = tr("title");
+  if(labels[1]) labels[1].textContent = tr("category");
+  if(labels[2]) labels[2].textContent = tr("notes");
+
+  $("sisaIdeaFilter").options[0].textContent = tr("all");
+  render();
+ }
+
+ function render(){
+  const list = $("sisaIdeaList");
+  list.replaceChildren();
+
+  const query = $("sisaIdeaSearch").value.trim().toLowerCase();
+  const category = $("sisaIdeaFilter").value;
+
+  const filtered = ideas.filter(item => {
+   const text = (item.title + " " + item.notes + " " +
+                item.category).toLowerCase();
+   return text.includes(query) &&
+          (category === "all" || item.category === category);
+  });
+
+  if(!filtered.length){
+   const empty = document.createElement("p");
+   empty.textContent = tr("empty");
+   list.appendChild(empty);
+   return;
+  }
+
+  filtered.slice().reverse().forEach(item => {
+   const card = document.createElement("div");
+   card.className = "idea-card";
+
+   const heading = document.createElement("h3");
+   heading.textContent = item.title || "Untitled idea";
+
+   const meta = document.createElement("p");
+   meta.className = "idea-muted";
+   meta.textContent = item.category + " • " +
+     new Date(item.createdAt).toLocaleDateString();
+
+   const notes = document.createElement("p");
+   notes.textContent = item.notes || "";
+
+   const use = document.createElement("button");
+   use.textContent = tr("use");
+   use.addEventListener("click", () => useIdea(item));
+
+   const del = document.createElement("button");
+   del.textContent = "🗑 " + tr("remove");
+   del.addEventListener("click", () => {
+    if(!confirm(tr("confirm"))) return;
+    ideas = ideas.filter(x => x.id !== item.id);
+    saveData();
+    render();
+   });
+
+   card.append(heading, meta, notes, use, del);
+   list.appendChild(card);
+  });
+ }
+
+ function useIdea(item){
+  const title = document.getElementById("postTitle");
+  const caption = document.getElementById("caption");
+  const hashtags = document.getElementById("hashtags");
+
+  if(title) title.value = item.title || "";
+  if(caption) caption.value = item.notes || "";
+
+  if(hashtags && !hashtags.value.trim()){
+   hashtags.value = "";
+  }
+
+  [title, caption, hashtags].forEach(el => {
+   if(el) el.dispatchEvent(new Event("input", {bubbles:true}));
+  });
+
+  $("sisaIdeaPanel").style.display = "none";
+
+  if(title || caption){
+   alert(tr("loaded"));
+  } else {
+   alert("Main post form fields were not found on this screen.");
+  }
+ }
+
+ $("sisaIdeaOpen").addEventListener("click", () => {
+  $("sisaIdeaPanel").style.display = "block";
+  applyLanguage();
+ });
+
+ $("sisaIdeaClose").addEventListener("click", () => {
+  $("sisaIdeaPanel").style.display = "none";
+ });
+
+ $("sisaIdeaSave").addEventListener("click", () => {
+  const title = $("sisaIdeaTitle").value.trim();
+  const notes = $("sisaIdeaNotes").value.trim();
+
+  if(!title && !notes){
+   alert(tr("missing"));
+   return;
+  }
+
+  ideas.push({
+   id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
+   title: title || "Untitled idea",
+   category: $("sisaIdeaCategory").value,
+   notes: notes,
+   createdAt: new Date().toISOString()
+  });
+
+  saveData();
+  clearForm();
+  render();
+  alert(tr("saved"));
+ });
+
+ $("sisaIdeaClear").addEventListener("click", clearForm);
+ $("sisaIdeaSearch").addEventListener("input", render);
+ $("sisaIdeaFilter").addEventListener("change", render);
+
+ window.addEventListener("sisa:languageChanged", applyLanguage);
+
+ window.SISA_IDEA_VAULT = {
+  open: () => {
+   $("sisaIdeaPanel").style.display = "block";
+   applyLanguage();
+  },
+  getIdeas: () => ideas.slice()
+ };
+
+ applyLanguage();
+})();
+
+/* =============== PART 2W END — CONTENT IDEA VAULT =============== */
+</script>
   
 </body>
 </html>
