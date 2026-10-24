@@ -8690,7 +8690,7 @@ renderSchedule();
   
 <!-- =====================================================
  SISA AI ASSISTANT — PART 2X
- UPDATED TOOLS PAGE + TOOLS HEADER BUTTON
+ FINAL TOOLS PAGE + FLOATING BUTTON CLEANUP
 ===================================================== -->
 
 <style>
@@ -8711,7 +8711,6 @@ renderSchedule();
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
   margin-bottom: 8px;
 }
 
@@ -8790,13 +8789,16 @@ renderSchedule();
   cursor: pointer;
 }
 
+/* Main header Tools button: keep visible */
 #sisaToolsHeaderButton {
-  display: inline-flex;
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  min-height: 46px;
-  padding: 0 17px;
+  min-height: 48px;
+  padding: 0 18px;
   border: 1px solid #8d56d9;
   border-radius: 13px;
   background: linear-gradient(135deg, #7137b7, #3d2162);
@@ -8805,9 +8807,11 @@ renderSchedule();
   font-weight: 750;
   box-shadow: 0 4px 18px #7137b733;
   cursor: pointer;
-  z-index: 20;
+  position: relative;
+  z-index: 9999;
 }
 
+/* Bottom navigation Tools button */
 #sisaToolsTab {
   flex: 1 1 0;
   min-width: 0;
@@ -8819,7 +8823,7 @@ renderSchedule();
   font: inherit;
   font-size: 12px;
   cursor: pointer;
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -8828,6 +8832,18 @@ renderSchedule();
 
 #sisaToolsTab.sisa-tools-active {
   color: #b58aff;
+}
+
+/* Hide only identified floating shortcuts */
+.sisa-tools-managed-floating {
+  display: none !important;
+}
+
+/* Do not hide either Tools button */
+#sisaToolsHeaderButton,
+#sisaToolsTab {
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 @media(max-width:380px) {
@@ -8871,6 +8887,7 @@ renderSchedule();
 (function () {
   "use strict";
 
+  /* Prevent this part from being initialized twice */
   if (window.SISA_TOOLS_PAGE) return;
 
   const page = document.getElementById("sisaToolsPage");
@@ -8878,6 +8895,10 @@ renderSchedule();
 
   if (!page || !grid) return;
 
+  /*
+    Create Post is intentionally NOT included in this list.
+    Settings is also omitted from the Tools list.
+  */
   const toolList = [
     ["Saved Drafts", "📁", ["saved drafts"]],
     ["Schedule Post", "📅", ["schedule post"]],
@@ -8915,6 +8936,10 @@ renderSchedule();
       .find(el => getComputedStyle(el).display !== "none");
   }
 
+  /*
+    Find an existing floating shortcut without matching
+    the new Tools button or the Create button.
+  */
   function findAction(tool) {
     const candidates = Array.from(
       document.querySelectorAll("button, a, [role='button']")
@@ -8924,10 +8949,11 @@ renderSchedule();
       if (page.contains(el)) return false;
       if (el.id === "sisaToolsTab") return false;
       if (el.id === "sisaToolsHeaderButton") return false;
+      if (el.id === "topCreate") return false;
 
       const text = normalise(el.innerText || el.textContent);
-      if (!text || text.length > 90) return false;
 
+      if (!text || text.length > 90) return false;
       if (!tool[2].some(keyword => text.includes(keyword))) return false;
 
       const rect = el.getBoundingClientRect();
@@ -8939,6 +8965,52 @@ renderSchedule();
          css.position === "absolute" ||
          /about sisa|settings/.test(text));
     });
+  }
+
+  /*
+    Hide floating shortcuts that belong in Tools.
+    Leave the Tools and Create buttons untouched.
+  */
+  function hideFloatingShortcuts() {
+    const keywords = [
+      "saved drafts",
+      "schedule post",
+      "ai caption studio",
+      "hashtag studio",
+      "content calendar",
+      "bulk planner",
+      "performance",
+      "hashtag sets",
+      "post builder",
+      "idea vault",
+      "publishing checklist",
+      "post checklist",
+      "languages",
+      "media caption",
+      "media details",
+      "media preview",
+      "backup",
+      "about sisa",
+      "settings"
+    ];
+
+    document.querySelectorAll("button, a, [role='button']")
+      .forEach(el => {
+        if (page.contains(el)) return;
+        if (el.id === "sisaToolsHeaderButton") return;
+        if (el.id === "sisaToolsTab") return;
+        if (el.id === "topCreate") return;
+
+        const text = normalise(el.innerText || el.textContent);
+        if (!text || text.length > 90) return;
+        if (!keywords.some(keyword => text.includes(keyword))) return;
+
+        const css = getComputedStyle(el);
+
+        if (css.position === "fixed" || css.position === "absolute") {
+          el.classList.add("sisa-tools-managed-floating");
+        }
+      });
   }
 
   function getApi(toolName) {
@@ -8954,7 +9026,7 @@ renderSchedule();
       "Post Builder": ["SISA_POST_BUILDER"],
       "Idea Vault": ["SISA_IDEA_VAULT"],
       "Publishing Checklist": ["SISA_PUBLISHING_CHECKLIST"],
-      "Post Checklist": ["SISA_POST_CHECKLIST", "SISA_PUBLISHING_CHECKLIST"],
+      "Post Checklist": ["SISA_POST_CHECKLIST"],
       "Languages": ["SISA_LANGUAGE_PICKER"],
       "Media Caption": ["SISA_MEDIA_CAPTION"],
       "Media Details": ["SISA_MEDIA_DETAILS"],
@@ -8965,7 +9037,10 @@ renderSchedule();
 
     for (const name of (apiNames[toolName] || [])) {
       const api = window[name];
-      if (api && typeof api.open === "function") return api;
+
+      if (api && typeof api.open === "function") {
+        return api;
+      }
     }
 
     return null;
@@ -8999,6 +9074,7 @@ renderSchedule();
 
     if (action && action.isConnected) {
       closeTools();
+
       action.classList.remove("sisa-tools-managed-floating");
       action.click();
 
@@ -9009,12 +9085,15 @@ renderSchedule();
           }
         }, 0);
       }
+
       return;
     }
 
-    if (tool[0] === "Media Caption" ||
-        tool[0] === "Media Details" ||
-        tool[0] === "Media Preview") {
+    if (
+      tool[0] === "Media Caption" ||
+      tool[0] === "Media Details" ||
+      tool[0] === "Media Preview"
+    ) {
       closeTools();
 
       const fileInput = document.querySelector('input[type="file"]');
@@ -9024,11 +9103,14 @@ renderSchedule();
       } else {
         alert("Media upload is not available on this screen yet.");
       }
+
       return;
     }
 
-    if (tool[0] === "Post Checklist" ||
-        tool[0] === "Publishing Checklist") {
+    if (
+      tool[0] === "Post Checklist" ||
+      tool[0] === "Publishing Checklist"
+    ) {
       const checklist = document.querySelector(
         "#sisaChecklistOpen, #sisaChecklistButton"
       );
@@ -9042,7 +9124,7 @@ renderSchedule();
 
     alert(
       tool[0] +
-      " का मौजूदा फीचर नहीं मिला। इस बटन को चलाने के लिए उसके फीचर का कोड/API जोड़ना होगा।"
+      " का मौजूदा फीचर/API नहीं मिला। इस टूल को चलाने के लिए उसका फीचर कोड जोड़ना होगा।"
     );
   }
 
@@ -9090,6 +9172,8 @@ renderSchedule();
       card.append(heading, button);
       grid.appendChild(card);
     });
+
+    hideFloatingShortcuts();
   }
 
   function findNavigation() {
@@ -9107,13 +9191,13 @@ renderSchedule();
   }
 
   function addToolsTab() {
-    const existing = document.getElementById("sisaToolsTab");
-    if (existing) return existing;
+    let tab = document.getElementById("sisaToolsTab");
+    if (tab) return tab;
 
     const nav = findNavigation();
     if (!nav) return null;
 
-    const tab = document.createElement("button");
+    tab = document.createElement("button");
     tab.type = "button";
     tab.id = "sisaToolsTab";
     tab.innerHTML = "<span>🧰</span><span>Tools</span>";
@@ -9129,20 +9213,65 @@ renderSchedule();
     return tab;
   }
 
+  /*
+    Add Tools beside the existing top Create button.
+    Do not hide or delete the original Create button.
+  */
   function addHeaderToolsButton() {
-    if (document.getElementById("sisaToolsHeaderButton")) return;
+    let toolsButton = document.getElementById("sisaToolsHeaderButton");
+    if (toolsButton) {
+      toolsButton.style.display = "inline-flex";
+      return toolsButton;
+    }
 
     const createButton = document.querySelector("#topCreate");
+    if (!createButton || !createButton.parentElement) return null;
 
-    if (!createButton || !createButton.parentElement) return;
-
-    const toolsButton = document.createElement("button");
+    toolsButton = document.createElement("button");
     toolsButton.type = "button";
     toolsButton.id = "sisaToolsHeaderButton";
     toolsButton.innerHTML = "🧰 Tools";
     toolsButton.addEventListener("click", openTools);
 
     createButton.parentElement.insertBefore(toolsButton, createButton);
+
+    return toolsButton;
+  }
+
+  /*
+    Try to move the existing Create button near Caption/Hashtags.
+    If those fields aren't found, leave Create where it is.
+  */
+  function placeCreateNearCaption() {
+    const createButton = document.querySelector("#topCreate");
+    if (!createButton) return;
+
+    const target = document.querySelector(
+      "#caption, #hashtags, #postCaption, #postHashtags, " +
+      "textarea[name='caption'], textarea[name='hashtags']"
+    );
+
+    if (!target) return;
+
+    const createView = target.closest(
+      "[id^='view-'], form, .create-form, .form-section"
+    );
+
+    const destination = createView || target.parentElement;
+    if (!destination || createButton.contains(destination)) return;
+
+    const targetGroup = target.closest(
+      ".form-group, .form-field, .field, .input-group, label"
+    );
+
+    const insertBefore = targetGroup || target;
+
+    if (insertBefore.parentElement) {
+      insertBefore.parentElement.insertBefore(createButton, insertBefore);
+      createButton.style.position = "relative";
+      createButton.style.inset = "auto";
+      createButton.style.margin = "10px 0";
+    }
   }
 
   function openTools() {
@@ -9177,11 +9306,13 @@ renderSchedule();
 
   addToolsTab();
   addHeaderToolsButton();
+  placeCreateNearCaption();
   renderTools();
 
   window.addEventListener("load", () => {
     addToolsTab();
     addHeaderToolsButton();
+    placeCreateNearCaption();
     renderTools();
   });
 
@@ -9189,28 +9320,6 @@ renderSchedule();
 
   /* =============== PART 2X END — TOOLS PAGE =============== */
 })();
-  /* =====================================================
- SISA PART 2X FIX — HIDE FLOATING TOOL BUTTONS
- Keep tool buttons only inside the Tools page
-===================================================== */
-
-/* Hide only the existing floating tool shortcuts */
-body .sisa-tools-managed-floating {
-  display: none !important;
-}
-
-/* Hide common floating shortcuts from earlier tool parts */
-body > button[id^="sisa"],
-body > div > button[id^="sisa"] {
-  /* Keep unrelated SISA controls unchanged */
-}
-
-/* The Tools page itself must remain visible when opened */
-#sisaToolsPage {
-  display: none;
-}
-
-/* =============== END FLOATING TOOLS FIX =============== */
 </script>
 
     
