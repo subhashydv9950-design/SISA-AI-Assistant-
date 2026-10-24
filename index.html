@@ -11624,23 +11624,12 @@ renderSchedule();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
 
-  window.SISA_CONTENT_CALENDAR = {
+    window.SISA_CONTENT_CALENDAR = {
     open: function () {
-      document.querySelectorAll(
-        "#sisaToolsPage, #sisaPostChecklist, #sisaMediaPreview, #sisaMediaDetails, #sisaCaptionStudio, #sisaHashtagStudio, #sisaIdeaVault, #sisaPublishingChecklist"
-      ).forEach(el => el.style.display = "none");
-
-      if (window.SISA_FULL_TOOL_NAV &&
-          typeof window.SISA_FULL_TOOL_NAV.open === "function") {
-        window.SISA_FULL_TOOL_NAV.open(
-          "Content Calendar",
-          "अपनी planned posts की तारीख और स्थिति व्यवस्थित करें।"
-        );
-      }
-
       page.style.display = "block";
       load();
       render();
+      window.scrollTo(0, 0);
     }
   };
 
