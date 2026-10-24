@@ -1549,5 +1549,302 @@ renderSchedule();
   window.SISA_TRANSLATE_DASHBOARD = translateDashboard;
 })();
   </script>
+  <script>
+/* =====================================================
+   SISA AI ASSISTANT — PART 2D
+   MULTILINGUAL CREATE POST INTERFACE
+===================================================== */
+
+(function () {
+  const translations = {
+    en: {
+      create: "Create Post",
+      platform: "Select Platform",
+      type: "Content Type",
+      title: "Post Title",
+      caption: "Caption",
+      hashtags: "Hashtags",
+      upload: "Upload Media",
+      generate: "Generate Caption",
+      save: "Save Draft",
+      clear: "Clear",
+      instagram: "Instagram",
+      facebook: "Facebook",
+      youtube: "YouTube",
+      image: "Image Post",
+      video: "Video Post",
+      reel: "Reel",
+      story: "Story",
+      placeholder: "Write your caption here..."
+    },
+    hi: {
+      create: "पोस्ट बनाएँ",
+      platform: "प्लेटफ़ॉर्म चुनें",
+      type: "कंटेंट का प्रकार",
+      title: "पोस्ट का शीर्षक",
+      caption: "कैप्शन",
+      hashtags: "हैशटैग",
+      upload: "मीडिया अपलोड करें",
+      generate: "कैप्शन बनाएँ",
+      save: "ड्राफ्ट सेव करें",
+      clear: "साफ़ करें",
+      instagram: "इंस्टाग्राम",
+      facebook: "फेसबुक",
+      youtube: "यूट्यूब",
+      image: "इमेज पोस्ट",
+      video: "वीडियो पोस्ट",
+      reel: "रील",
+      story: "स्टोरी",
+      placeholder: "यहाँ अपना कैप्शन लिखें..."
+    },
+    zh: {
+      create: "创建帖子",
+      platform: "选择平台",
+      type: "内容类型",
+      title: "帖子标题",
+      caption: "文案",
+      hashtags: "话题标签",
+      upload: "上传媒体",
+      generate: "生成文案",
+      save: "保存草稿",
+      clear: "清除",
+      instagram: "Instagram",
+      facebook: "Facebook",
+      youtube: "YouTube",
+      image: "图片帖子",
+      video: "视频帖子",
+      reel: "短视频",
+      story: "快拍",
+      placeholder: "在此输入文案..."
+    },
+    ja: {
+      create: "投稿を作成",
+      platform: "プラットフォームを選択",
+      type: "コンテンツの種類",
+      title: "投稿タイトル",
+      caption: "キャプション",
+      hashtags: "ハッシュタグ",
+      upload: "メディアをアップロード",
+      generate: "キャプションを作成",
+      save: "下書きを保存",
+      clear: "クリア",
+      instagram: "Instagram",
+      facebook: "Facebook",
+      youtube: "YouTube",
+      image: "画像投稿",
+      video: "動画投稿",
+      reel: "リール",
+      story: "ストーリー",
+      placeholder: "ここにキャプションを入力..."
+    },
+    ko: {
+      create: "게시물 만들기",
+      platform: "플랫폼 선택",
+      type: "콘텐츠 유형",
+      title: "게시물 제목",
+      caption: "캡션",
+      hashtags: "해시태그",
+      upload: "미디어 업로드",
+      generate: "캡션 생성",
+      save: "임시 저장",
+      clear: "지우기",
+      instagram: "Instagram",
+      facebook: "Facebook",
+      youtube: "YouTube",
+      image: "이미지 게시물",
+      video: "동영상 게시물",
+      reel: "릴스",
+      story: "스토리",
+      placeholder: "여기에 캡션을 작성하세요..."
+    },
+    fr: {
+      create: "Créer une publication",
+      platform: "Choisir une plateforme",
+      type: "Type de contenu",
+      title: "Titre de la publication",
+      caption: "Légende",
+      hashtags: "Hashtags",
+      upload: "Importer un média",
+      generate: "Générer une légende",
+      save: "Enregistrer le brouillon",
+      clear: "Effacer",
+      instagram: "Instagram",
+      facebook: "Facebook",
+      youtube: "YouTube",
+      image: "Publication image",
+      video: "Publication vidéo",
+      reel: "Reel",
+      story: "Story",
+      placeholder: "Écrivez votre légende ici..."
+    },
+    de: {
+      create: "Beitrag erstellen",
+      platform: "Plattform auswählen",
+      type: "Inhaltstyp",
+      title: "Beitragstitel",
+      caption: "Bildunterschrift",
+      hashtags: "Hashtags",
+      upload: "Medien hochladen",
+      generate: "Text erstellen",
+      save: "Entwurf speichern",
+      clear: "Leeren",
+      instagram: "Instagram",
+      facebook: "Facebook",
+      youtube: "YouTube",
+      image: "Bildbeitrag",
+      video: "Videobeitrag",
+      reel: "Reel",
+      story: "Story",
+      placeholder: "Schreibe hier deine Bildunterschrift..."
+    },
+    es: {
+      create: "Crear publicación",
+      platform: "Elegir plataforma",
+      type: "Tipo de contenido",
+      title: "Título de la publicación",
+      caption: "Descripción",
+      hashtags: "Hashtags",
+      upload: "Subir contenido",
+      generate: "Generar descripción",
+      save: "Guardar borrador",
+      clear: "Borrar",
+      instagram: "Instagram",
+      facebook: "Facebook",
+      youtube: "YouTube",
+      image: "Publicación de imagen",
+      video: "Publicación de vídeo",
+      reel: "Reel",
+      story: "Historia",
+      placeholder: "Escribe aquí tu descripción..."
+    },
+    ru: {
+      create: "Создать публикацию",
+      platform: "Выберите платформу",
+      type: "Тип контента",
+      title: "Заголовок публикации",
+      caption: "Подпись",
+      hashtags: "Хэштеги",
+      upload: "Загрузить медиа",
+      generate: "Создать подпись",
+      save: "Сохранить черновик",
+      clear: "Очистить",
+      instagram: "Instagram",
+      facebook: "Facebook",
+      youtube: "YouTube",
+      image: "Публикация с изображением",
+      video: "Видеопубликация",
+      reel: "Reel",
+      story: "История",
+      placeholder: "Введите подпись здесь..."
+    },
+    bn: {
+      create: "পোস্ট তৈরি করুন",
+      platform: "প্ল্যাটফর্ম নির্বাচন করুন",
+      type: "কনটেন্টের ধরন",
+      title: "পোস্টের শিরোনাম",
+      caption: "ক্যাপশন",
+      hashtags: "হ্যাশট্যাগ",
+      upload: "মিডিয়া আপলোড করুন",
+      generate: "ক্যাপশন তৈরি করুন",
+      save: "খসড়া সংরক্ষণ করুন",
+      clear: "মুছুন",
+      instagram: "Instagram",
+      facebook: "Facebook",
+      youtube: "YouTube",
+      image: "ছবির পোস্ট",
+      video: "ভিডিও পোস্ট",
+      reel: "রিল",
+      story: "স্টোরি",
+      placeholder: "এখানে ক্যাপশন লিখুন..."
+    },
+    ar: {
+      create: "إنشاء منشور",
+      platform: "اختر المنصة",
+      type: "نوع المحتوى",
+      title: "عنوان المنشور",
+      caption: "الوصف",
+      hashtags: "الوسوم",
+      upload: "رفع الوسائط",
+      generate: "إنشاء وصف",
+      save: "حفظ المسودة",
+      clear: "مسح",
+      instagram: "Instagram",
+      facebook: "Facebook",
+      youtube: "YouTube",
+      image: "منشور صورة",
+      video: "منشور فيديو",
+      reel: "ريلز",
+      story: "قصة",
+      placeholder: "اكتب الوصف هنا..."
+    }
+  };
+
+  function currentLanguage() {
+    return window.SISA_I18N?.language ||
+           window.SISA_LANGUAGE?.current ||
+           localStorage.getItem("sisa_language") ||
+           "en";
+  }
+
+  function applyCreateTranslations() {
+    const lang = currentLanguage();
+    const dictionary = translations[lang] || translations.en;
+
+    const map = {
+      "#pageTitle": "create",
+      "#chooseFiles": "upload",
+      "#suggestButton": "generate",
+      "#saveDraftButton": "save",
+      "#clearButton": "clear",
+      "label[for='platform']": "platform",
+      "label[for='contentType']": "type",
+      "label[for='postTitle']": "title",
+      "label[for='caption']": "caption",
+      "label[for='hashtags']": "hashtags"
+    };
+
+    Object.entries(map).forEach(([selector, key]) => {
+      const element = document.querySelector(selector);
+      if (!element) return;
+
+      if (!element.dataset.sisaOriginalText) {
+        element.dataset.sisaOriginalText =
+          element.textContent.trim();
+      }
+
+      element.textContent =
+        dictionary[key] ||
+        element.dataset.sisaOriginalText;
+    });
+
+    const caption = document.querySelector("#caption");
+    if (caption) {
+      caption.placeholder =
+        dictionary.placeholder || translations.en.placeholder;
+    }
+
+    document.documentElement.dir =
+      ["ar", "ur", "fa", "he"].includes(lang) ? "rtl" : "ltr";
+  }
+
+  window.SISA_CREATE_TRANSLATIONS = translations;
+  window.SISA_APPLY_CREATE_TRANSLATIONS =
+    applyCreateTranslations;
+
+  window.addEventListener(
+    "sisa:languageChanged",
+    applyCreateTranslations
+  );
+
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      applyCreateTranslations
+    );
+  } else {
+    applyCreateTranslations();
+  }
+})();
+  </script>
 </body>
 </html>
