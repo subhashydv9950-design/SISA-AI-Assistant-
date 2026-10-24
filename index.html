@@ -11160,6 +11160,2634 @@ renderSchedule();
 </script>
 <!-- END PART 2AF -->
   
+<!-- =====================================================
+     SISA AI ASSISTANT — PART 2AG
+     PUBLISHING CHECKLIST
+===================================================== -->
+<style>
+#sisaPublishingChecklist {
+  display: none;
+  padding: 16px;
+  color: #f5f0ff;
+  font-family: inherit;
+}
+#sisaPublishingChecklist .spc-card {
+  background: #171222;
+  border: 1px solid #39245a;
+  border-radius: 16px;
+  padding: 15px;
+  margin: 12px 0;
+}
+#sisaPublishingChecklist .spc-progress {
+  height: 9px;
+  background: #30243e;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 12px 0;
+}
+#sisaPublishingChecklist .spc-progress span {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: #a78bfa;
+  transition: width .2s ease;
+}
+#sisaPublishingChecklist .spc-task {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid #30243e;
+}
+#sisaPublishingChecklist .spc-task input {
+  width: 19px;
+  height: 19px;
+  accent-color: #a78bfa;
+  flex-shrink: 0;
+}
+#sisaPublishingChecklist .spc-task label {
+  line-height: 1.45;
+}
+#sisaPublishingChecklist .spc-muted {
+  color: #b9aaca;
+  font-size: 13px;
+}
+#sisaPublishingChecklist button {
+  margin: 8px 6px 0 0;
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 10px;
+  color: white;
+  background: #7c3aed;
+  font-weight: 700;
+}
+</style>
+
+<section id="sisaPublishingChecklist">
+  <h2>✅ Publishing Checklist</h2>
+  <p class="spc-muted">पोस्ट प्रकाशित करने से पहले इन चरणों को जाँचें।</p>
+
+  <div class="spc-card">
+    <b id="spcCount">0 / 10 पूरे</b>
+    <div class="spc-progress">
+      <span id="spcBar"></span>
+    </div>
+    <div id="spcTasks"></div>
+    <button type="button" id="spcReset">फिर से शुरू करें</button>
+    <button type="button" id="spcCopy">Checklist कॉपी करें</button>
+    <p class="spc-muted" id="spcStatus" aria-live="polite"></p>
+  </div>
+</section>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const page = $("sisaPublishingChecklist");
+  if (!page || page.dataset.ready === "1") return;
+  page.dataset.ready = "1";
+
+  const KEY = "sisa_publishing_checklist_v1";
+  const tasks = [
+    "पोस्ट का विषय और उद्देश्य स्पष्ट है",
+    "Caption की spelling और grammar जाँच ली",
+    "Hashtags विषय के अनुसार हैं",
+    "Image या video सही चुना है",
+    "Media की quality जाँच ली",
+    "किसी दूसरे का copyrighted content बिना अनुमति इस्तेमाल नहीं किया",
+    "ज़रूरी tags और mentions जाँच लिए",
+    "Privacy और audience settings जाँच ली",
+    "Post का समय और platform जाँच लिया",
+    "Publish करने से पहले final preview देख लिया"
+  ];
+
+  let checked = [];
+
+  function load() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(KEY) || "[]");
+      checked = Array.isArray(saved)
+        ? tasks.map((_, i) => saved.includes(i))
+        : tasks.map(() => false);
+    } catch (_) {
+      checked = tasks.map(() => false);
+    }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(
+        KEY,
+        JSON.stringify(checked.map((v, i) => v ? i : -1).filter(i => i >= 0))
+      );
+      return true;
+    } catch (_) {
+      $("spcStatus").textContent = "ब्राउज़र में progress सेव नहीं हो पाई।";
+      return false;
+    }
+  }
+
+  function render() {
+    const container = $("spcTasks");
+    container.replaceChildren();
+
+    tasks.forEach((task, index) => {
+      const row = document.createElement("div");
+      row.className = "spc-task";
+
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.id = "spcTask" + index;
+      input.checked = !!checked[index];
+      input.addEventListener("change", function () {
+        checked[index] = input.checked;
+        save();
+        updateProgress();
+      });
+
+      const label = document.createElement("label");
+      label.htmlFor = input.id;
+      label.textContent = task;
+
+      row.append(input, label);
+      container.appendChild(row);
+    });
+
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const completed = checked.filter(Boolean).length;
+    $("spcCount").textContent = completed + " / " + tasks.length + " पूरे";
+    $("spcBar").style.width = (completed / tasks.length * 100) + "%";
+    if (completed === tasks.length) {
+      $("spcStatus").textContent = "बहुत बढ़िया! सभी checklist items पूरे हैं।";
+    } else if (!$("spcStatus").textContent.includes("सेव नहीं")) {
+      $("spcStatus").textContent = "";
+    }
+  }
+
+  $("spcReset").addEventListener("click", function () {
+    checked = tasks.map(() => false);
+    save();
+    render();
+    $("spcStatus").textContent = "Checklist रीसेट हो गई।";
+  });
+
+  $("spcCopy").addEventListener("click", async function () {
+    const text = tasks.map((task, i) =>
+      (checked[i] ? "[x] " : "[ ] ") + task
+    ).join("\n");
+
+    try {
+      await navigator.clipboard.writeText(text);
+      $("spcStatus").textContent = "Checklist कॉपी हो गई।";
+    } catch (_) {
+      const area = document.createElement("textarea");
+      area.value = text;
+      page.appendChild(area);
+      area.select();
+      const ok = document.execCommand("copy");
+      area.remove();
+      $("spcStatus").textContent = ok
+        ? "Checklist कॉपी हो गई।"
+        : "Checklist को चुनकर कॉपी करें।";
+    }
+  });
+
+  window.SISA_PUBLISHING_CHECKLIST = {
+    open: function () {
+      document.querySelectorAll(
+        "#sisaToolsPage, #sisaPostChecklist, #sisaMediaPreview, #sisaMediaDetails, #sisaCaptionStudio, #sisaHashtagStudio, #sisaIdeaVault"
+      ).forEach(el => el.style.display = "none");
+
+      if (window.SISA_FULL_TOOL_NAV &&
+          typeof window.SISA_FULL_TOOL_NAV.open === "function") {
+        window.SISA_FULL_TOOL_NAV.open(
+          "Publishing Checklist",
+          "पोस्ट प्रकाशित करने से पहले सभी जरूरी चीज़ें जाँचें।"
+        );
+      }
+
+      page.style.display = "block";
+      load();
+      render();
+    }
+  };
+
+  load();
+  render();
+})();
+</script>
+<!-- END PART 2AG -->
+  
+<!-- =====================================================
+     SISA AI ASSISTANT — PART 2AH
+     CONTENT CALENDAR
+===================================================== -->
+<style>
+#sisaContentCalendar {
+  display: none;
+  padding: 16px;
+  color: #f5f0ff;
+  font-family: inherit;
+}
+#sisaContentCalendar .scc-card {
+  background: #171222;
+  border: 1px solid #39245a;
+  border-radius: 16px;
+  padding: 15px;
+  margin: 12px 0;
+}
+#sisaContentCalendar input,
+#sisaContentCalendar select {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  margin-top: 8px;
+  color: white;
+  background: #0d0a14;
+  border: 1px solid #493064;
+  border-radius: 10px;
+  font: inherit;
+}
+#sisaContentCalendar button {
+  margin: 8px 6px 0 0;
+  padding: 10px 13px;
+  border: 0;
+  border-radius: 10px;
+  color: white;
+  background: #7c3aed;
+  font-weight: 700;
+}
+#sisaContentCalendar .scc-muted {
+  color: #b9aaca;
+  font-size: 13px;
+}
+#sisaContentCalendar .scc-item {
+  border: 1px solid #39245a;
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 10px;
+  background: #100c19;
+  overflow-wrap: anywhere;
+}
+</style>
+
+<section id="sisaContentCalendar">
+  <h2>📅 Content Calendar</h2>
+  <p class="scc-muted">अपने content ideas और planned posts की तारीख व्यवस्थित करें।</p>
+
+  <div class="scc-card">
+    <label for="sccDate">पोस्ट की तारीख</label>
+    <input type="date" id="sccDate">
+
+    <label for="sccPlatform">प्लेटफ़ॉर्म</label>
+    <select id="sccPlatform">
+      <option>Instagram</option>
+      <option>Facebook</option>
+      <option>YouTube</option>
+      <option>LinkedIn</option>
+      <option>X</option>
+      <option>Other</option>
+    </select>
+
+    <label for="sccTitle">पोस्ट का नाम / आइडिया</label>
+    <input id="sccTitle" maxlength="200" placeholder="जैसे: Weekly travel post">
+
+    <label for="sccStatusSelect">स्थिति</label>
+    <select id="sccStatusSelect">
+      <option>Idea</option>
+      <option>Draft</option>
+      <option>Ready to publish</option>
+      <option>Published</option>
+    </select>
+
+    <button type="button" id="sccAdd">＋ Calendar में जोड़ें</button>
+    <div id="sccMessage" class="scc-muted" aria-live="polite"></div>
+  </div>
+
+  <div class="scc-card">
+    <label for="sccFilter">तारीख के अनुसार फ़िल्टर</label>
+    <input type="date" id="sccFilter">
+    <button type="button" id="sccShowAll">सभी पोस्ट दिखाएँ</button>
+    <div id="sccList"></div>
+    <button type="button" id="sccExport">Calendar डाउनलोड करें</button>
+  </div>
+</section>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const page = $("sisaContentCalendar");
+  if (!page || page.dataset.ready === "1") return;
+  page.dataset.ready = "1";
+
+  const KEY = "sisa_content_calendar_v1";
+  let entries = [];
+  let filterDate = "";
+
+  function load() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(KEY) || "[]");
+      entries = Array.isArray(saved) ? saved : [];
+    } catch (_) {
+      entries = [];
+    }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(entries));
+      return true;
+    } catch (_) {
+      $("sccMessage").textContent = "सेव नहीं हो पाया; ब्राउज़र स्टोरेज उपलब्ध नहीं है।";
+      return false;
+    }
+  }
+
+  function render() {
+    const list = $("sccList");
+    list.replaceChildren();
+
+    const visible = entries
+      .filter(item => !filterDate || item.date === filterDate)
+      .slice()
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    if (!visible.length) {
+      const empty = document.createElement("p");
+      empty.className = "scc-muted";
+      empty.textContent = "इस तारीख के लिए कोई पोस्ट नहीं है।";
+      list.appendChild(empty);
+      return;
+    }
+
+    visible.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "scc-item";
+
+      const title = document.createElement("b");
+      title.textContent = item.title;
+
+      const info = document.createElement("p");
+      info.className = "scc-muted";
+      info.textContent = item.date + " · " + item.platform + " · " + item.status;
+
+      const status = document.createElement("select");
+      ["Idea", "Draft", "Ready to publish", "Published"].forEach(value => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        status.appendChild(option);
+      });
+      status.value = item.status;
+      status.addEventListener("change", function () {
+        item.status = status.value;
+        save();
+        render();
+        $("sccMessage").textContent = "पोस्ट की स्थिति अपडेट हो गई।";
+      });
+
+      const remove = document.createElement("button");
+      remove.textContent = "हटाएँ";
+      remove.addEventListener("click", function () {
+        entries = entries.filter(entry => entry.id !== item.id);
+        if (save()) {
+          render();
+          $("sccMessage").textContent = "पोस्ट calendar से हटा दी गई।";
+        }
+      });
+
+      card.append(title, info, status, remove);
+      list.appendChild(card);
+    });
+  }
+
+  $("sccAdd").addEventListener("click", function () {
+    const date = $("sccDate").value;
+    const title = $("sccTitle").value.trim();
+
+    if (!date || !title) {
+      $("sccMessage").textContent = "तारीख और पोस्ट का नाम दोनों भरें।";
+      return;
+    }
+
+    entries.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+      date,
+      title,
+      platform: $("sccPlatform").value,
+      status: $("sccStatusSelect").value
+    });
+
+    if (save()) {
+      $("sccTitle").value = "";
+      $("sccMessage").textContent = "पोस्ट calendar में सेव हो गई।";
+      render();
+    }
+  });
+
+  $("sccFilter").addEventListener("change", function () {
+    filterDate = this.value;
+    render();
+  });
+
+  $("sccShowAll").addEventListener("click", function () {
+    filterDate = "";
+    $("sccFilter").value = "";
+    render();
+  });
+
+  $("sccExport").addEventListener("click", function () {
+    if (!entries.length) {
+      $("sccMessage").textContent = "डाउनलोड करने के लिए calendar खाली है।";
+      return;
+    }
+
+    const rows = [["Date", "Platform", "Title", "Status"],
+      ...entries.map(item => [
+        item.date, item.platform, item.title, item.status
+      ])];
+
+    const csv = rows.map(row => row.map(value =>
+      '"' + String(value).replace(/"/g, '""') + '"'
+    ).join(",")).join("\r\n");
+
+    const blob = new Blob(["\uFEFF" + csv], {
+      type: "text/csv;charset=utf-8"
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sisa-content-calendar.csv";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  window.SISA_CONTENT_CALENDAR = {
+    open: function () {
+      document.querySelectorAll(
+        "#sisaToolsPage, #sisaPostChecklist, #sisaMediaPreview, #sisaMediaDetails, #sisaCaptionStudio, #sisaHashtagStudio, #sisaIdeaVault, #sisaPublishingChecklist"
+      ).forEach(el => el.style.display = "none");
+
+      if (window.SISA_FULL_TOOL_NAV &&
+          typeof window.SISA_FULL_TOOL_NAV.open === "function") {
+        window.SISA_FULL_TOOL_NAV.open(
+          "Content Calendar",
+          "अपनी planned posts की तारीख और स्थिति व्यवस्थित करें।"
+        );
+      }
+
+      page.style.display = "block";
+      load();
+      render();
+    }
+  };
+
+  load();
+  render();
+})();
+</script>
+<!-- END PART 2AH -->
+  
+<!-- =====================================================
+     SISA AI ASSISTANT — PART 2AI
+     BULK CONTENT PLANNER
+===================================================== -->
+
+<style>
+#sisaBulkPlanner {
+  display: none;
+  padding: 16px;
+  color: #f5f0ff;
+  font-family: inherit;
+}
+#sisaBulkPlanner .sbp-card {
+  background: #171222;
+  border: 1px solid #39245a;
+  border-radius: 16px;
+  padding: 15px;
+  margin: 12px 0;
+}
+#sisaBulkPlanner input,
+#sisaBulkPlanner textarea,
+#sisaBulkPlanner select {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid #493064;
+  border-radius: 10px;
+  background: #0d0a14;
+  color: white;
+  font: inherit;
+}
+#sisaBulkPlanner button {
+  margin: 8px 5px 0 0;
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 10px;
+  color: white;
+  background: #7c3aed;
+  font-weight: 700;
+}
+#sisaBulkPlanner .sbp-muted {
+  color: #b9aaca;
+  font-size: 13px;
+}
+#sisaBulkPlanner .sbp-item {
+  padding: 12px;
+  margin-top: 10px;
+  border: 1px solid #39245a;
+  border-radius: 12px;
+  background: #100c19;
+  overflow-wrap: anywhere;
+}
+</style>
+
+<section id="sisaBulkPlanner">
+  <h2>📦 Bulk Content Planner</h2>
+  <p class="sbp-muted">
+    एक साथ कई पोस्ट के आइडिया बनाएँ, उन्हें व्यवस्थित करें और डाउनलोड करें।
+  </p>
+
+  <div class="sbp-card">
+    <label for="sbpTopic">मुख्य विषय</label>
+    <input id="sbpTopic" maxlength="160"
+      placeholder="जैसे: Photography, Travel, Business">
+
+    <label for="sbpPlatform">प्लेटफ़ॉर्म</label>
+    <select id="sbpPlatform">
+      <option>Instagram</option>
+      <option>Facebook</option>
+      <option>YouTube</option>
+      <option>LinkedIn</option>
+      <option>X</option>
+    </select>
+
+    <label for="sbpQuantity">कितने पोस्ट आइडिया?</label>
+    <select id="sbpQuantity">
+      <option value="5">5 पोस्ट</option>
+      <option value="10">10 पोस्ट</option>
+      <option value="15">15 पोस्ट</option>
+      <option value="20">20 पोस्ट</option>
+    </select>
+
+    <label for="sbpStartDate">पहली पोस्ट की तारीख</label>
+    <input id="sbpStartDate" type="date">
+
+    <label for="sbpInterval">पोस्ट के बीच अंतर</label>
+    <select id="sbpInterval">
+      <option value="1">हर दिन</option>
+      <option value="2">हर 2 दिन</option>
+      <option value="3">हर 3 दिन</option>
+      <option value="7">हर सप्ताह</option>
+    </select>
+
+    <button type="button" id="sbpGenerate">पोस्ट प्लान बनाएँ</button>
+    <button type="button" id="sbpClear">नया प्लान</button>
+    <p id="sbpMessage" class="sbp-muted" aria-live="polite"></p>
+  </div>
+
+  <div class="sbp-card">
+    <b>आपका Bulk Plan</b>
+    <div id="sbpResults"></div>
+    <button type="button" id="sbpSave">प्लान सेव करें</button>
+    <button type="button" id="sbpDownload">CSV डाउनलोड करें</button>
+  </div>
+</section>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const page = $("sisaBulkPlanner");
+
+  if (!page || page.dataset.ready === "1") return;
+  page.dataset.ready = "1";
+
+  const STORAGE_KEY = "sisa_bulk_planner_v1";
+  let posts = [];
+
+  const ideaFormats = [
+    "शुरुआती लोगों के लिए 5 उपयोगी टिप्स",
+    "इस विषय की 3 आम गलतियाँ",
+    "एक आसान Step-by-step गाइड",
+    "पहले और बाद का अनुभव",
+    "अक्सर पूछे जाने वाले सवाल",
+    "इस विषय से जुड़ी एक दिलचस्प बात",
+    "अपना अनुभव और उससे मिली सीख",
+    "एक उपयोगी Checklist",
+    "Myth बनाम Fact",
+    "इस विषय पर एक छोटा Tutorial",
+    "Top 5 सुझाव",
+    "एक आम समस्या और उसका समाधान",
+    "Behind the Scenes",
+    "एक विस्तृत Guide",
+    "नए लोगों के लिए जरूरी बातें",
+    "एक प्रेरणादायक कहानी",
+    "एक Quick Tip",
+    "किसी लोकप्रिय सवाल का जवाब",
+    "एक उपयोगी तुलना",
+    "अगले कदमों की सूची"
+  ];
+
+  function render() {
+    const container = $("sbpResults");
+    container.replaceChildren();
+
+    if (!posts.length) {
+      const empty = document.createElement("p");
+      empty.className = "sbp-muted";
+      empty.textContent = "अपना प्लान बनाने के लिए ऊपर जानकारी भरें।";
+      container.appendChild(empty);
+      return;
+    }
+
+    posts.forEach((post, index) => {
+      const card = document.createElement("div");
+      card.className = "sbp-item";
+
+      const heading = document.createElement("b");
+      heading.textContent = "पोस्ट " + (index + 1);
+
+      const date = document.createElement("p");
+      date.className = "sbp-muted";
+      date.textContent = post.date + " · " + post.platform;
+
+      const title = document.createElement("textarea");
+      title.rows = 2;
+      title.maxLength = 250;
+      title.value = post.title;
+      title.setAttribute("aria-label", "पोस्ट " + (index + 1) + " का विषय");
+
+      title.addEventListener("input", function () {
+        post.title = title.value;
+      });
+
+      const remove = document.createElement("button");
+      remove.textContent = "हटाएँ";
+      remove.addEventListener("click", function () {
+        posts.splice(index, 1);
+        render();
+      });
+
+      card.append(heading, date, title, remove);
+      container.appendChild(card);
+    });
+  }
+
+  function generatePlan() {
+    const topic = $("sbpTopic").value.trim();
+    const start = $("sbpStartDate").value;
+
+    if (!topic || !start) {
+      $("sbpMessage").textContent =
+        "मुख्य विषय और पहली पोस्ट की तारीख भरें।";
+      return;
+    }
+
+    const quantity = Number($("sbpQuantity").value);
+    const interval = Number($("sbpInterval").value);
+    const platform = $("sbpPlatform").value;
+
+    // Parse the date as a local calendar date to avoid timezone shifts.
+    const parts = start.split("-").map(Number);
+    const baseDate = new Date(parts[0], parts[1] - 1, parts[2]);
+
+    posts = Array.from({ length: quantity }, (_, index) => {
+      const date = new Date(baseDate);
+      date.setDate(date.getDate() + index * interval);
+
+      const formattedDate =
+        date.getFullYear() + "-" +
+        String(date.getMonth() + 1).padStart(2, "0") + "-" +
+        String(date.getDate()).padStart(2, "0");
+
+      return {
+        date: formattedDate,
+        platform,
+        title: topic + " — " + ideaFormats[index % ideaFormats.length]
+      };
+    });
+
+    render();
+    $("sbpMessage").textContent =
+      posts.length + " पोस्ट आइडिया तैयार हैं। आप हर आइडिया एडिट कर सकते हैं।";
+  }
+
+  $("sbpGenerate").addEventListener("click", generatePlan);
+
+  $("sbpClear").addEventListener("click", function () {
+    posts = [];
+    render();
+    $("sbpMessage").textContent = "नया प्लान बनाने के लिए जानकारी भरें।";
+  });
+
+  $("sbpSave").addEventListener("click", function () {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+      $("sbpMessage").textContent = "Bulk Plan इस ब्राउज़र में सेव हो गया।";
+    } catch (_) {
+      $("sbpMessage").textContent = "सेव नहीं हो पाया। ब्राउज़र स्टोरेज जाँचें।";
+    }
+  });
+
+  $("sbpDownload").addEventListener("click", function () {
+    if (!posts.length) {
+      $("sbpMessage").textContent = "पहले पोस्ट प्लान बनाएँ।";
+      return;
+    }
+
+    const rows = [
+      ["Date", "Platform", "Post Idea"],
+      ...posts.map(post => [post.date, post.platform, post.title])
+    ];
+
+    const csv = rows.map(row => row.map(value =>
+      '"' + String(value).replace(/"/g, '""') + '"'
+    ).join(",")).join("\r\n");
+
+    const blob = new Blob(["\uFEFF" + csv], {
+      type: "text/csv;charset=utf-8"
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "sisa-bulk-content-plan.csv";
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  window.SISA_BULK_PLANNER = {
+    open: function () {
+      document.querySelectorAll(
+        "#sisaToolsPage, #sisaContentCalendar, #sisaIdeaVault, #sisaCaptionStudio, #sisaHashtagStudio, #sisaMediaPreview, #sisaMediaDetails, #sisaPostChecklist, #sisaPublishingChecklist"
+      ).forEach(el => el.style.display = "none");
+
+      page.style.display = "block";
+
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        if (Array.isArray(saved) && saved.length) posts = saved;
+      } catch (_) {}
+
+      render();
+    },
+    getPosts: function () {
+      return posts.map(post => ({ ...post }));
+    }
+  };
+
+  render();
+})();
+</script>
+
+<!-- END PART 2AI -->
+  
+<!-- =====================================================
+     SISA AI ASSISTANT — PART 2AJ
+     POST PERFORMANCE TRACKER
+===================================================== -->
+
+<style>
+#sisaPerformanceTracker {
+  display: none;
+  padding: 16px;
+  color: #f5f0ff;
+  font-family: inherit;
+}
+#sisaPerformanceTracker .spt-card {
+  background: #171222;
+  border: 1px solid #39245a;
+  border-radius: 16px;
+  padding: 15px;
+  margin: 12px 0;
+}
+#sisaPerformanceTracker input,
+#sisaPerformanceTracker select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px;
+  margin-top: 8px;
+  background: #0d0a14;
+  color: white;
+  border: 1px solid #493064;
+  border-radius: 10px;
+  font: inherit;
+}
+#sisaPerformanceTracker button {
+  margin: 8px 5px 0 0;
+  padding: 10px 13px;
+  border: 0;
+  border-radius: 10px;
+  color: white;
+  background: #7c3aed;
+  font-weight: 700;
+}
+#sisaPerformanceTracker .spt-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+#sisaPerformanceTracker .spt-metric {
+  background: #100c19;
+  border: 1px solid #39245a;
+  border-radius: 12px;
+  padding: 12px;
+  min-width: 0;
+}
+#sisaPerformanceTracker .spt-number {
+  font-size: 23px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+#sisaPerformanceTracker .spt-muted {
+  color: #b9aaca;
+  font-size: 13px;
+}
+#sisaPerformanceTracker .spt-entry {
+  padding: 12px 0;
+  border-bottom: 1px solid #39245a;
+  overflow-wrap: anywhere;
+}
+</style>
+
+<section id="sisaPerformanceTracker">
+  <h2>📊 Post Performance Tracker</h2>
+  <p class="spt-muted">
+    अपने पोस्ट के आँकड़े दर्ज करें और उनकी engagement rate देखें।
+  </p>
+
+  <div class="spt-card">
+    <label for="sptTitle">पोस्ट का नाम</label>
+    <input id="sptTitle" maxlength="150"
+      placeholder="जैसे: Jaipur Travel Reel">
+
+    <label for="sptPlatform">प्लेटफ़ॉर्म</label>
+    <select id="sptPlatform">
+      <option>Instagram</option>
+      <option>Facebook</option>
+      <option>YouTube</option>
+      <option>LinkedIn</option>
+      <option>X</option>
+      <option>Other</option>
+    </select>
+
+    <label for="sptDate">पोस्ट की तारीख</label>
+    <input id="sptDate" type="date">
+
+    <label for="sptReach">Reach / Views</label>
+    <input id="sptReach" type="number" min="0" step="1" value="0">
+
+    <label for="sptLikes">Likes</label>
+    <input id="sptLikes" type="number" min="0" step="1" value="0">
+
+    <label for="sptComments">Comments</label>
+    <input id="sptComments" type="number" min="0" step="1" value="0">
+
+    <label for="sptShares">Shares</label>
+    <input id="sptShares" type="number" min="0" step="1" value="0">
+
+    <label for="sptSaves">Saves</label>
+    <input id="sptSaves" type="number" min="0" step="1" value="0">
+
+    <button type="button" id="sptAdd">＋ आँकड़े सेव करें</button>
+    <p id="sptMessage" class="spt-muted" aria-live="polite"></p>
+  </div>
+
+  <div class="spt-grid">
+    <div class="spt-metric">
+      <div class="spt-muted">कुल पोस्ट</div>
+      <div class="spt-number" id="sptTotal">0</div>
+    </div>
+    <div class="spt-metric">
+      <div class="spt-muted">कुल Reach / Views</div>
+      <div class="spt-number" id="sptReachTotal">0</div>
+    </div>
+    <div class="spt-metric">
+      <div class="spt-muted">कुल Interactions</div>
+      <div class="spt-number" id="sptInteractions">0</div>
+    </div>
+    <div class="spt-metric">
+      <div class="spt-muted">औसत Engagement Rate</div>
+      <div class="spt-number" id="sptRate">0%</div>
+    </div>
+  </div>
+
+  <div class="spt-card">
+    <b>आपके पोस्ट के आँकड़े</b>
+    <div id="sptEntries"></div>
+    <button type="button" id="sptExport">CSV डाउनलोड करें</button>
+  </div>
+</section>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const page = $("sisaPerformanceTracker");
+
+  if (!page || page.dataset.ready === "1") return;
+  page.dataset.ready = "1";
+
+  const KEY = "sisa_post_performance_v1";
+  let records = [];
+
+  function load() {
+    try {
+      const data = JSON.parse(localStorage.getItem(KEY) || "[]");
+      records = Array.isArray(data) ? data : [];
+    } catch (_) {
+      records = [];
+    }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(records));
+      return true;
+    } catch (_) {
+      $("sptMessage").textContent =
+        "सेव नहीं हुआ। ब्राउज़र स्टोरेज उपलब्ध नहीं है।";
+      return false;
+    }
+  }
+
+  function number(id) {
+    const value = $(id).value.trim();
+    if (value === "") return null;
+    const parsed = Number(value);
+    if (!Number.isSafeInteger(parsed) || parsed < 0) return null;
+    return parsed;
+  }
+
+  function fmt(value) {
+    return Number(value || 0).toLocaleString();
+  }
+
+  function render() {
+    const totalReach = records.reduce((sum, r) => sum + r.reach, 0);
+    const totalInteractions = records.reduce(
+      (sum, r) => sum + r.likes + r.comments + r.shares + r.saves, 0
+    );
+
+    const totalRate = records.reduce((sum, r) => {
+      return sum + (r.reach > 0
+        ? ((r.likes + r.comments + r.shares + r.saves) / r.reach) * 100
+        : 0);
+    }, 0);
+
+    const rateCount = records.filter(r => r.reach > 0).length;
+    const avgRate = rateCount ? totalRate / rateCount : 0;
+
+    $("sptTotal").textContent = fmt(records.length);
+    $("sptReachTotal").textContent = fmt(totalReach);
+    $("sptInteractions").textContent = fmt(totalInteractions);
+    $("sptRate").textContent = avgRate.toFixed(2) + "%";
+
+    const container = $("sptEntries");
+    container.replaceChildren();
+
+    if (!records.length) {
+      const empty = document.createElement("p");
+      empty.className = "spt-muted";
+      empty.textContent = "अभी कोई पोस्ट आँकड़ा सेव नहीं है।";
+      container.appendChild(empty);
+      return;
+    }
+
+    records.forEach(record => {
+      const item = document.createElement("div");
+      item.className = "spt-entry";
+
+      const title = document.createElement("b");
+      title.textContent = record.title;
+
+      const details = document.createElement("p");
+      details.className = "spt-muted";
+      details.textContent =
+        record.platform + " · " + record.date +
+        "\nReach: " + fmt(record.reach) +
+        " · Likes: " + fmt(record.likes) +
+        " · Comments: " + fmt(record.comments) +
+        " · Shares: " + fmt(record.shares) +
+        " · Saves: " + fmt(record.saves);
+
+      const interactions =
+        record.likes + record.comments + record.shares + record.saves;
+      const rate = record.reach > 0
+        ? (interactions / record.reach * 100).toFixed(2) + "%"
+        : "N/A — Reach 0";
+
+      const result = document.createElement("div");
+      result.textContent = "Engagement Rate: " + rate;
+
+      const remove = document.createElement("button");
+      remove.textContent = "हटाएँ";
+      remove.addEventListener("click", function () {
+        records = records.filter(r => r.id !== record.id);
+        if (save()) {
+          render();
+          $("sptMessage").textContent = "रिकॉर्ड हटा दिया गया।";
+        }
+      });
+
+      item.append(title, details, result, remove);
+      container.appendChild(item);
+    });
+  }
+
+  $("sptAdd").addEventListener("click", function () {
+    const title = $("sptTitle").value.trim();
+    const date = $("sptDate").value;
+
+    const reach = number("sptReach");
+    const likes = number("sptLikes");
+    const comments = number("sptComments");
+    const shares = number("sptShares");
+    const saves = number("sptSaves");
+
+    if (!title || !date) {
+      $("sptMessage").textContent = "पोस्ट का नाम और तारीख भरें।";
+      return;
+    }
+
+    if ([reach, likes, comments, shares, saves].some(v => v === null)) {
+      $("sptMessage").textContent =
+        "सभी आँकड़े 0 या उससे बड़ी पूर्ण संख्या होने चाहिए।";
+      return;
+    }
+
+    if (likes + comments + shares + saves > Number.MAX_SAFE_INTEGER) {
+      $("sptMessage").textContent = "आँकड़ों का योग बहुत बड़ा है।";
+      return;
+    }
+
+    records.unshift({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+      title,
+      platform: $("sptPlatform").value,
+      date,
+      reach,
+      likes,
+      comments,
+      shares,
+      saves
+    });
+
+    if (save()) {
+      $("sptTitle").value = "";
+      $("sptMessage").textContent = "पोस्ट के आँकड़े सेव हो गए।";
+      render();
+    }
+  });
+
+  $("sptExport").addEventListener("click", function () {
+    if (!records.length) {
+      $("sptMessage").textContent = "पहले आँकड़े सेव करें।";
+      return;
+    }
+
+    const rows = [
+      ["Post", "Platform", "Date", "Reach/Views",
+       "Likes", "Comments", "Shares", "Saves", "Engagement Rate"],
+      ...records.map(r => {
+        const interactions = r.likes + r.comments + r.shares + r.saves;
+        const rate = r.reach > 0
+          ? (interactions / r.reach * 100).toFixed(2) + "%"
+          : "N/A";
+        return [
+          r.title, r.platform, r.date, r.reach,
+          r.likes, r.comments, r.shares, r.saves, rate
+        ];
+      })
+    ];
+
+    const csv = rows.map(row => row.map(value =>
+      '"' + String(value).replace(/"/g, '""') + '"'
+    ).join(",")).join("\r\n");
+
+    const blob = new Blob(["\uFEFF" + csv], {
+      type: "text/csv;charset=utf-8"
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sisa-performance-report.csv";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  window.SISA_PERFORMANCE_TRACKER = {
+    open: function () {
+      document.querySelectorAll(
+        "#sisaToolsPage, #sisaBulkPlanner, #sisaContentCalendar, #sisaIdeaVault, #sisaCaptionStudio, #sisaHashtagStudio, #sisaMediaPreview, #sisaMediaDetails, #sisaPostChecklist, #sisaPublishingChecklist"
+      ).forEach(el => el.style.display = "none");
+
+      page.style.display = "block";
+      load();
+      render();
+    }
+  };
+
+  load();
+  render();
+})();
+</script>
+
+<!-- END PART 2AJ -->
+  
+<!-- =====================================================
+     SISA AI ASSISTANT — PART 2AK
+     BRAND KIT STUDIO
+===================================================== -->
+
+<style>
+#sisaBrandKit {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100005;
+  overflow-y: auto;
+  background: #090711;
+  color: #f7f3ff;
+  padding: 20px 15px 35px;
+  font-family: Arial, sans-serif;
+}
+#sisaBrandKit .bk-wrap {
+  max-width: 620px;
+  margin: auto;
+}
+#sisaBrandKit .bk-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+#sisaBrandKit .bk-card {
+  background: #151020;
+  border: 1px solid #38264e;
+  border-radius: 16px;
+  padding: 16px;
+  margin: 13px 0;
+}
+#sisaBrandKit h2 { margin: 0; font-size: 23px; }
+#sisaBrandKit h3 { margin: 0 0 13px; font-size: 16px; }
+#sisaBrandKit .bk-sub {
+  color: #b8aacb;
+  font-size: 13px;
+  line-height: 1.5;
+}
+#sisaBrandKit label {
+  display: block;
+  margin: 13px 0 6px;
+  color: #d9c9f0;
+  font-size: 13px;
+}
+#sisaBrandKit input,
+#sisaBrandKit textarea,
+#sisaBrandKit select {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #49345e;
+  border-radius: 10px;
+  background: #0c0913;
+  color: white;
+  font-size: 14px;
+  outline: none;
+}
+#sisaBrandKit textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+#sisaBrandKit .bk-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+#sisaBrandKit .bk-btn {
+  border: 1px solid #60417c;
+  border-radius: 10px;
+  padding: 11px 13px;
+  color: white;
+  background: #21142f;
+  cursor: pointer;
+  font-weight: 600;
+}
+#sisaBrandKit .bk-primary {
+  background: #8b35e8;
+  border-color: #a75aff;
+}
+#sisaBrandKit .bk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+#sisaBrandKit .bk-preview {
+  border: 1px dashed #704c91;
+  border-radius: 12px;
+  padding: 15px;
+  margin-top: 12px;
+  overflow-wrap: anywhere;
+}
+#sisaBrandKit .bk-colors {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+#sisaBrandKit input[type="color"] {
+  width: 48px;
+  height: 42px;
+  padding: 3px;
+}
+#sisaBrandKit #bkStatus {
+  color: #d5b0ff;
+  font-size: 13px;
+  margin-top: 10px;
+}
+@media(max-width:420px) {
+  #sisaBrandKit .bk-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<section id="sisaBrandKit">
+  <div class="bk-wrap">
+    <div class="bk-top">
+      <div>
+        <h2>✦ Brand Kit Studio</h2>
+        <div class="bk-sub">Your brand identity, saved in one place.</div>
+      </div>
+      <button class="bk-btn" onclick="SISA_BRAND_KIT.close()">✕ Close</button>
+    </div>
+
+    <div class="bk-card">
+      <h3>🏷️ Brand Identity</h3>
+
+      <label for="bkName">Brand / Creator Name</label>
+      <input id="bkName" placeholder="e.g. My Creative Brand">
+
+      <label for="bkTagline">Brand Tagline</label>
+      <input id="bkTagline" placeholder="Your brand's short message">
+
+      <label for="bkVoice">Brand Voice</label>
+      <select id="bkVoice">
+        <option value="Friendly and approachable">Friendly</option>
+        <option value="Professional and trustworthy">Professional</option>
+        <option value="Bold and energetic">Bold & Energetic</option>
+        <option value="Funny and playful">Funny & Playful</option>
+        <option value="Inspirational and positive">Inspirational</option>
+        <option value="Minimal and elegant">Minimal & Elegant</option>
+      </select>
+
+      <label for="bkCTA">Default Call to Action</label>
+      <input id="bkCTA" placeholder="e.g. Follow for more">
+
+      <label for="bkWebsite">Website / Social Link</label>
+      <input id="bkWebsite" placeholder="https://example.com">
+
+      <label for="bkHashtags">Your Brand Hashtags</label>
+      <textarea id="bkHashtags" placeholder="#MyBrand #MyCommunity"></textarea>
+    </div>
+
+    <div class="bk-card">
+      <h3>🎨 Brand Colors</h3>
+      <div class="bk-grid">
+        <div>
+          <label for="bkPrimary">Primary Color</label>
+          <div class="bk-colors">
+            <input id="bkPrimary" type="color" value="#8b35e8">
+            <span id="bkPrimaryText">#8B35E8</span>
+          </div>
+        </div>
+        <div>
+          <label for="bkSecondary">Secondary Color</label>
+          <div class="bk-colors">
+            <input id="bkSecondary" type="color" value="#151020">
+            <span id="bkSecondaryText">#151020</span>
+          </div>
+        </div>
+      </div>
+      <div class="bk-preview" id="bkPreview">
+        <strong id="bkPreviewName">Your Brand</strong>
+        <p id="bkPreviewTagline">Your tagline appears here.</p>
+        <span class="bk-sub" id="bkPreviewVoice">Friendly and approachable</span>
+      </div>
+    </div>
+
+    <div class="bk-card">
+      <h3>📋 Brand Signature</h3>
+      <p class="bk-sub">Create a reusable signature for your social media captions.</p>
+      <textarea id="bkSignature" readonly placeholder="Save your brand kit to generate a signature."></textarea>
+      <div class="bk-actions">
+        <button class="bk-btn bk-primary" onclick="SISA_BRAND_KIT.copySignature()">Copy Signature</button>
+        <button class="bk-btn" onclick="SISA_BRAND_KIT.applyToCaption()">Use in Caption</button>
+      </div>
+    </div>
+
+    <div class="bk-actions">
+      <button class="bk-btn bk-primary" onclick="SISA_BRAND_KIT.save()">💾 Save Brand Kit</button>
+      <button class="bk-btn" onclick="SISA_BRAND_KIT.load()">↻ Load Saved</button>
+      <button class="bk-btn" onclick="SISA_BRAND_KIT.export()">⇩ Export TXT</button>
+    </div>
+    <div id="bkStatus" role="status"></div>
+  </div>
+</section>
+
+<script>
+(function () {
+  const KEY = "sisa_brand_kit_v1";
+  const $ = id => document.getElementById(id);
+
+  const fields = [
+    "bkName", "bkTagline", "bkVoice", "bkCTA",
+    "bkWebsite", "bkHashtags", "bkPrimary", "bkSecondary"
+  ];
+
+  function read() {
+    const data = {};
+    fields.forEach(id => data[id] = $(id).value.trim());
+    return data;
+  }
+
+  function signature(data) {
+    return [
+      data.bkName,
+      data.bkTagline,
+      data.bkCTA,
+      data.bkWebsite,
+      data.bkHashtags
+    ].filter(Boolean).join("\n\n");
+  }
+
+  function refresh() {
+    const d = read();
+    $("bkPrimaryText").textContent = d.bkPrimary.toUpperCase();
+    $("bkSecondaryText").textContent = d.bkSecondary.toUpperCase();
+    $("bkPreview").style.background = d.bkSecondary;
+    $("bkPreview").style.borderColor = d.bkPrimary;
+    $("bkPreview").style.color = "#ffffff";
+    $("bkPreviewName").textContent = d.bkName || "Your Brand";
+    $("bkPreviewName").style.color = d.bkPrimary;
+    $("bkPreviewTagline").textContent =
+      d.bkTagline || "Your tagline appears here.";
+    $("bkPreviewVoice").textContent = d.bkVoice;
+    $("bkSignature").value = signature(d);
+  }
+
+  function status(message) {
+    $("bkStatus").textContent = message;
+  }
+
+  window.SISA_BRAND_KIT = {
+    open() {
+      $("sisaBrandKit").style.display = "block";
+      this.load(false);
+      refresh();
+    },
+
+    close() {
+      $("sisaBrandKit").style.display = "none";
+    },
+
+    save() {
+      try {
+        localStorage.setItem(KEY, JSON.stringify(read()));
+        refresh();
+        status("Brand Kit saved on this device.");
+      } catch (e) {
+        status("Could not save. Check your browser storage settings.");
+      }
+    },
+
+    load(showMessage = true) {
+      try {
+        const raw = localStorage.getItem(KEY);
+        if (!raw) {
+          if (showMessage) status("No saved Brand Kit found yet.");
+          return;
+        }
+        const d = JSON.parse(raw);
+        fields.forEach(id => {
+          if (typeof d[id] === "string") $(id).value = d[id];
+        });
+        refresh();
+        if (showMessage) status("Saved Brand Kit loaded.");
+      } catch (e) {
+        status("Could not load saved Brand Kit.");
+      }
+    },
+
+    async copySignature() {
+      const value = $("bkSignature").value;
+      if (!value) {
+        status("Add brand details first.");
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(value);
+        status("Brand signature copied.");
+      } catch (e) {
+        $("bkSignature").focus();
+        $("bkSignature").select();
+        status("Select the text and copy it manually.");
+      }
+    },
+
+    applyToCaption() {
+      const value = $("bkSignature").value;
+      if (!value) {
+        status("Add brand details first.");
+        return;
+      }
+      const target = document.querySelector(
+        "#sisaCaption, #postCaption, #captionInput, textarea[name='caption']"
+      );
+      if (!target) {
+        status("Signature ready. Copy it into your caption editor.");
+        return;
+      }
+      target.value = target.value.trim()
+        ? target.value.trim() + "\n\n" + value
+        : value;
+      target.dispatchEvent(new Event("input", { bubbles: true }));
+      status("Brand signature added to the caption field.");
+    },
+
+    export() {
+      const d = read();
+      const text = [
+        "SISA BRAND KIT",
+        "==============",
+        "Brand: " + d.bkName,
+        "Tagline: " + d.bkTagline,
+        "Brand Voice: " + d.bkVoice,
+        "Call to Action: " + d.bkCTA,
+        "Website: " + d.bkWebsite,
+        "Hashtags: " + d.bkHashtags,
+        "Primary Color: " + d.bkPrimary,
+        "Secondary Color: " + d.bkSecondary,
+        "",
+        "BRAND SIGNATURE",
+        signature(d)
+      ].join("\n");
+
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "sisa-brand-kit.txt";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      status("Brand Kit export prepared.");
+    }
+  };
+
+  fields.forEach(id => {
+    $(id).addEventListener("input", refresh);
+    $(id).addEventListener("change", refresh);
+  });
+})();
+</script>
+
+<!-- END PART 2AK -->
+  
+<!-- =====================================================
+     SISA AI ASSISTANT — PART 2AL
+     LINK-IN-BIO PAGE BUILDER
+===================================================== -->
+
+<style>
+#sisaBioBuilder {
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:100006;
+  overflow-y:auto;
+  background:#090711;
+  color:#f8f3ff;
+  padding:18px 14px 35px;
+  font-family:Arial,sans-serif;
+}
+#sisaBioBuilder .bio-wrap {
+  max-width:650px;
+  margin:auto;
+}
+#sisaBioBuilder .bio-top {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:20px;
+}
+#sisaBioBuilder h2 {margin:0;font-size:23px}
+#sisaBioBuilder h3 {font-size:16px;margin:0 0 12px}
+#sisaBioBuilder .bio-muted {
+  color:#b9aaca;
+  font-size:13px;
+  line-height:1.5;
+}
+#sisaBioBuilder .bio-card {
+  background:#151020;
+  border:1px solid #38264e;
+  border-radius:15px;
+  padding:15px;
+  margin:12px 0;
+}
+#sisaBioBuilder label {
+  display:block;
+  margin:12px 0 6px;
+  font-size:13px;
+  color:#dac9ed;
+}
+#sisaBioBuilder input,
+#sisaBioBuilder textarea,
+#sisaBioBuilder select {
+  width:100%;
+  box-sizing:border-box;
+  padding:11px;
+  border:1px solid #49345e;
+  border-radius:9px;
+  background:#0c0913;
+  color:white;
+  font-size:14px;
+}
+#sisaBioBuilder textarea {min-height:72px}
+#sisaBioBuilder .bio-btn {
+  border:1px solid #60417c;
+  background:#21142f;
+  color:white;
+  border-radius:9px;
+  padding:11px 13px;
+  cursor:pointer;
+  font-weight:600;
+}
+#sisaBioBuilder .bio-primary {
+  background:#8b35e8;
+  border-color:#a75aff;
+}
+#sisaBioBuilder .bio-actions {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:13px;
+}
+#sisaBioBuilder .bio-row {
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:8px;
+  align-items:center;
+  margin-top:9px;
+}
+#sisaBioBuilder .bio-preview {
+  background:#f4efff;
+  color:#24143b;
+  border-radius:18px;
+  padding:22px 16px;
+  text-align:center;
+  margin-top:12px;
+}
+#sisaBioBuilder .bio-avatar {
+  width:64px;
+  height:64px;
+  border-radius:50%;
+  margin:0 auto 12px;
+  background:#8b35e8;
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:24px;
+  font-weight:bold;
+}
+#sisaBioBuilder .bio-link {
+  display:block;
+  margin:10px 0;
+  padding:12px;
+  background:#ffffff;
+  color:#24143b;
+  border:1px solid #d9c9f0;
+  border-radius:10px;
+  text-decoration:none;
+  font-weight:bold;
+  overflow-wrap:anywhere;
+}
+#sisaBioBuilder .bio-status {
+  color:#d5b0ff;
+  font-size:13px;
+  margin-top:12px;
+}
+</style>
+
+<section id="sisaBioBuilder">
+  <div class="bio-wrap">
+    <div class="bio-top">
+      <div>
+        <h2>🔗 Link-in-Bio Builder</h2>
+        <div class="bio-muted">Create a simple creator link page.</div>
+      </div>
+      <button class="bio-btn" onclick="SISA_BIO_BUILDER.close()">✕ Close</button>
+    </div>
+
+    <div class="bio-card">
+      <h3>👤 Profile Details</h3>
+
+      <label for="bioName">Creator / Brand Name</label>
+      <input id="bioName" placeholder="Your name or brand">
+
+      <label for="bioTagline">Short Bio</label>
+      <textarea id="bioTagline" placeholder="Tell visitors what you create"></textarea>
+
+      <label for="bioInitial">Profile Initials</label>
+      <input id="bioInitial" maxlength="3" placeholder="e.g. SA">
+
+      <label for="bioTheme">Page Theme</label>
+      <select id="bioTheme">
+        <option value="purple">Purple</option>
+        <option value="dark">Dark</option>
+        <option value="pink">Pink</option>
+        <option value="blue">Blue</option>
+      </select>
+    </div>
+
+    <div class="bio-card">
+      <h3>🌐 Your Links</h3>
+      <div class="bio-muted">Add a title and a complete URL beginning with https://.</div>
+
+      <div class="bio-row">
+        <input id="bioLinkTitle1" placeholder="Link title, e.g. Instagram">
+        <button class="bio-btn" onclick="SISA_BIO_BUILDER.removeLink(1)">Remove</button>
+      </div>
+      <input id="bioLinkUrl1" placeholder="https://instagram.com/yourprofile">
+
+      <div class="bio-row">
+        <input id="bioLinkTitle2" placeholder="Link title, e.g. YouTube">
+        <button class="bio-btn" onclick="SISA_BIO_BUILDER.removeLink(2)">Remove</button>
+      </div>
+      <input id="bioLinkUrl2" placeholder="https://youtube.com/@yourchannel">
+
+      <div class="bio-row">
+        <input id="bioLinkTitle3" placeholder="Link title, e.g. Portfolio">
+        <button class="bio-btn" onclick="SISA_BIO_BUILDER.removeLink(3)">Remove</button>
+      </div>
+      <input id="bioLinkUrl3" placeholder="https://example.com">
+
+      <div class="bio-row">
+        <input id="bioLinkTitle4" placeholder="Link title, e.g. Contact">
+        <button class="bio-btn" onclick="SISA_BIO_BUILDER.removeLink(4)">Remove</button>
+      </div>
+      <input id="bioLinkUrl4" placeholder="https://example.com/contact">
+    </div>
+
+    <div class="bio-card">
+      <h3>👁️ Live Preview</h3>
+      <div id="bioPreview" class="bio-preview">
+        <div id="bioAvatar" class="bio-avatar">SA</div>
+        <h3 id="bioPreviewName">Your Name</h3>
+        <p id="bioPreviewBio">Your bio appears here.</p>
+        <div id="bioPreviewLinks"></div>
+      </div>
+
+      <div class="bio-actions">
+        <button class="bio-btn bio-primary" onclick="SISA_BIO_BUILDER.save()">💾 Save Page</button>
+        <button class="bio-btn" onclick="SISA_BIO_BUILDER.load()">↻ Load Saved</button>
+        <button class="bio-btn" onclick="SISA_BIO_BUILDER.exportHTML()">⇩ Export HTML</button>
+      </div>
+      <div id="bioStatus" class="bio-status"></div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  const KEY = "sisa_bio_builder_v1";
+  const $ = id => document.getElementById(id);
+  const ids = [
+    "bioName","bioTagline","bioInitial","bioTheme",
+    "bioLinkTitle1","bioLinkUrl1",
+    "bioLinkTitle2","bioLinkUrl2",
+    "bioLinkTitle3","bioLinkUrl3",
+    "bioLinkTitle4","bioLinkUrl4"
+  ];
+
+  function read(){
+    const d = {};
+    ids.forEach(id => d[id] = $(id).value.trim());
+    return d;
+  }
+
+  function validURL(value){
+    try {
+      const u = new URL(value);
+      return u.protocol === "https:" || u.protocol === "http:";
+    } catch(e) {
+      return false;
+    }
+  }
+
+  function safeLink(value){
+    return validURL(value) ? new URL(value).href : "";
+  }
+
+  function makePreview(){
+    const d = read();
+    const colors = {
+      purple:["#f4efff","#8b35e8","#24143b"],
+      dark:["#17121f","#8b35e8","#ffffff"],
+      pink:["#fff0f7","#db2777","#40142e"],
+      blue:["#eef6ff","#2563eb","#102a50"]
+    };
+    const c = colors[d.bioTheme] || colors.purple;
+
+    $("bioPreview").style.background = c[0];
+    $("bioPreview").style.color = c[2];
+    $("bioAvatar").style.background = c[1];
+    $("bioAvatar").textContent =
+      d.bioInitial || (d.bioName ? d.bioName.slice(0,2).toUpperCase() : "SA");
+    $("bioPreviewName").textContent = d.bioName || "Your Name";
+    $("bioPreviewBio").textContent = d.bioTagline || "Your bio appears here.";
+
+    const container = $("bioPreviewLinks");
+    container.replaceChildren();
+
+    for(let i=1;i<=4;i++){
+      const title = d["bioLinkTitle"+i];
+      const url = safeLink(d["bioLinkUrl"+i]);
+      if(!title || !url) continue;
+
+      const a = document.createElement("a");
+      a.className = "bio-link";
+      a.textContent = title;
+      a.href = url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.style.color = c[2];
+      container.appendChild(a);
+    }
+  }
+
+  function status(msg){ $("bioStatus").textContent = msg; }
+
+  window.SISA_BIO_BUILDER = {
+    open(){
+      $("sisaBioBuilder").style.display = "block";
+      this.load(false);
+      makePreview();
+    },
+    close(){
+      $("sisaBioBuilder").style.display = "none";
+    },
+    save(){
+      try{
+        const d = read();
+        for(let i=1;i<=4;i++){
+          const url = d["bioLinkUrl"+i];
+          if(url && !validURL(url)){
+            status("Link "+i+" needs a valid http:// or https:// URL.");
+            return;
+          }
+        }
+        localStorage.setItem(KEY, JSON.stringify(d));
+        makePreview();
+        status("Your Link-in-Bio page has been saved on this device.");
+      }catch(e){
+        status("Unable to save. Check browser storage.");
+      }
+    },
+    load(showMessage=true){
+      try{
+        const raw = localStorage.getItem(KEY);
+        if(!raw){
+          if(showMessage) status("No saved page found yet.");
+          return;
+        }
+        const d = JSON.parse(raw);
+        ids.forEach(id=>{
+          if(typeof d[id] === "string") $(id).value = d[id];
+        });
+        makePreview();
+        if(showMessage) status("Saved page loaded.");
+      }catch(e){
+        status("Unable to load saved page.");
+      }
+    },
+    removeLink(n){
+      $("bioLinkTitle"+n).value = "";
+      $("bioLinkUrl"+n).value = "";
+      makePreview();
+      status("Link removed from preview. Save to keep this change.");
+    },
+    exportHTML(){
+      const d = read();
+      const links = [];
+      for(let i=1;i<=4;i++){
+        const title = d["bioLinkTitle"+i];
+        const url = safeLink(d["bioLinkUrl"+i]);
+        if(title && url){
+          links.push(
+            '<a href="'+escapeAttr(url)+'" target="_blank" rel="noopener noreferrer">'+
+            escapeHTML(title)+'</a>'
+          );
+        }
+      }
+      const theme = {
+        purple:["#f4efff","#8b35e8","#24143b"],
+        dark:["#17121f","#8b35e8","#ffffff"],
+        pink:["#fff0f7","#db2777","#40142e"],
+        blue:["#eef6ff","#2563eb","#102a50"]
+      }[d.bioTheme] || ["#f4efff","#8b35e8","#24143b"];
+
+      const html = '<!doctype html><html lang="en"><head><meta charset="utf-8">'+
+      '<meta name="viewport" content="width=device-width,initial-scale=1">'+
+      '<title>'+escapeHTML(d.bioName || "My Links")+'</title>'+
+      '<style>body{font-family:Arial;background:'+theme[0]+';color:'+theme[2]+
+      ';max-width:520px;margin:40px auto;padding:20px;text-align:center}a{display:block;padding:14px;margin:12px 0;background:white;color:'+theme[2]+
+      ';border-radius:10px;text-decoration:none;font-weight:bold;overflow-wrap:anywhere}h1{color:'+theme[1]+'}</style>'+
+      '</head><body><h1>'+escapeHTML(d.bioName || "Your Name")+'</h1><p>'+
+      escapeHTML(d.bioTagline || "")+'</p>'+links.join("")+'</body></html>';
+
+      const blob = new Blob([html],{type:"text/html;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "sisa-link-in-bio.html";
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+      status("HTML file exported. Publish it on a hosting service to share it online.");
+    }
+  };
+
+  function escapeHTML(s){
+    return String(s).replace(/[&<>"']/g,ch=>({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    })[ch]);
+  }
+  function escapeAttr(s){ return escapeHTML(s); }
+
+  ids.forEach(id=>{
+    $(id).addEventListener("input",makePreview);
+    $(id).addEventListener("change",makePreview);
+  });
+})();
+</script>
+
+<!-- END PART 2AL -->
+  
+<!-- =====================================================
+     SISA AI ASSISTANT — PART 2AM
+     QR CODE STUDIO
+===================================================== -->
+
+<style>
+#sisaQRStudio{
+  display:none;position:fixed;inset:0;z-index:100007;
+  overflow-y:auto;background:#090711;color:#f8f3ff;
+  padding:20px 14px 35px;font-family:Arial,sans-serif
+}
+#sisaQRStudio .qr-wrap{max-width:600px;margin:auto}
+#sisaQRStudio .qr-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#sisaQRStudio h2{font-size:23px;margin:0}
+#sisaQRStudio .qr-muted{font-size:13px;line-height:1.5;color:#b9aaca}
+#sisaQRStudio .qr-card{
+  margin:14px 0;padding:16px;border:1px solid #38264e;
+  border-radius:15px;background:#151020
+}
+#sisaQRStudio label{display:block;margin:13px 0 6px;font-size:13px;color:#dac9ed}
+#sisaQRStudio input,#sisaQRStudio textarea,#sisaQRStudio select{
+  box-sizing:border-box;width:100%;padding:12px;border:1px solid #49345e;
+  border-radius:9px;background:#0c0913;color:white;font-size:14px
+}
+#sisaQRStudio textarea{min-height:90px}
+#sisaQRStudio .qr-btn{
+  padding:11px 14px;border:1px solid #60417c;border-radius:9px;
+  background:#21142f;color:white;font-weight:600;cursor:pointer
+}
+#sisaQRStudio .qr-primary{background:#8b35e8;border-color:#a75aff}
+#sisaQRStudio .qr-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+#sisaQRStudio .qr-result{
+  min-height:210px;background:white;color:#24143b;border-radius:13px;
+  display:flex;align-items:center;justify-content:center;padding:15px;
+  margin-top:13px;overflow:hidden
+}
+#sisaQRStudio #sisaQRCanvas{max-width:100%;height:auto}
+#sisaQRStudio .qr-status{font-size:13px;color:#d5b0ff;margin-top:12px}
+</style>
+
+<section id="sisaQRStudio">
+  <div class="qr-wrap">
+    <div class="qr-top">
+      <div>
+        <h2>▦ QR Code Studio</h2>
+        <p class="qr-muted">Create a QR code for a link or text.</p>
+      </div>
+      <button class="qr-btn" onclick="SISA_QR_STUDIO.close()">✕ Close</button>
+    </div>
+
+    <div class="qr-card">
+      <label for="sisaQRType">QR Content Type</label>
+      <select id="sisaQRType">
+        <option value="url">Website / Social Link</option>
+        <option value="text">Plain Text</option>
+      </select>
+
+      <label for="sisaQRContent">Website URL or Text</label>
+      <textarea id="sisaQRContent" placeholder="https://example.com"></textarea>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label for="sisaQRColor">QR Color</label>
+          <input id="sisaQRColor" type="color" value="#160b25">
+        </div>
+        <div>
+          <label for="sisaQRBackground">Background Color</label>
+          <input id="sisaQRBackground" type="color" value="#ffffff">
+        </div>
+      </div>
+
+      <label for="sisaQRSize">Image Size</label>
+      <select id="sisaQRSize">
+        <option value="256">256 × 256</option>
+        <option value="512" selected>512 × 512</option>
+        <option value="1024">1024 × 1024</option>
+      </select>
+
+      <div class="qr-actions">
+        <button class="qr-btn qr-primary" onclick="SISA_QR_STUDIO.generate()">Generate QR</button>
+        <button class="qr-btn" onclick="SISA_QR_STUDIO.download()">Download PNG</button>
+      </div>
+
+      <div id="sisaQRResult" class="qr-result">
+        <span>QR code will appear here.</span>
+      </div>
+      <div id="sisaQRStatus" class="qr-status" role="status"></div>
+    </div>
+    <p class="qr-muted">QR generation uses an external QR service, so an internet connection is required. Do not encode passwords or private information.</p>
+  </div>
+</section>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  let qrImage = null;
+
+  window.SISA_QR_STUDIO = {
+    open(){
+      $("sisaQRStudio").style.display = "block";
+    },
+    close(){
+      $("sisaQRStudio").style.display = "none";
+    },
+    generate(){
+      const content = $("sisaQRContent").value.trim();
+      const type = $("sisaQRType").value;
+      const size = Number($("sisaQRSize").value);
+      const color = $("sisaQRColor").value.replace("#","");
+      const bg = $("sisaQRBackground").value.replace("#","");
+
+      if(!content){
+        $("sisaQRStatus").textContent = "Enter a URL or text first.";
+        return;
+      }
+      if(type === "url"){
+        try{
+          const u = new URL(content);
+          if(!["https:","http:"].includes(u.protocol)) throw new Error();
+        }catch(e){
+          $("sisaQRStatus").textContent = "Enter a valid URL beginning with https:// or http://.";
+          return;
+        }
+      }
+      if(content.length > 1500){
+        $("sisaQRStatus").textContent = "Please use text shorter than 1500 characters.";
+        return;
+      }
+
+      const result = $("sisaQRResult");
+      result.replaceChildren();
+      const wait = document.createElement("span");
+      wait.textContent = "Generating QR code…";
+      result.appendChild(wait);
+      $("sisaQRStatus").textContent = "Connecting to QR service…";
+
+      const params = new URLSearchParams({
+        size: size + "x" + size,
+        data: content,
+        color,
+        bgcolor: bg,
+        format: "png",
+        qzone: "4"
+      });
+      const image = new Image();
+      image.alt = "Generated QR code";
+      image.width = size;
+      image.height = size;
+      image.style.width = "100%";
+      image.style.maxWidth = "400px";
+      image.style.height = "auto";
+      image.crossOrigin = "anonymous";
+
+      image.onload = () => {
+        qrImage = image;
+        result.replaceChildren(image);
+        $("sisaQRStatus").textContent = "QR code ready. Scan it to test before sharing.";
+      };
+      image.onerror = () => {
+        qrImage = null;
+        result.replaceChildren();
+        const msg = document.createElement("span");
+        msg.textContent = "Could not generate QR. Check your connection and try again.";
+        result.appendChild(msg);
+        $("sisaQRStatus").textContent = "QR service unavailable.";
+      };
+      image.src = "https://api.qrserver.com/v1/create-qr-code/?" + params.toString();
+    },
+    download(){
+      if(!qrImage || !qrImage.complete){
+        $("sisaQRStatus").textContent = "Generate a QR code first.";
+        return;
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = qrImage.naturalWidth;
+      canvas.height = qrImage.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(qrImage,0,0);
+      try{
+        const a = document.createElement("a");
+        a.download = "sisa-qr-code.png";
+        a.href = canvas.toDataURL("image/png");
+        a.click();
+        $("sisaQRStatus").textContent = "PNG download started.";
+      }catch(e){
+        $("sisaQRStatus").textContent = "Download blocked by the image service. Try generating again.";
+      }
+    }
+  };
+})();
+</script>
+
+<!-- END PART 2AM -->
+  
+<!-- =====================================================
+     SISA AI ASSISTANT — PART 2AN
+     NOTES & SNIPPET LIBRARY
+===================================================== -->
+
+<style>
+#sisaSnippetLibrary{
+  display:none;position:fixed;inset:0;z-index:100008;
+  overflow-y:auto;background:#090711;color:#f8f3ff;
+  padding:18px 14px 35px;font-family:Arial,sans-serif
+}
+#sisaSnippetLibrary .sn-wrap{max-width:650px;margin:auto}
+#sisaSnippetLibrary .sn-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#sisaSnippetLibrary h2{font-size:22px;margin:0}
+#sisaSnippetLibrary .sn-muted{color:#b9aaca;font-size:13px;line-height:1.5}
+#sisaSnippetLibrary .sn-card{
+  background:#151020;border:1px solid #38264e;border-radius:14px;
+  padding:15px;margin:13px 0
+}
+#sisaSnippetLibrary label{display:block;font-size:13px;margin:12px 0 6px;color:#dac9ed}
+#sisaSnippetLibrary input,#sisaSnippetLibrary textarea,#sisaSnippetLibrary select{
+  box-sizing:border-box;width:100%;padding:11px;border:1px solid #49345e;
+  border-radius:9px;background:#0c0913;color:white;font-size:14px
+}
+#sisaSnippetLibrary textarea{min-height:110px;resize:vertical}
+#sisaSnippetLibrary .sn-btn{
+  padding:10px 12px;border:1px solid #60417c;border-radius:9px;
+  background:#21142f;color:white;font-weight:600;cursor:pointer
+}
+#sisaSnippetLibrary .sn-primary{background:#8b35e8;border-color:#a75aff}
+#sisaSnippetLibrary .sn-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+#sisaSnippetLibrary .sn-item{
+  border:1px solid #49345e;background:#100b19;border-radius:12px;
+  padding:13px;margin:10px 0
+}
+#sisaSnippetLibrary .sn-item h3{font-size:15px;margin:0 0 7px;overflow-wrap:anywhere}
+#sisaSnippetLibrary .sn-content{
+  white-space:pre-wrap;overflow-wrap:anywhere;color:#ded2ec;
+  font-size:13px;line-height:1.5;max-height:140px;overflow:auto
+}
+#sisaSnippetLibrary .sn-tag{
+  display:inline-block;font-size:11px;padding:4px 8px;border-radius:20px;
+  background:#29183b;color:#dfc4ff;margin-bottom:8px
+}
+#sisaSnippetLibrary .sn-status{font-size:13px;color:#d5b0ff;margin-top:12px}
+</style>
+
+<section id="sisaSnippetLibrary">
+  <div class="sn-wrap">
+    <div class="sn-top">
+      <div>
+        <h2>📚 Snippet Library</h2>
+        <p class="sn-muted">Save, search and reuse your favourite text.</p>
+      </div>
+      <button class="sn-btn" onclick="SISA_SNIPPETS.close()">✕ Close</button>
+    </div>
+
+    <div class="sn-card">
+      <h3 style="margin-top:0">＋ Add a Snippet</h3>
+
+      <label for="snTitle">Title</label>
+      <input id="snTitle" maxlength="100" placeholder="e.g. Instagram welcome caption">
+
+      <label for="snCategory">Category</label>
+      <select id="snCategory">
+        <option value="Caption">Caption</option>
+        <option value="Prompt">AI Prompt</option>
+        <option value="Hashtags">Hashtags</option>
+        <option value="Reply">Reply Template</option>
+        <option value="Bio">Bio / Description</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label for="snTags">Tags (comma-separated)</label>
+      <input id="snTags" maxlength="200" placeholder="instagram, welcome, brand">
+
+      <label for="snContent">Text / Prompt</label>
+      <textarea id="snContent" maxlength="12000" placeholder="Write or paste your reusable text here..."></textarea>
+
+      <div class="sn-actions">
+        <button class="sn-btn sn-primary" onclick="SISA_SNIPPETS.save()">💾 Save Snippet</button>
+        <button class="sn-btn" onclick="SISA_SNIPPETS.clearForm()">Clear Form</button>
+      </div>
+    </div>
+
+    <div class="sn-card">
+      <h3 style="margin-top:0">🔎 Find Your Snippets</h3>
+      <label for="snSearch">Search title, text or tags</label>
+      <input id="snSearch" placeholder="Type to search...">
+
+      <label for="snFilter">Filter by category</label>
+      <select id="snFilter">
+        <option value="All">All Categories</option>
+        <option value="Caption">Caption</option>
+        <option value="Prompt">AI Prompt</option>
+        <option value="Hashtags">Hashtags</option>
+        <option value="Reply">Reply Template</option>
+        <option value="Bio">Bio / Description</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <div id="snCount" class="sn-muted">0 saved snippets</div>
+      <div id="snList"></div>
+
+      <div class="sn-actions">
+        <button class="sn-btn" onclick="SISA_SNIPPETS.exportAll()">⇩ Export Library</button>
+      </div>
+    </div>
+
+    <div id="snStatus" class="sn-status" role="status"></div>
+  </div>
+</section>
+
+<script>
+(function(){
+  const KEY = "sisa_snippet_library_v1";
+  const $ = id => document.getElementById(id);
+  let editingId = null;
+  let snippets = [];
+
+  function loadData(){
+    try{
+      const data = JSON.parse(localStorage.getItem(KEY) || "[]");
+      snippets = Array.isArray(data) ? data : [];
+    }catch(e){
+      snippets = [];
+    }
+  }
+
+  function persist(){
+    try{
+      localStorage.setItem(KEY, JSON.stringify(snippets));
+      return true;
+    }catch(e){
+      message("Unable to save. Your browser storage may be full.");
+      return false;
+    }
+  }
+
+  function message(text){
+    $("snStatus").textContent = text;
+  }
+
+  function formData(){
+    return {
+      title:$("snTitle").value.trim(),
+      category:$("snCategory").value,
+      tags:$("snTags").value.trim(),
+      content:$("snContent").value.trim()
+    };
+  }
+
+  function render(){
+    const query = $("snSearch").value.trim().toLowerCase();
+    const filter = $("snFilter").value;
+    const list = $("snList");
+    list.replaceChildren();
+
+    const results = snippets.filter(item=>{
+      const combined = [
+        item.title,item.category,item.tags,item.content
+      ].join(" ").toLowerCase();
+      return (!query || combined.includes(query)) &&
+        (filter === "All" || item.category === filter);
+    });
+
+    $("snCount").textContent = results.length + " matching snippet(s)";
+
+    if(!results.length){
+      const empty = document.createElement("p");
+      empty.className = "sn-muted";
+      empty.textContent = "No snippets found. Add one above to get started.";
+      list.appendChild(empty);
+      return;
+    }
+
+    results.forEach(item=>{
+      const card = document.createElement("article");
+      card.className = "sn-item";
+
+      const badge = document.createElement("span");
+      badge.className = "sn-tag";
+      badge.textContent = item.category;
+
+      const title = document.createElement("h3");
+      title.textContent = item.title;
+
+      const tags = document.createElement("p");
+      tags.className = "sn-muted";
+      tags.textContent = item.tags ? "Tags: " + item.tags : "";
+
+      const content = document.createElement("div");
+      content.className = "sn-content";
+      content.textContent = item.content;
+
+      const actions = document.createElement("div");
+      actions.className = "sn-actions";
+
+      function addButton(label, callback, primary=false){
+        const btn = document.createElement("button");
+        btn.className = "sn-btn" + (primary ? " sn-primary" : "");
+        btn.textContent = label;
+        btn.addEventListener("click",callback);
+        actions.appendChild(btn);
+      }
+
+      addButton("Copy",()=>SISA_SNIPPETS.copy(item.id),true);
+      addButton("Edit",()=>SISA_SNIPPETS.edit(item.id));
+      addButton("Delete",()=>SISA_SNIPPETS.remove(item.id));
+
+      card.append(badge,title,tags,content,actions);
+      list.appendChild(card);
+    });
+  }
+
+  window.SISA_SNIPPETS = {
+    open(){
+      $("sisaSnippetLibrary").style.display = "block";
+      loadData();
+      render();
+    },
+    close(){
+      $("sisaSnippetLibrary").style.display = "none";
+    },
+    save(){
+      const data = formData();
+      if(!data.title || !data.content){
+        message("Please enter both a title and text.");
+        return;
+      }
+
+      if(editingId !== null){
+        const index = snippets.findIndex(x=>x.id === editingId);
+        if(index !== -1) snippets[index] = {...snippets[index],...data};
+      }else{
+        snippets.unshift({
+          id:Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8),
+          ...data,
+          createdAt:new Date().toISOString()
+        });
+      }
+
+      if(!persist()) return;
+      this.clearForm(false);
+      render();
+      message("Snippet saved successfully on this device.");
+    },
+    clearForm(clearMessage=true){
+      editingId = null;
+      $("snTitle").value = "";
+      $("snCategory").value = "Caption";
+      $("snTags").value = "";
+      $("snContent").value = "";
+      if(clearMessage) message("Form cleared.");
+    },
+    edit(id){
+      const item = snippets.find(x=>x.id === id);
+      if(!item) return;
+      editingId = id;
+      $("snTitle").value = item.title;
+      $("snCategory").value = item.category;
+      $("snTags").value = item.tags;
+      $("snContent").value = item.content;
+      message("Editing snippet. Save to update it.");
+      $("snTitle").scrollIntoView({behavior:"smooth",block:"center"});
+    },
+    remove(id){
+      const item = snippets.find(x=>x.id === id);
+      if(!item) return;
+      if(!confirm("Delete this snippet?")) return;
+      snippets = snippets.filter(x=>x.id !== id);
+      if(!persist()) return;
+      render();
+      message("Snippet deleted.");
+    },
+    async copy(id){
+      const item = snippets.find(x=>x.id === id);
+      if(!item) return;
+      try{
+        await navigator.clipboard.writeText(item.content);
+        message("Snippet copied.");
+      }catch(e){
+        const area = document.createElement("textarea");
+        area.value = item.content;
+        area.style.position = "fixed";
+        area.style.opacity = "0";
+        document.body.appendChild(area);
+        area.select();
+        let ok = false;
+        try{ ok = document.execCommand("copy"); }catch(err){}
+        area.remove();
+        message(ok ? "Snippet copied." : "Copy unavailable. Open the snippet and copy manually.");
+      }
+    },
+    exportAll(){
+      if(!snippets.length){
+        message("There are no snippets to export.");
+        return;
+      }
+      const text = snippets.map((s,i)=>[
+        "SNIPPET "+(i+1),
+        "Title: "+s.title,
+        "Category: "+s.category,
+        "Tags: "+s.tags,
+        "",
+        s.content,
+        ""
+      ].join("\n")).join("\n------------------------------\n\n");
+
+      const blob = new Blob([text],{type:"text/plain;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "sisa-snippet-library.txt";
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+      message("Snippet library export started.");
+    }
+  };
+
+  $("snSearch").addEventListener("input",render);
+  $("snFilter").addEventListener("change",render);
+})();
+</script>
+
+<!-- END PART 2AN -->
+  
+<!-- =====================================================
+     SISA AI ASSISTANT — PART 2AO
+     TEXT FORMATTER STUDIO
+===================================================== -->
+
+<style>
+#sisaTextFormatter{
+  display:none;position:fixed;inset:0;z-index:100009;
+  overflow-y:auto;background:#090711;color:#f8f3ff;
+  padding:18px 14px 35px;font-family:Arial,sans-serif
+}
+#sisaTextFormatter .tf-wrap{max-width:650px;margin:auto}
+#sisaTextFormatter .tf-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#sisaTextFormatter h2{font-size:22px;margin:0}
+#sisaTextFormatter .tf-muted{font-size:13px;line-height:1.5;color:#b9aaca}
+#sisaTextFormatter .tf-card{
+  margin:14px 0;padding:15px;background:#151020;
+  border:1px solid #38264e;border-radius:14px
+}
+#sisaTextFormatter label{display:block;margin:12px 0 6px;font-size:13px;color:#dac9ed}
+#sisaTextFormatter textarea,#sisaTextFormatter input{
+  box-sizing:border-box;width:100%;padding:12px;
+  border:1px solid #49345e;border-radius:9px;
+  background:#0c0913;color:white;font-size:14px
+}
+#sisaTextFormatter textarea{min-height:170px;resize:vertical}
+#sisaTextFormatter .tf-btn{
+  padding:10px 12px;border:1px solid #60417c;border-radius:9px;
+  background:#21142f;color:white;font-weight:600;cursor:pointer
+}
+#sisaTextFormatter .tf-primary{background:#8b35e8;border-color:#a75aff}
+#sisaTextFormatter .tf-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+#sisaTextFormatter .tf-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+#sisaTextFormatter .tf-stats{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px
+}
+#sisaTextFormatter .tf-stat{
+  background:#21142f;border-radius:10px;padding:12px;text-align:center
+}
+#sisaTextFormatter .tf-stat strong{display:block;font-size:20px;color:#d9b8ff}
+#sisaTextFormatter .tf-stat span{font-size:11px;color:#b9aaca}
+#sisaTextFormatter .tf-status{font-size:13px;color:#d5b0ff;margin-top:12px}
+@media(max-width:400px){
+  #sisaTextFormatter .tf-grid{grid-template-columns:1fr}
+  #sisaTextFormatter .tf-stat strong{font-size:17px}
+}
+</style>
+
+<section id="sisaTextFormatter">
+  <div class="tf-wrap">
+    <div class="tf-top">
+      <div>
+        <h2>✍️ Text Formatter</h2>
+        <p class="tf-muted">Format, clean and analyse your text.</p>
+      </div>
+      <button class="tf-btn" onclick="SISA_TEXT_FORMATTER.close()">✕ Close</button>
+    </div>
+
+    <div class="tf-card">
+      <label for="tfInput">Enter or paste your text</label>
+      <textarea id="tfInput" placeholder="Paste your text here..."></textarea>
+
+      <div class="tf-stats">
+        <div class="tf-stat"><strong id="tfWords">0</strong><span>Words</span></div>
+        <div class="tf-stat"><strong id="tfChars">0</strong><span>Characters</span></div>
+        <div class="tf-stat"><strong id="tfLines">0</strong><span>Lines</span></div>
+      </div>
+    </div>
+
+    <div class="tf-card">
+      <h3 style="margin-top:0">🔤 Change Case</h3>
+      <div class="tf-grid">
+        <button class="tf-btn" onclick="SISA_TEXT_FORMATTER.transform('upper')">UPPERCASE</button>
+        <button class="tf-btn" onclick="SISA_TEXT_FORMATTER.transform('lower')">lowercase</button>
+        <button class="tf-btn" onclick="SISA_TEXT_FORMATTER.transform('title')">Title Case</button>
+        <button class="tf-btn" onclick="SISA_TEXT_FORMATTER.transform('sentence')">Sentence case</button>
+      </div>
+    </div>
+
+    <div class="tf-card">
+      <h3 style="margin-top:0">🧹 Clean & Organise</h3>
+      <div class="tf-grid">
+        <button class="tf-btn" onclick="SISA_TEXT_FORMATTER.transform('spaces')">Remove Extra Spaces</button>
+        <button class="tf-btn" onclick="SISA_TEXT_FORMATTER.transform('trimlines')">Clean Each Line</button>
+        <button class="tf-btn" onclick="SISA_TEXT_FORMATTER.transform('sort')">Sort Lines A–Z</button>
+        <button class="tf-btn" onclick="SISA_TEXT_FORMATTER.transform('unique')">Remove Duplicate Lines</button>
+        <button class="tf-btn" onclick="SISA_TEXT_FORMATTER.transform('number')">Number Lines</button>
+        <button class="tf-btn" onclick="SISA_TEXT_FORMATTER.transform('reverse')">Reverse Text</button>
+      </div>
+      <div class="tf-actions">
+        <button class="tf-btn tf-primary" onclick="SISA_TEXT_FORMATTER.copy()">📋 Copy Result</button>
+        <button class="tf-btn" onclick="SISA_TEXT_FORMATTER.download()">⇩ Download TXT</button>
+        <button class="tf-btn" onclick="SISA_TEXT_FORMATTER.clear()">Clear All</button>
+      </div>
+      <div id="tfStatus" class="tf-status" role="status"></div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const input = $("tfInput");
+
+  function updateStats(){
+    const text = input.value;
+    const trimmed = text.trim();
+    $("tfWords").textContent = trimmed
+      ? (trimmed.match(/\S+/g) || []).length : 0;
+    $("tfChars").textContent = text.length;
+    $("tfLines").textContent = text ? text.split(/\r\n|\r|\n/).length : 0;
+  }
+
+  function titleCase(text){
+    return text.toLocaleLowerCase().replace(
+      /(^|[\s\-–—])([\p{L}\p{N}])/gu,
+      (match, separator, letter) => separator + letter.toLocaleUpperCase()
+    );
+  }
+
+  function sentenceCase(text){
+    let first = true;
+    return text.toLocaleLowerCase().replace(
+      /(^\s*|[.!?]\s+)([\p{L}\p{N}])/gu,
+      (match, separator, letter) => {
+        first = false;
+        return separator + letter.toLocaleUpperCase();
+      }
+    );
+  }
+
+  window.SISA_TEXT_FORMATTER = {
+    open(){
+      $("sisaTextFormatter").style.display = "block";
+      updateStats();
+    },
+    close(){
+      $("sisaTextFormatter").style.display = "none";
+    },
+    transform(mode){
+      let text = input.value;
+
+      switch(mode){
+        case "upper":
+          text = text.toLocaleUpperCase();
+          break;
+        case "lower":
+          text = text.toLocaleLowerCase();
+          break;
+        case "title":
+          text = titleCase(text);
+          break;
+        case "sentence":
+          text = sentenceCase(text);
+          break;
+        case "spaces":
+          text = text.replace(/[ \t]+/g," ")
+                     .replace(/ *\n */g,"\n").trim();
+          break;
+        case "trimlines":
+          text = text.split(/\r\n|\r|\n/)
+                     .map(line=>line.trim()).join("\n");
+          break;
+        case "sort":
+          text = text.split(/\r\n|\r|\n/)
+                     .sort((a,b)=>a.localeCompare(b,undefined,{sensitivity:"base"}))
+                     .join("\n");
+          break;
+        case "unique":{
+          const seen = new Set();
+          text = text.split(/\r\n|\r|\n/).filter(line=>{
+            const key = line.trim().toLocaleLowerCase();
+            if(seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          }).join("\n");
+          break;
+        }
+        case "number":
+          text = text.split(/\r\n|\r|\n/)
+                     .map((line,i)=>(i+1)+". "+line).join("\n");
+          break;
+        case "reverse":
+          text = Array.from(text).reverse().join("");
+          break;
+      }
+
+      input.value = text;
+      updateStats();
+      $("tfStatus").textContent = "Text updated successfully.";
+    },
+    async copy(){
+      if(!input.value){
+        $("tfStatus").textContent = "Enter some text first.";
+        return;
+      }
+      try{
+        await navigator.clipboard.writeText(input.value);
+        $("tfStatus").textContent = "Text copied to clipboard.";
+      }catch(e){
+        input.focus();
+        input.select();
+        $("tfStatus").textContent = "Text selected. Use your phone's Copy option.";
+      }
+    },
+    download(){
+      if(!input.value){
+        $("tfStatus").textContent = "There is no text to download.";
+        return;
+      }
+      const blob = new Blob([input.value],{type:"text/plain;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "sisa-formatted-text.txt";
+      a.click();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+      $("tfStatus").textContent = "Text file download started.";
+    },
+    clear(){
+      input.value = "";
+      updateStats();
+      $("tfStatus").textContent = "Text cleared.";
+    }
+  };
+
+  input.addEventListener("input",updateStats);
+})();
+</script>
+
+<!-- END PART 2AO -->
+  
 
 
 
