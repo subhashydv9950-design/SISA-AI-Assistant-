@@ -8688,14 +8688,12 @@ renderSchedule();
 /* =============== PART 2W END — CONTENT IDEA VAULT =============== */
 </script>
   
-
 <!-- =====================================================
  SISA AI ASSISTANT — PART 2X
- TOOLS PAGE — UPDATED VERSION
+ UPDATED TOOLS PAGE + TOOLS HEADER BUTTON
 ===================================================== -->
 
 <style>
-/* Tools page fills the app area instead of sitting at the end */
 #sisaToolsPage {
   display: none;
   position: fixed;
@@ -8704,37 +8702,44 @@ renderSchedule();
   box-sizing: border-box;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 20px 16px 110px;
+  padding: 16px 14px 30px;
   background: #0b0812;
   color: #f7f3ff;
 }
 
+#sisaToolsPage .sisa-tools-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
 #sisaToolsPage .sisa-tools-title {
-  margin: 0 0 7px;
+  margin: 0;
   font-size: 26px;
   font-weight: 750;
 }
 
 #sisaToolsPage .sisa-tools-desc {
-  margin: 0 0 22px;
+  margin: 0 0 18px;
   color: #b9accd;
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 #sisaToolsPage .sisa-tools-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 #sisaToolsPage .sisa-tool-card {
   min-width: 0;
-  min-height: 108px;
-  padding: 12px;
-  box-sizing: border-box;
+  min-height: 105px;
+  padding: 11px;
   border: 1px solid #30243f;
-  border-radius: 15px;
+  border-radius: 14px;
   background: #120e1c;
   display: flex;
   flex-direction: column;
@@ -8745,28 +8750,27 @@ renderSchedule();
 #sisaToolsPage .sisa-tool-heading {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   font-size: 14px;
   font-weight: 650;
   overflow-wrap: anywhere;
 }
 
 #sisaToolsPage .sisa-tool-icon {
-  font-size: 22px;
+  font-size: 21px;
   flex-shrink: 0;
 }
 
 #sisaToolsPage .sisa-tool-action {
   width: 100%;
-  min-height: 42px;
-  box-sizing: border-box;
-  padding: 10px 8px;
+  min-height: 40px;
+  padding: 9px 6px;
   border: 1px solid #7541bd;
   border-radius: 10px;
   background: #29183e;
   color: white;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 650;
   cursor: pointer;
 }
 
@@ -8775,16 +8779,33 @@ renderSchedule();
 }
 
 #sisaToolsPage .sisa-tools-back {
-  position: sticky;
-  bottom: 0;
   width: 100%;
-  margin-top: 20px;
+  margin-top: 18px;
   padding: 13px;
   border: 1px solid #7541bd;
   border-radius: 12px;
   background: #211530;
   color: white;
   font-weight: 650;
+  cursor: pointer;
+}
+
+#sisaToolsHeaderButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 46px;
+  padding: 0 17px;
+  border: 1px solid #8d56d9;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #7137b7, #3d2162);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 750;
+  box-shadow: 0 4px 18px #7137b733;
+  cursor: pointer;
+  z-index: 20;
 }
 
 #sisaToolsTab {
@@ -8809,15 +8830,9 @@ renderSchedule();
   color: #b58aff;
 }
 
-/* Existing floating tool buttons are hidden after their action
-   has been found; their functionality is triggered from Tools. */
-.sisa-tools-managed-floating {
-  display: none !important;
-}
-
 @media(max-width:380px) {
   #sisaToolsPage {
-    padding: 16px 10px 100px;
+    padding: 14px 10px 25px;
   }
 
   #sisaToolsPage .sisa-tools-grid {
@@ -8827,11 +8842,20 @@ renderSchedule();
   #sisaToolsPage .sisa-tool-card {
     padding: 9px;
   }
+
+  #sisaToolsHeaderButton {
+    min-height: 44px;
+    padding: 0 12px;
+    font-size: 14px;
+  }
 }
 </style>
 
 <section id="sisaToolsPage" aria-label="SISA Tools">
-  <h2 class="sisa-tools-title">🧰 Tools</h2>
+  <div class="sisa-tools-topbar">
+    <h2 class="sisa-tools-title">🧰 Tools</h2>
+  </div>
+
   <p class="sisa-tools-desc">
     All your content tools in one place.
   </p>
@@ -8851,6 +8875,7 @@ renderSchedule();
 
   const page = document.getElementById("sisaToolsPage");
   const grid = document.getElementById("sisaToolsGrid");
+
   if (!page || !grid) return;
 
   const toolList = [
@@ -8864,25 +8889,30 @@ renderSchedule();
     ["Hashtag Sets", "#️⃣", ["hashtag sets"]],
     ["Post Builder", "📝", ["post builder"]],
     ["Idea Vault", "💡", ["idea vault"]],
-    ["Publishing Checklist", "✅", ["publishing checklist", "post checklist"]],
-    ["Languages", "🌐", ["languages"]],
+    ["Publishing Checklist", "✅", ["publishing checklist"]],
+    ["Post Checklist", "☑️", ["post checklist"]],
+    ["Languages", "🌐", ["languages", "language picker"]],
     ["Media Caption", "🖼️", ["media caption"]],
     ["Media Details", "📷", ["media details"]],
-    ["Backup", "💾", ["backup"]],
-    ["About SISA", "ℹ️", ["about sisa"]],
-    ["Settings", "⚙️", ["settings"]],
     ["Media Preview", "🌄", ["media preview"]],
-    ["Create Post", "➕", ["create post"]]
+    ["Backup", "💾", ["backup"]],
+    ["About SISA", "ℹ️", ["about sisa"]]
   ];
 
-  const hiddenActions = new Map();
   let previousView = null;
+  let activeToolPage = false;
+  const hiddenActions = new Map();
 
   function normalise(value) {
     return String(value || "")
       .replace(/\s+/g, " ")
       .trim()
       .toLowerCase();
+  }
+
+  function getVisibleView() {
+    return Array.from(document.querySelectorAll("[id^='view-']"))
+      .find(el => getComputedStyle(el).display !== "none");
   }
 
   function findAction(tool) {
@@ -8893,6 +8923,7 @@ renderSchedule();
     return candidates.find(el => {
       if (page.contains(el)) return false;
       if (el.id === "sisaToolsTab") return false;
+      if (el.id === "sisaToolsHeaderButton") return false;
 
       const text = normalise(el.innerText || el.textContent);
       if (!text || text.length > 90) return false;
@@ -8902,12 +8933,11 @@ renderSchedule();
       const rect = el.getBoundingClientRect();
       const css = getComputedStyle(el);
 
-      // Prefer visible floating feature buttons and known header actions.
       return rect.width > 0 &&
         rect.height > 0 &&
         (css.position === "fixed" ||
          css.position === "absolute" ||
-         /about sisa|settings|create post/.test(text));
+         /about sisa|settings/.test(text));
     });
   }
 
@@ -8924,36 +8954,41 @@ renderSchedule();
       "Post Builder": ["SISA_POST_BUILDER"],
       "Idea Vault": ["SISA_IDEA_VAULT"],
       "Publishing Checklist": ["SISA_PUBLISHING_CHECKLIST"],
+      "Post Checklist": ["SISA_POST_CHECKLIST", "SISA_PUBLISHING_CHECKLIST"],
       "Languages": ["SISA_LANGUAGE_PICKER"],
       "Media Caption": ["SISA_MEDIA_CAPTION"],
       "Media Details": ["SISA_MEDIA_DETAILS"],
+      "Media Preview": ["SISA_MEDIA_PREVIEW"],
       "Backup": ["SISA_BACKUP"],
-      "About SISA": ["SISA_ABOUT"],
-      "Settings": ["SISA_SETTINGS"],
-      "Media Preview": ["SISA_MEDIA_PREVIEW"]
+      "About SISA": ["SISA_ABOUT"]
     };
 
-    return (apiNames[toolName] || [])
-      .map(name => window[name])
-      .find(api => api && typeof api.open === "function");
+    for (const name of (apiNames[toolName] || [])) {
+      const api = window[name];
+      if (api && typeof api.open === "function") return api;
+    }
+
+    return null;
+  }
+
+  function closeTools() {
+    page.style.display = "none";
+    activeToolPage = false;
+
+    const tab = document.getElementById("sisaToolsTab");
+    if (tab) tab.classList.remove("sisa-tools-active");
+
+    if (previousView && previousView.isConnected) {
+      previousView.style.display = "";
+    } else {
+      const home = document.getElementById("view-home");
+      if (home) home.style.display = "";
+    }
   }
 
   function openTool(tool) {
-    // Create Post returns to the original creation screen.
-    if (tool[0] === "Create Post") {
-      closeTools();
-      const create = document.querySelector(
-        "#topCreate, [data-view='create'], #view-create"
-      );
-
-      if (create && typeof create.click === "function" &&
-          create.tagName !== "SECTION" && create.tagName !== "DIV") {
-        create.click();
-      }
-      return;
-    }
-
     const api = getApi(tool[0]);
+
     if (api) {
       closeTools();
       api.open();
@@ -8961,12 +8996,12 @@ renderSchedule();
     }
 
     const action = hiddenActions.get(tool[0]);
+
     if (action && action.isConnected) {
       closeTools();
       action.classList.remove("sisa-tools-managed-floating");
       action.click();
 
-      // Re-hide the original floating button after its handler runs.
       if (action.dataset.sisaToolsWasFloating === "yes") {
         setTimeout(() => {
           if (action.isConnected) {
@@ -8977,12 +9012,12 @@ renderSchedule();
       return;
     }
 
-    if (tool[0] === "Media Caption" || tool[0] === "Media Details") {
-      const fileInput = document.querySelector(
-        'input[type="file"][accept*="image"], input[type="file"]'
-      );
-
+    if (tool[0] === "Media Caption" ||
+        tool[0] === "Media Details" ||
+        tool[0] === "Media Preview") {
       closeTools();
+
+      const fileInput = document.querySelector('input[type="file"]');
 
       if (fileInput) {
         fileInput.click();
@@ -8992,7 +9027,8 @@ renderSchedule();
       return;
     }
 
-    if (tool[0] === "Publishing Checklist") {
+    if (tool[0] === "Post Checklist" ||
+        tool[0] === "Publishing Checklist") {
       const checklist = document.querySelector(
         "#sisaChecklistOpen, #sisaChecklistButton"
       );
@@ -9006,8 +9042,7 @@ renderSchedule();
 
     alert(
       tool[0] +
-      " का बटन तैयार है, लेकिन इसका मौजूदा फीचर अभी नहीं मिला। " +
-      "इसे अगले कोड पार्ट में जोड़ा जा सकता है।"
+      " का मौजूदा फीचर नहीं मिला। इस बटन को चलाने के लिए उसके फीचर का कोड/API जोड़ना होगा।"
     );
   }
 
@@ -9036,14 +9071,13 @@ renderSchedule();
       button.textContent = "Open " + tool[0];
       button.addEventListener("click", () => openTool(tool));
 
-      // Retain the original action's click handler, but remove its
-      // floating button from the visible screen when safely matched.
       const original = findAction(tool);
 
       if (original && !hiddenActions.has(tool[0])) {
+        const css = getComputedStyle(original);
+
         original.dataset.sisaToolsWasFloating =
-          getComputedStyle(original).position === "fixed" ||
-          getComputedStyle(original).position === "absolute"
+          css.position === "fixed" || css.position === "absolute"
             ? "yes" : "no";
 
         hiddenActions.set(tool[0], original);
@@ -9066,8 +9100,9 @@ renderSchedule();
       const rect = nav.getBoundingClientRect();
 
       return text.includes("create") &&
-             text.includes("draft") &&
-             rect.height > 0 && rect.height < 180;
+        text.includes("draft") &&
+        rect.height > 0 &&
+        rect.height < 180;
     });
   }
 
@@ -9094,43 +9129,41 @@ renderSchedule();
     return tab;
   }
 
+  function addHeaderToolsButton() {
+    if (document.getElementById("sisaToolsHeaderButton")) return;
+
+    const createButton = document.querySelector("#topCreate");
+
+    if (!createButton || !createButton.parentElement) return;
+
+    const toolsButton = document.createElement("button");
+    toolsButton.type = "button";
+    toolsButton.id = "sisaToolsHeaderButton";
+    toolsButton.innerHTML = "🧰 Tools";
+    toolsButton.addEventListener("click", openTools);
+
+    createButton.parentElement.insertBefore(toolsButton, createButton);
+  }
+
   function openTools() {
     const tab = addToolsTab();
 
-    // Remember the current main view before opening Tools.
-    const visible = Array.from(
-      document.querySelectorAll("[id^='view-']")
-    ).find(el => getComputedStyle(el).display !== "none");
-
-    if (visible) previousView = visible;
+    if (!activeToolPage) {
+      previousView = getVisibleView() || previousView;
+    }
 
     document.querySelectorAll("[id^='view-']").forEach(view => {
       view.style.display = "none";
     });
 
     page.style.display = "block";
+    activeToolPage = true;
 
     if (tab) tab.classList.add("sisa-tools-active");
 
     renderTools();
-
-    // Always start at the top of the Tools page.
     page.scrollTop = 0;
     window.scrollTo(0, 0);
-  }
-
-  function closeTools() {
-    page.style.display = "none";
-
-    const tab = document.getElementById("sisaToolsTab");
-    if (tab) tab.classList.remove("sisa-tools-active");
-
-    if (previousView && previousView.isConnected) {
-      previousView.style.display = "";
-    } else {
-      const home = document.getElementById("view-home");
-      if (home) home.style.display = "";
-    }
   }
 
   document.getElementById("sisaToolsBack")
@@ -9143,10 +9176,12 @@ renderSchedule();
   };
 
   addToolsTab();
+  addHeaderToolsButton();
   renderTools();
 
   window.addEventListener("load", () => {
     addToolsTab();
+    addHeaderToolsButton();
     renderTools();
   });
 
@@ -9155,7 +9190,8 @@ renderSchedule();
   /* =============== PART 2X END — TOOLS PAGE =============== */
 })();
 </script>
-  
+
+    
 
 
 
