@@ -1,0 +1,795 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#090710">
+<meta name="description" content="SISA AI Assistant — your intelligent social media workspace.">
+<title>SISA AI Assistant</title>
+
+<style>
+:root {
+  --bg:#090710;
+  --panel:#110e1c;
+  --panel2:#171326;
+  --line:#29223c;
+  --purple:#9565ff;
+  --pink:#d26bff;
+  --text:#f7f3ff;
+  --muted:#a49ab9;
+  --green:#6ee7b7;
+  --radius:18px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:
+  radial-gradient(ellipse at 65% -15%,#38205b55,transparent 45%),
+  var(--bg);color:var(--text);
+  font-family:Inter,system-ui,-apple-system,sans-serif;
+  min-height:100vh;
+}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{
+  outline:2px solid var(--pink);outline-offset:3px
+}
+.app{display:flex;min-height:100vh}
+.sidebar{
+  width:245px;flex-shrink:0;padding:25px 16px;
+  border-right:1px solid var(--line);
+  background:#0c0914ee;display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;
+}
+.brand{display:flex;align-items:center;gap:11px;padding:0 8px 28px}
+.logo{
+  width:43px;height:43px;border-radius:14px;
+  display:grid;place-items:center;font-weight:900;font-size:21px;
+  background:linear-gradient(135deg,#a56cff,#6b3ee6);
+  box-shadow:0 0 28px #8952ff45;
+}
+.brand strong{font-size:19px;letter-spacing:.4px}
+.brand small{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.nav-label{color:#786d8e;font-size:10px;letter-spacing:1.8px;padding:13px 12px 9px}
+.nav{
+  border:0;background:transparent;color:#a9a0bd;width:100%;
+  display:flex;align-items:center;gap:12px;padding:13px 12px;
+  border-radius:12px;text-align:left;margin:3px 0;font-size:13px;
+}
+.nav .ico{width:22px;text-align:center;font-size:17px}
+.nav:hover,.nav.active{color:white;background:linear-gradient(100deg,#8c53ff30,#8c53ff09)}
+.nav.active{box-shadow:inset 3px 0 var(--purple)}
+.sidebar-bottom{margin-top:auto}
+.profile{
+  border:1px solid var(--line);border-radius:14px;padding:12px;
+  display:flex;align-items:center;gap:10px
+}
+.avatar{
+  width:35px;height:35px;border-radius:50%;
+  display:grid;place-items:center;background:#37225c;color:#dfcaff;font-weight:800
+}
+.profile small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.main{flex:1;min-width:0;padding:28px clamp(16px,3vw,40px) 60px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:32px}
+.top-left{display:flex;align-items:center;gap:12px}
+.topbar h2{font-size:19px;margin:0}
+.topbar p{color:var(--muted);font-size:12px;margin:6px 0 0}
+.top-actions{display:flex;gap:9px;align-items:center}
+.icon-btn,.btn{
+  border:1px solid var(--line);background:var(--panel);
+  color:var(--text);padding:10px 13px;border-radius:11px;
+}
+.btn-primary{
+  background:linear-gradient(120deg,#9b62ff,#7543e8);
+  border:0;color:white;font-weight:700;box-shadow:0 5px 24px #8c4cff26
+}
+.btn:hover,.icon-btn:hover{filter:brightness(1.2)}
+.menu-toggle{display:none}
+.view{display:none}
+.view.active{display:block;animation:appear .2s ease}
+@keyframes appear{from{opacity:.3;transform:translateY(4px)}to{opacity:1;transform:none}}
+.eyebrow{color:#bd9cff;font-size:11px;letter-spacing:1.7px;font-weight:700}
+.hero{
+  border:1px solid #56358b;border-radius:24px;padding:30px;
+  background:
+  radial-gradient(ellipse at 88% 20%,#9d55ff36,transparent 36%),
+  linear-gradient(120deg,#1b112e,#100d1a 65%);
+  position:relative;overflow:hidden;margin-bottom:24px;
+}
+.hero:after{
+  content:"✦";position:absolute;right:9%;top:8px;
+  font-size:120px;color:#bc8bff15;pointer-events:none
+}
+.hero h1{font-size:clamp(27px,4vw,43px);line-height:1.13;margin:13px 0}
+.gradient{background:linear-gradient(90deg,#fff,#c9a8ff,#9c70ff);color:transparent;background-clip:text}
+.hero p{color:#b9aecb;line-height:1.7;max-width:550px;font-size:13px}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:25px}
+.stat,.card{
+  background:linear-gradient(145deg,#171225,#100d18);
+  border:1px solid var(--line);border-radius:var(--radius);padding:20px;
+  min-width:0
+}
+.stat-top{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px}
+.stat-icon{width:34px;height:34px;border-radius:11px;background:#9a65ff1c;display:grid;place-items:center}
+.stat strong{font-size:27px;display:block;margin-top:16px}
+.stat small{color:var(--muted);font-size:11px}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:25px 0 15px}
+.section-head h3{font-size:16px;margin:0}
+.section-head p{font-size:12px;color:var(--muted);margin:5px 0 0}
+.quick-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.quick{
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:16px;padding:18px;text-align:left;color:var(--text);
+  min-height:135px;transition:.2s
+}
+.quick:hover{transform:translateY(-3px);border-color:#8054ca}
+.quick .big-icon{font-size:25px;display:block;margin-bottom:18px}
+.quick strong{font-size:13px}
+.quick small{display:block;color:var(--muted);margin-top:7px;font-size:11px;line-height:1.5}
+.card{margin-bottom:18px}
+.card-title{font-size:16px;font-weight:750;margin-bottom:7px}
+.muted{color:var(--muted);font-size:12px;line-height:1.7}
+.dropzone{
+  border:1px dashed #6543a2;border-radius:17px;padding:30px 15px;
+  text-align:center;background:#9663ff08;transition:.2s
+}
+.dropzone.drag{background:#8d55ff24;border-color:#c5a1ff}
+.upload-icon{
+  width:53px;height:53px;display:grid;place-items:center;
+  background:#9259ff20;border-radius:17px;margin:0 auto 14px;font-size:25px
+}
+.dropzone h3{font-size:15px;margin:0 0 8px}
+.dropzone p{font-size:12px;color:var(--muted);line-height:1.6}
+.file-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+.file-item{border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}
+.preview{
+  width:100%;height:130px;object-fit:cover;background:#0a0810;
+  border-radius:9px;margin-bottom:10px
+}
+.file-name{font-size:12px;overflow-wrap:anywhere;font-weight:650}
+.file-meta{font-size:10px;color:var(--muted);margin-top:5px}
+.file-item input,.field input,.field textarea,.field select{
+  display:block;width:100%;background:#0b0912;color:var(--text);
+  border:1px solid var(--line);border-radius:10px;padding:11px;margin-top:7px
+}
+.field label{font-size:12px;color:#cfc4e4}
+.field{margin:15px 0}
+.field textarea{min-height:85px;resize:vertical;line-height:1.6}
+.field input[type="datetime-local"]{color-scheme:dark}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.row-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.draft-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.draft-card{border:1px solid var(--line);background:#100d19;border-radius:15px;padding:15px;min-width:0}
+.draft-card h4{margin:9px 0;font-size:13px;overflow-wrap:anywhere}
+.badge{display:inline-block;font-size:10px;padding:5px 8px;border-radius:7px;background:#9b67ff20;color:#d1b8ff}
+.draft-card p{font-size:11px;color:var(--muted);line-height:1.6;overflow-wrap:anywhere}
+.empty{text-align:center;padding:35px 12px;color:var(--muted);font-size:13px}
+.empty span{display:block;font-size:28px;margin-bottom:12px}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.about-item{padding:18px;background:#100d19;border:1px solid var(--line);border-radius:15px}
+.about-item small{color:var(--muted);font-size:11px}
+.about-item p{font-size:13px;overflow-wrap:anywhere}
+.footer{color:#655c76;text-align:center;font-size:10px;padding-top:35px}
+.toast{
+  position:fixed;bottom:25px;right:25px;z-index:20;
+  background:#201632;border:1px solid #67459c;border-radius:13px;
+  padding:14px 18px;font-size:13px;box-shadow:0 8px 35px #0009;
+  max-width:calc(100vw - 30px);display:none
+}
+.toast.show{display:block;animation:appear .2s}
+.mobile-bottom{display:none}
+@media(max-width:900px){
+ .sidebar{width:210px}
+ .main{padding:22px 18px 45px}
+ .quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:650px){
+ .sidebar{
+  position:fixed;z-index:15;left:-270px;top:0;bottom:0;height:100dvh;
+  width:255px;transition:left .22s;box-shadow:15px 0 40px #0007
+ }
+ .sidebar.open{left:0}
+ .main{padding:18px 14px 92px}
+ .menu-toggle{display:block}
+ .topbar{margin-bottom:23px}
+ .topbar h2{font-size:17px}
+ .top-actions .desktop-only{display:none}
+ .hero{padding:24px 19px;border-radius:19px}
+ .hero h1{font-size:31px}
+ .stats{gap:8px}
+ .stat{padding:12px 10px;border-radius:14px}
+ .stat-top{font-size:10px;display:block}
+ .stat-icon{margin-bottom:9px}
+ .stat strong{font-size:23px;margin-top:10px}
+ .stat small{font-size:9px}
+ .quick-grid{gap:9px}
+ .quick{padding:14px;min-height:125px}
+ .file-list,.draft-list{grid-template-columns:1fr}
+ .form-grid,.about-grid{grid-template-columns:1fr}
+ .preview{height:190px}
+ .mobile-bottom{
+  position:fixed;z-index:10;bottom:0;left:0;right:0;
+  background:#0e0b18f5;backdrop-filter:blur(18px);
+  border-top:1px solid var(--line);display:grid;
+  grid-template-columns:repeat(4,1fr);padding:8px 4px calc(8px + env(safe-area-inset-bottom))
+ }
+ .mobile-bottom button{
+  border:0;background:transparent;color:#a69bb9;font-size:10px;
+  padding:5px 0;display:grid;gap:4px;justify-items:center
+ }
+ .mobile-bottom button span{font-size:19px}
+ .mobile-bottom button.active{color:#c7a6ff}
+ .toast{bottom:85px;right:12px}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo">S</div>
+      <div><strong>SISA AI</strong><small>ASSISTANT STUDIO</small></div>
+    </div>
+
+    <div class="nav-label">WORKSPACE</div>
+    <button class="nav active" data-view="home"><span class="ico">⌂</span> Dashboard</button>
+    <button class="nav" data-view="studio"><span class="ico">✧</span> AI Content Studio</button>
+    <button class="nav" data-view="drafts"><span class="ico">▤</span> My Drafts</button>
+    <button class="nav" data-view="schedule"><span class="ico">◷</span> Schedule</button>
+
+    <div class="nav-label">YOUR ACCOUNT</div>
+    <button class="nav" data-view="assistant"><span class="ico">◉</span> AI Assistant</button>
+    <button class="nav" data-view="about"><span class="ico">ⓘ</span> About SISA</button>
+
+    <div class="sidebar-bottom">
+      <div class="profile">
+        <div class="avatar">S</div>
+        <div><strong style="font-size:12px">SISA Workspace</strong><small>Personal Studio</small></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="top-left">
+        <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Open menu">☰</button>
+        <div>
+          <h2 id="pageTitle">Welcome to SISA</h2>
+          <p id="pageSubtitle">Your content. Your schedule. Your control.</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn desktop-only" id="languageButton" title="Language">🌐 EN</button>
+        <button class="btn btn-primary" id="topCreate">＋ Create</button>
+      </div>
+    </header>
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-home">
+      <div class="hero">
+        <div class="eyebrow">✦ YOUR PERSONAL AI WORKSPACE</div>
+        <h1>Create smarter.<br><span class="gradient">Publish with confidence.</span></h1>
+        <p>Organize your social content, explore caption ideas and prepare your next post — all in one beautifully designed workspace.</p>
+        <div class="hero-actions">
+          <button class="btn btn-primary" data-go="studio">✧ Open Content Studio</button>
+          <button class="btn" data-go="drafts">View my drafts ↗</button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-top"><span>Saved drafts</span><span class="stat-icon">▤</span></div>
+          <strong id="draftCount">0</strong><small>On this device</small>
+        </div>
+        <div class="stat">
+          <div class="stat-top"><span>Media selected</span><span class="stat-icon">▧</span></div>
+          <strong id="mediaCount">0</strong><small>Current session</small>
+        </div>
+        <div class="stat">
+          <div class="stat-top"><span>Upcoming</span><span class="stat-icon">◷</span></div>
+          <strong id="scheduledCount">0</strong><small>Saved with a time</small>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <div><h3>Quick actions</h3><p>Everything you need to get started</p></div>
+      </div>
+      <div class="quick-grid">
+        <button class="quick" data-go="studio"><span class="big-icon">✧</span><strong>AI Content Studio</strong><small>Add media and explore caption ideas.</small></button>
+        <button class="quick" data-go="drafts"><span class="big-icon">▤</span><strong>Draft Library</strong><small>Review content saved on this device.</small></button>
+        <button class="quick" data-go="schedule"><span class="big-icon">◷</span><strong>Plan Your Content</strong><small>See the dates you assigned to drafts.</small></button>
+        <button class="quick" data-go="assistant"><span class="big-icon">◉</span><strong>AI Assistant</strong><small>Describe the task you want to prepare.</small></button>
+        <button class="quick" data-go="about"><span class="big-icon">ⓘ</span><strong>About SISA</strong><small>Meet the founder and developer.</small></button>
+        <button class="quick" data-go="studio"><span class="big-icon">⇧</span><strong>Bulk Upload</strong><small>Select multiple photos and videos.</small></button>
+      </div>
+    </section>
+
+    <!-- CONTENT STUDIO -->
+    <section class="view" id="view-studio">
+      <div class="section-head">
+        <div><h3>AI Content Studio</h3><p>Prepare your media and organize each post.</p></div>
+        <span class="badge">STUDIO</span>
+      </div>
+
+      <div class="card">
+        <div class="card-title">01 / Add your content</div>
+        <p class="muted">Select multiple photos or videos at once, or drop files into the upload area.</p>
+
+        <div class="dropzone" id="dropzone">
+          <div class="upload-icon">⇧</div>
+          <h3>Drop your media here</h3>
+          <p>Photos, Reels, videos and supported files<br>Choose multiple files in one selection.</p>
+          <button class="btn btn-primary" id="chooseFiles">Browse files</button>
+          <input id="fileInput" type="file" accept="image/*,video/*,.pdf,.txt" multiple hidden>
+        </div>
+        <div class="file-list" id="fileList"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">02 / Content details</div>
+        <p class="muted">Edit the details before saving this item as a draft.</p>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="platform">Platform</label>
+            <select id="platform">
+              <option>Instagram</option>
+              <option>Facebook</option>
+              <option>YouTube</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="contentType">Content type</label>
+            <select id="contentType">
+              <option>Auto detect</option>
+              <option>Reel / Short video</option>
+              <option>Photo post</option>
+              <option>Story</option>
+              <option>Carousel</option>
+              <option>Other file</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="postTitle">Post title / topic</label>
+          <input id="postTitle" placeholder="e.g. Travel, cars, fashion, daily life">
+        </div>
+        <div class="field">
+          <label for="caption">Caption</label>
+          <textarea id="caption" placeholder="Your caption will appear here. You can edit it freely."></textarea>
+        </div>
+        <div class="field">
+          <label for="hashtags">Hashtags</label>
+          <textarea id="hashtags" placeholder="#YourTopic #YourStyle"></textarea>
+        </div>
+
+        <div class="row-actions">
+          <button class="btn btn-primary" id="suggestButton">✧ Suggest caption & hashtags</button>
+          <button class="btn" id="saveDraftButton">▤ Save draft</button>
+          <button class="btn" id="clearButton">Clear</button>
+        </div>
+        <p class="muted" style="margin-top:13px">Caption suggestions in this first version are basic examples, not yet AI-generated or analyzed from the actual video.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">03 / Optional schedule</div>
+        <p class="muted">Choose a date and time to store your preferred publishing plan with the draft.</p>
+        <div class="form-grid">
+          <div class="field">
+            <label for="scheduleTime">Date and time</label>
+            <input id="scheduleTime" type="datetime-local">
+          </div>
+          <div class="field">
+            <label for="scheduleNote">Reminder / note</label>
+            <input id="scheduleNote" placeholder="e.g. Evening campaign">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DRAFTS -->
+    <section class="view" id="view-drafts">
+      <div class="section-head">
+        <div><h3>My Draft Library</h3><p>Your locally saved content ideas and publishing plans.</p></div>
+        <button class="btn btn-primary" data-go="studio">＋ New draft</button>
+      </div>
+      <div class="draft-list" id="draftList"></div>
+    </section>
+
+    <!-- SCHEDULE -->
+    <section class="view" id="view-schedule">
+      <div class="section-head">
+        <div><h3>Content Schedule</h3><p>Review the dates saved with your drafts.</p></div>
+        <button class="btn btn-primary" data-go="studio">＋ Plan content</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Your planned content</div>
+        <div id="scheduleList"></div>
+      </div>
+      <p class="muted">Important: a saved date is only a plan in this version. It does not publish anything automatically. Background scheduling will require a secure server and supported platform integration.</p>
+    </section>
+
+    <!-- ASSISTANT -->
+    <section class="view" id="view-assistant">
+      <div class="hero">
+        <div class="eyebrow">✦ SISA AI ASSISTANT</div>
+        <h1>Your ideas.<br><span class="gradient">One intelligent workspace.</span></h1>
+        <p>Write what you want to prepare. This starter version helps organize your request; connecting a real AI model will come in a later part.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Tell SISA what you need</div>
+        <div class="field">
+          <label for="assistantPrompt">Your command</label>
+          <textarea id="assistantPrompt" placeholder="Example: Help me plan 10 Instagram Reels for next week, with caption ideas and suggested posting times."></textarea>
+        </div>
+        <div class="row-actions">
+          <button class="btn btn-primary" id="assistantSend">Prepare my request ↗</button>
+          <button class="btn" data-go="studio">Open Content Studio</button>
+        </div>
+        <div id="assistantResponse" class="muted" style="margin-top:17px"></div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+        <section class="view" id="view-about">
+      <div class="hero">
+        <div class="eyebrow">ABOUT THE PROJECT</div>
+        <h1>Meet <span class="gradient">SISA AI Assistant.</span></h1>
+        <p>A personal social media workspace designed to make content preparation, planning and organization simpler.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">Founder & Developer</div>
+        <h2 style="margin:15px 0 5px;font-size:27px">Subhash Yadav</h2>
+        <p class="muted">Founder and Developer of SISA AI Assistant</p>
+        <div class="about-grid" style="margin-top:22px">
+          <div class="about-item">
+            <small>INSTAGRAM</small>
+            <p><a href="https://www.instagram.com/iamsubhash177/" target="_blank" rel="noopener noreferrer" style="color:#c4a1ff">@iamsubhash177</a></p>
+          </div>
+          <div class="about-item">
+            <small>EMAIL</small>
+            <p><a href="mailto:yahu9950@gmail.com" style="color:#c4a1ff">yahu9950@gmail.com</a></p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Our direction</div>
+        <p class="muted">A polished multilingual assistant with media uploads, content suggestions, draft management, scheduling tools and authorized social platform integrations.</p>
+        <p class="muted">SISA is an independent project. Platform integrations will depend on each service's official API, permissions and supported publishing features.</p>
+      </div>
+    </section>
+
+    <div class="footer">SISA AI ASSISTANT · YOUR PERSONAL CONTENT WORKSPACE</div>
+  </main>
+</div>
+
+<nav class="mobile-bottom">
+  <button class="active" data-go="home"><span>⌂</span>Home</button>
+  <button data-go="studio"><span>✧</span>Create</button>
+  <button data-go="drafts"><span>▤</span>Drafts</button>
+  <button data-go="schedule"><span>◷</span>Schedule</button>
+</nav>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const titles = {
+  home:["Welcome to SISA","Your content. Your schedule. Your control."],
+  studio:["AI Content Studio","Create and prepare your next post."],
+  drafts:["My Drafts","Your saved content, all in one place."],
+  schedule:["Content Schedule","Plan your next publishing dates."],
+  assistant:["AI Assistant","Turn your ideas into organized tasks."],
+  about:["About SISA","Meet the founder behind the project."]
+};
+
+let selectedFiles = [];
+let activeDraftId = null;
+let toastTimer;
+
+function notify(message){
+  const t=$("toast");
+  t.textContent=message;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove("show"),3000);
+}
+
+function navigate(name){
+  if(!titles[name]) return;
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  $("view-"+name).classList.add("active");
+  document.querySelectorAll(".nav").forEach(b=>b.classList.toggle("active",b.dataset.view===name));
+  document.querySelectorAll(".mobile-bottom button").forEach(b=>b.classList.toggle("active",b.dataset.go===name));
+  $("pageTitle").textContent=titles[name][0];
+  $("pageSubtitle").textContent=titles[name][1];
+  $("sidebar").classList.remove("open");
+  if(name==="drafts") renderDrafts();
+  if(name==="schedule") renderSchedule();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+  document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.view)));
+document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.go)));
+$("menuToggle").addEventListener("click",()=>$("sidebar").classList.toggle("open"));
+$("topCreate").addEventListener("click",()=>navigate("studio"));
+
+function getDrafts(){
+  try{
+    const value=JSON.parse(localStorage.getItem("sisa_drafts_v1")||"[]");
+    return Array.isArray(value)?value:[];
+  }catch(e){return []}
+}
+function setDrafts(drafts){
+  try{
+    localStorage.setItem("sisa_drafts_v1",JSON.stringify(drafts));
+    return true;
+  }catch(e){
+    notify("Storage is full or unavailable. Remove some large drafts.");
+    return false;
+  }
+}
+function refreshStats(){
+  const drafts=getDrafts();
+  $("draftCount").textContent=drafts.length;
+  $("scheduledCount").textContent=drafts.filter(d=>d.schedule).length;
+  $("mediaCount").textContent=selectedFiles.length;
+}
+
+function formatDate(value){
+  if(!value)return "No date selected";
+  const d=new Date(value);
+  if(Number.isNaN(d.getTime()))return value;
+  return d.toLocaleString([],{
+    year:"numeric",month:"short",day:"numeric",
+    hour:"2-digit",minute:"2-digit"
+  });
+}
+
+function addFiles(files){
+  const incoming=Array.from(files||[]);
+  if(!incoming.length)return;
+  const allowed=incoming.filter(f=>
+    f.type.startsWith("image/") ||
+    f.type.startsWith("video/") ||
+    f.type==="application/pdf" ||
+    f.type==="text/plain"
+  );
+  const rejected=incoming.length-allowed.length;
+  selectedFiles.push(...allowed);
+  renderFiles();
+  refreshStats();
+  if(rejected)notify(rejected+" unsupported file(s) skipped.");
+  else notify(allowed.length+" file(s) added.");
+                                            }
+  $("chooseFiles").addEventListener("click",()=>$("fileInput").click());
+$("fileInput").addEventListener("change",e=>{
+  addFiles(e.target.files);
+  e.target.value="";
+});
+
+const dz=$("dropzone");
+dz.addEventListener("dragover",e=>{e.preventDefault();dz.classList.add("drag")});
+dz.addEventListener("dragleave",()=>dz.classList.remove("drag"));
+dz.addEventListener("drop",e=>{
+  e.preventDefault();dz.classList.remove("drag");
+  addFiles(e.dataTransfer.files);
+});
+
+function renderFiles(){
+  const list=$("fileList");
+  list.innerHTML="";
+  selectedFiles.forEach((file,index)=>{
+    const item=document.createElement("div");
+    item.className="file-item";
+    const name=document.createElement("div");
+    name.className="file-name";
+    name.textContent=file.name;
+    const meta=document.createElement("div");
+    meta.className="file-meta";
+    meta.textContent=(file.type||"File")+" · "+(file.size/1024/1024).toFixed(2)+" MB";
+    item.append(name,meta);
+
+    if(file.type.startsWith("image/")||file.type.startsWith("video/")){
+      const preview=document.createElement(file.type.startsWith("video/")?"video":"img");
+      preview.className="preview";
+      preview.src=URL.createObjectURL(file);
+      if(preview.tagName==="VIDEO"){preview.controls=true;preview.muted=true;preview.playsInline=true}
+      item.prepend(preview);
+    }
+
+    const remove=document.createElement("button");
+    remove.className="btn";
+    remove.style.marginTop="12px";
+    remove.textContent="Remove";
+    remove.addEventListener("click",()=>{
+      selectedFiles.splice(index,1);
+      renderFiles();refreshStats();
+    });
+    item.append(remove);
+    list.append(item);
+  });
+                          }
+  function suggestContent(){
+  const filename=selectedFiles[0]?.name||"";
+  const topic=($("postTitle").value.trim()||filename.replace(/\.[^.]+$/,"").replace(/[_-]/g," ")||"your latest content");
+  const words=topic.split(/\s+/).filter(w=>w.length>2);
+  const tags=[...new Set(words.slice(0,4).map(w=>"#"+w.replace(/[^\p{L}\p{N}]/gu,"")))]
+    .filter(t=>t.length>1);
+  const fallback=["#NewPost","#ContentCreator","#ExploreMore"];
+  const hashtags=[...tags,...fallback].slice(0,8).join(" ");
+  $("caption").value=
+    "✨ A little moment worth sharing!\n\n"+
+    topic+" — sharing this with you. What do you think? 💜\n\n"+
+    "Save this post and share it with someone who would love it.";
+  $("hashtags").value=hashtags;
+  notify("Example caption created. Review it before using.");
+}
+$("suggestButton").addEventListener("click",suggestContent);
+
+function clearEditor(){
+  selectedFiles=[];
+  activeDraftId=null;
+  $("fileList").innerHTML="";
+  $("postTitle").value="";
+  $("caption").value="";
+  $("hashtags").value="";
+  $("scheduleTime").value="";
+  $("scheduleNote").value="";
+  $("fileInput").value="";
+  $("platform").value="Instagram";
+  $("contentType").value="Auto detect";
+  renderFiles();refreshStats();
+}
+$("clearButton").addEventListener("click",clearEditor);
+
+function saveDraft(){
+  const title=$("postTitle").value.trim()||
+    selectedFiles[0]?.name||"Untitled content";
+  const caption=$("caption").value.trim();
+  const hashtags=$("hashtags").value.trim();
+  const schedule=$("scheduleTime").value;
+  const note=$("scheduleNote").value.trim();
+
+  if(!selectedFiles.length&&!caption&&!hashtags){
+    notify("Add media or write a caption first.");
+    return;
+  }
+  if(schedule && new Date(schedule).getTime()<Date.now()){
+    notify("Choose a future date and time.");
+    return;
+  }
+  // Browser storage stores text metadata only.
+  // Media bytes are not uploaded or backed up yet.
+  const drafts=getDrafts();
+  const id=activeDraftId||(
+    window.crypto&&crypto.randomUUID?
+    crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2)
+  );
+  const draft={
+    id,title,caption,hashtags,schedule,note,
+    platform:$("platform").value,
+    contentType:$("contentType").value,
+    fileNames:selectedFiles.map(f=>f.name),
+    updatedAt:new Date().toISOString()
+  };
+  const index=drafts.findIndex(d=>d.id===id);
+  if(index>=0)drafts[index]=draft;
+  else drafts.unshift(draft);
+
+  if(setDrafts(drafts)){
+    activeDraftId=id;
+    refreshStats();
+    notify("Draft details saved on this device.");
+    renderDrafts();
+  }
+}
+$("saveDraftButton").addEventListener("click",saveDraft);
+
+function makeDraftCard(d){
+  const card=document.createElement("article");
+  card.className="draft-card";
+  const badge=document.createElement("span");
+  badge.className="badge";
+  badge.textContent=d.schedule?"PLANNED":"DRAFT";
+  const h=document.createElement("h4");
+  h.textContent=d.title||"Untitled content";
+  const p=document.createElement("p");
+  p.textContent=[
+    d.platform||"Instagram",
+    d.contentType||"Content",
+    (d.fileNames||[]).length+" file(s)",
+    d.schedule?formatDate(d.schedule):"No publishing time"
+  ].join(" · ");
+  const caption=document.createElement("p");
+  caption.textContent=(d.caption||"No caption yet")+
+    (d.hashtags?"\n"+d.hashtags:"");
+  const actions=document.createElement("div");
+  actions.className="row-actions";
+  const edit=document.createElement("button");
+  edit.className="btn btn-primary";
+  edit.textContent="Edit details";
+  edit.addEventListener("click",()=>{
+    activeDraftId=d.id;
+    $("postTitle").value=d.title||"";
+    $("caption").value=d.caption||"";
+    $("hashtags").value=d.hashtags||"";
+    $("platform").value=d.platform||"Instagram";
+    $("contentType").value=d.contentType||"Auto detect";
+    $("scheduleTime").value=d.schedule||"";
+    $("scheduleNote").value=d.note||"";
+    selectedFiles=[];
+    $("fileList").innerHTML="";
+    refreshStats();
+    navigate("studio");
+    notify("Text details loaded. Original media must be selected again if needed.");
+  });
+  const del=document.createElement("button");
+  del.className="btn";
+  del.textContent="Delete";
+  del.addEventListener("click",()=>{
+    if(!confirm("Delete this saved draft?"))return;
+    setDrafts(getDrafts().filter(x=>x.id!==d.id));
+    renderDrafts();renderSchedule();refreshStats();
+    notify("Draft deleted.");
+  });
+  actions.append(edit,del);
+  card.append(badge,h,p,caption,actions);
+  return card;
+               }
+  function renderDrafts(){
+  const list=$("draftList");
+  list.innerHTML="";
+  const drafts=getDrafts();
+  if(!drafts.length){
+    list.innerHTML='<div class="empty" style="grid-column:1/-1"><span>▤</span>No drafts yet.<br>Open Content Studio to create your first one.</div>';
+  }else drafts.forEach(d=>list.append(makeDraftCard(d)));
+  refreshStats();
+}
+function renderSchedule(){
+  const list=$("scheduleList");
+  list.innerHTML="";
+  const drafts=getDrafts().filter(d=>d.schedule)
+    .sort((a,b)=>new Date(a.schedule)-new Date(b.schedule));
+  if(!drafts.length){
+    list.innerHTML='<div class="empty"><span>◷</span>No planned content yet.<br>Choose a date when saving a draft.</div>';
+    return;
+  }
+  drafts.forEach(d=>{
+    const item=document.createElement("div");
+    item.style.cssText="padding:15px 0;border-bottom:1px solid var(--line)";
+    const h=document.createElement("strong");
+    h.style.fontSize="13px";
+    h.textContent=d.title;
+    const p=document.createElement("p");
+    p.className="muted";
+    p.textContent=formatDate(d.schedule)+" · "+d.platform;
+    item.append(h,p);
+    list.append(item);
+  });
+}
+
+$("assistantSend").addEventListener("click",()=>{
+  const command=$("assistantPrompt").value.trim();
+  if(!command){notify("Write a command first.");return}
+  const response=$("assistantResponse");
+  response.textContent=
+    "Your request is ready to plan:\n\n“"+command+
+    "”\n\nNext step: open Content Studio to add media and save a draft. "+
+    "A live AI model and automatic background actions are not connected yet.";
+});
+
+$("languageButton").addEventListener("click",()=>{
+  notify("Multilingual interface will be added in a later part.");
+});
+
+refreshStats();
+renderDrafts();
+renderSchedule();
+</script>
+</body>
+</html>
