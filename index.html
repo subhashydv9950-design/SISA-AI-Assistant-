@@ -3797,24 +3797,40 @@ renderSchedule();
   window.addEventListener("sisa:languageChanged", updateLanguage);
 
   window.SISA_MEDIA_PREVIEW = {
-    open: function () {
-      updateLanguage();
-      panel.style.display = "block";
-    },
-    close: function () {
-      panel.style.display = "none";
-    },
-    count: function () {
-      return files.length;
-    },
-    clear: function () {
-      files.forEach(function (item) {
-        URL.revokeObjectURL(item.url);
-      });
-      files.length = 0;
-      render();
-    }
-  };
+  open: function () {
+    updateLanguage();
+    panel.style.display = "block";
+  },
+
+  close: function () {
+    panel.style.display = "none";
+  },
+
+  count: function () {
+    return files.length;
+  },
+
+  getDetails: function () {
+    return files.map(function (item) {
+      return {
+        name: item.file.name,
+        type: item.file.type || "",
+        size: item.file.size
+      };
+    });
+  },
+
+  clear: function () {
+    files.forEach(function (item) {
+      URL.revokeObjectURL(item.url);
+    });
+
+    files.length = 0;
+    render();
+  }
+};
+
+/* =============== PART 2M PATCH END =============== */
 
   updateLanguage();
 
