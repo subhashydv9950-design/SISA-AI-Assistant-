@@ -2000,5 +2000,173 @@ renderSchedule();
   }
 })();
   </script>
+  <script>
+/* =====================================================
+   SISA AI ASSISTANT — PART 2F
+   SAVED DRAFTS MANAGER
+===================================================== */
+
+(function () {
+  const KEY = "sisa_saved_drafts_v1";
+
+  function getDrafts() {
+    try {
+      return JSON.parse(localStorage.getItem(KEY) || "[]");
+    } catch {
+      return [];
+    }
+  }
+
+  function saveDrafts(drafts) {
+    localStorage.setItem(KEY, JSON.stringify(drafts));
+  }
+
+  function openDraft(draft) {
+    const fields = {
+      title: "#postTitle",
+      caption: "#caption",
+      hashtags: "#hashtags",
+      platform: "#platform",
+      type: "#contentType",
+      schedule: "#scheduleTime"
+    };
+
+    Object.entries(fields).forEach(([key, selector]) => {
+      const el = document.querySelector(selector);
+      if (el && draft[key] !== undefined) {
+        el.value = draft[key];
+      }
+    });
+
+    document.querySelector("#view-home")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+
+    alert("Draft loaded. You can edit it now.");
+  }
+
+  function showDrafts() {
+    const drafts = getDrafts();
+
+    let panel = document.querySelector("#sisaDraftManager");
+
+    if (!panel) {
+      panel = document.createElement("section");
+      panel.id = "sisaDraftManager";
+
+      Object.assign(panel.style, {
+        position: "fixed",
+        inset: "5% 4%",
+        zIndex: "99999",
+        overflowY: "auto",
+        background: "#11101b",
+        color: "#fff",
+        border: "1px solid #7040cf",
+        borderRadius: "16px",
+        padding: "20px",
+        boxShadow: "0 0 35px #000"
+      });
+
+      document.body.appendChild(panel);
+    }
+
+    panel.innerHTML = `
+      <h2 style="color:#bb86fc">Saved Drafts</h2>
+      <p>Your drafts are stored on this device.</p>
+      <button id="sisaCloseDrafts">Close</button>
+      <div id="sisaDraftItems"></div>
+    `;
+
+    panel.querySelector("#sisaCloseDrafts").onclick =
+      () => panel.remove();
+
+    const list = panel.querySelector("#sisaDraftItems");
+
+    if (!drafts.length) {
+      list.textContent = "No saved drafts yet.";
+      return;
+    }
+
+    drafts.forEach((draft, index) => {
+      const card = document.createElement("article");
+
+      Object.assign(card.style, {
+        padding: "14px",
+        marginTop: "12px",
+        border: "1px solid #403052",
+        borderRadius: "12px"
+      });
+
+      const title = document.createElement("h3");
+      title.textContent = draft.title || "Untitled Draft";
+
+      const caption = document.createElement("p");
+      caption.textContent = draft.caption || "No caption";
+
+      const date = document.createElement("small");
+      date.textContent = draft.updatedAt
+        ? new Date(draft.updatedAt).toLocaleString()
+        : "Saved draft";
+
+      const load = document.createElement("button");
+      load.textContent = "Edit Draft";
+      load.onclick = () => {
+        openDraft(draft);
+        panel.remove();
+      };
+
+      const remove = document.createElement("button");
+      remove.textContent = "Delete";
+      remove.style.marginLeft = "8px";
+      remove.onclick = () => {
+        if (!confirm("Delete this draft?")) return;
+
+        const updated = getDrafts();
+        updated.splice(index, 1);
+        saveDrafts(updated);
+        showDrafts();
+      };
+
+      card.append(title, caption, date, document.createElement("br"),
+                  load, remove);
+      list.appendChild(card);
+    });
+  }
+
+  window.SISA_DRAFT_MANAGER = { open: showDrafts };
+
+  // Add a Saved Drafts button to the page.
+  function addButton() {
+    if (document.querySelector("#sisaOpenDrafts")) return;
+
+    const button = document.createElement("button");
+    button.id = "sisaOpenDrafts";
+    button.textContent = "📁 Saved Drafts";
+
+    Object.assign(button.style, {
+      position: "fixed",
+      right: "16px",
+      bottom: "16px",
+      zIndex: "9998",
+      padding: "12px 16px",
+      border: "1px solid #9b5cff",
+      borderRadius: "12px",
+      background: "#26153d",
+      color: "white",
+      cursor: "pointer"
+    });
+
+    button.onclick = showDrafts;
+    document.body.appendChild(button);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", addButton);
+  } else {
+    addButton();
+  }
+})();
+  </script>
 </body>
 </html>
