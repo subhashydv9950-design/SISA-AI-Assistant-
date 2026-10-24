@@ -9334,7 +9334,184 @@ renderSchedule();
   /* =============== PART 2X END — TOOLS PAGE =============== */
 })();
 </script>
+<!-- =====================================================
+ SISA AI ASSISTANT — PART 2Y
+ FULL-SCREEN TOOL NAVIGATION
+===================================================== -->
 
+<style>
+#sisaFullToolPage {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  box-sizing: border-box;
+  overflow-y: auto;
+  padding: 16px;
+  background: #0b0812;
+  color: #f7f3ff;
+}
+
+#sisaFullToolPage .sisa-fulltool-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #30243f;
+}
+
+#sisaFullToolPage .sisa-fulltool-back {
+  flex-shrink: 0;
+  min-height: 42px;
+  padding: 9px 13px;
+  border: 1px solid #7541bd;
+  border-radius: 11px;
+  background: #29183e;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+#sisaFullToolPage .sisa-fulltool-title {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+#sisaFullToolPage .sisa-fulltool-content {
+  padding-top: 18px;
+}
+
+#sisaFullToolPage .sisa-fulltool-message {
+  padding: 16px;
+  border: 1px solid #30243f;
+  border-radius: 14px;
+  background: #120e1c;
+  color: #c9bddb;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+#sisaFullToolPage .sisa-fulltool-home {
+  margin-top: 16px;
+  padding: 12px 15px;
+  border: 1px solid #7541bd;
+  border-radius: 11px;
+  background: #7137b7;
+  color: white;
+  font-weight: 650;
+  cursor: pointer;
+}
+</style>
+
+<section id="sisaFullToolPage" aria-label="Full-screen tool">
+  <header class="sisa-fulltool-header">
+    <button
+      type="button"
+      class="sisa-fulltool-back"
+      id="sisaFullToolBack"
+    >← Back</button>
+
+    <h2 class="sisa-fulltool-title" id="sisaFullToolTitle">
+      Tool
+    </h2>
+  </header>
+
+  <div class="sisa-fulltool-content" id="sisaFullToolContent"></div>
+</section>
+
+<script>
+(function () {
+  "use strict";
+
+  if (window.SISA_FULL_TOOL_NAV) return;
+
+  const page = document.getElementById("sisaFullToolPage");
+  const title = document.getElementById("sisaFullToolTitle");
+  const content = document.getElementById("sisaFullToolContent");
+  const backButton = document.getElementById("sisaFullToolBack");
+
+  if (!page || !title || !content || !backButton) return;
+
+  let previousPage = null;
+  let previousToolsDisplay = "none";
+  let currentTool = "";
+
+  function open(toolName, description, onBack) {
+    previousPage = Array.from(
+      document.querySelectorAll("[id^='view-']")
+    ).find(el => getComputedStyle(el).display !== "none") || null;
+
+    const toolsPage = document.getElementById("sisaToolsPage");
+
+    previousToolsDisplay = toolsPage
+      ? getComputedStyle(toolsPage).display
+      : "none";
+
+    currentTool = toolName || "Tool";
+    title.textContent = currentTool;
+    content.replaceChildren();
+
+    const message = document.createElement("div");
+    message.className = "sisa-fulltool-message";
+    message.textContent = description ||
+      "यह टूल अपने पूरे स्क्रीन पर खुलने के लिए तैयार है।";
+    content.appendChild(message);
+
+    page.style.display = "block";
+
+    document.querySelectorAll("[id^='view-']").forEach(view => {
+      view.style.display = "none";
+    });
+
+    if (toolsPage) toolsPage.style.display = "none";
+
+    window.scrollTo(0, 0);
+
+    return {
+      content: content,
+      close: close,
+      onBack: onBack
+    };
+  }
+
+  function close() {
+    page.style.display = "none";
+
+    const toolsPage = document.getElementById("sisaToolsPage");
+
+    if (toolsPage) {
+      toolsPage.style.display = previousToolsDisplay;
+    }
+
+    if (previousPage && previousPage.isConnected) {
+      previousPage.style.display = "";
+    } else {
+      const home = document.getElementById("view-home");
+      if (home) home.style.display = "";
+    }
+
+    currentTool = "";
+  }
+
+  backButton.addEventListener("click", close);
+
+  window.SISA_FULL_TOOL_NAV = {
+    open: open,
+    close: close,
+    getCurrentTool: function () {
+      return currentTool;
+    },
+    getContent: function () {
+      return content;
+    }
+  };
+
+  /* =============== PART 2Y END =============== */
+})();
+</script>
     
 
 
