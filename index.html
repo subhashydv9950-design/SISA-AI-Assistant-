@@ -1488,5 +1488,66 @@ renderSchedule();
   document.documentElement.lang = window.SISA_I18N.language;
 })();
   </script>
+  <script>
+/* SISA PART 2C — DASHBOARD TRANSLATION */
+
+(function () {
+  const words = {
+    "Home": {
+      hi: "होम", zh: "首页", ja: "ホーム", ko: "홈",
+      fr: "Accueil", de: "Startseite"
+    },
+    "Create": {
+      hi: "बनाएँ", zh: "创建", ja: "作成", ko: "만들기",
+      fr: "Créer", de: "Erstellen"
+    },
+    "Schedule": {
+      hi: "शेड्यूल", zh: "计划", ja: "スケジュール",
+      ko: "예약", fr: "Planifier", de: "Planung"
+    },
+    "Settings": {
+      hi: "सेटिंग्स", zh: "设置", ja: "設定", ko: "설정",
+      fr: "Paramètres", de: "Einstellungen"
+    },
+    "About": {
+      hi: "हमारे बारे में", zh: "关于", ja: "概要",
+      ko: "정보", fr: "À propos", de: "Über uns"
+    }
+  };
+
+  function translateDashboard() {
+    const lang = window.SISA_I18N?.language || "en";
+
+    document.querySelectorAll(
+      ".sidebar .nav, button, .card-title"
+    ).forEach(el => {
+      if (!el.dataset.sisaOriginal) {
+        el.dataset.sisaOriginal = el.textContent.trim();
+      }
+
+      const original = el.dataset.sisaOriginal;
+      const translated = words[original]?.[lang];
+
+      if (lang === "en") {
+        el.textContent = original;
+      } else if (translated) {
+        el.textContent = translated;
+      }
+    });
+  }
+
+  window.addEventListener(
+    "sisa:languageChanged",
+    translateDashboard
+  );
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    translateDashboard
+  );
+
+  window.SISA_TRANSLATE_DASHBOARD = translateDashboard;
+})();
+  </script>
 </body>
 </html>
