@@ -8865,6 +8865,19 @@ renderSchedule();
     font-size: 14px;
   }
 }
+  /* Hide only the bottom-left Tools navigation button */
+#sisaToolsTab {
+  display: none !important;
+}
+
+/* Keep the top-right Tools button visible */
+#sisaToolsHeaderButton {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* =============== END BOTTOM TOOLS BUTTON FIX =============== */
 </style>
 
 <section id="sisaToolsPage" aria-label="SISA Tools">
