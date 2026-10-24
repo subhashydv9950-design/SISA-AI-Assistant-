@@ -4299,5 +4299,656 @@ renderSchedule();
 </script>
 
 <!-- =============== PART 2N END =============== --> 
+  <!-- =====================================================
+     SISA AI ASSISTANT — PART 2O
+     MEDIA + CAPTION GENERATOR CONNECTION
+===================================================== -->
+
+<style>
+#sisaMediaCaptionOpen {
+  position: fixed;
+  right: 18px;
+  bottom: 345px;
+  z-index: 9988;
+  padding: 12px 15px;
+  border: 1px solid #a78bfa;
+  border-radius: 12px;
+  background: linear-gradient(135deg,#4c1d95,#7c3aed);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#sisaMediaCaptionPanel {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10002;
+  padding: 15px;
+  overflow-y: auto;
+  background: #080611ef;
+  color: #fff;
+}
+
+.sisa-caption-box {
+  max-width: 720px;
+  margin: 25px auto;
+  padding: 22px;
+  border: 1px solid #553782;
+  border-radius: 18px;
+  background: #171020;
+}
+
+.sisa-caption-box h2 {
+  color: #c4b5fd;
+}
+
+.sisa-caption-box label {
+  display: block;
+  margin: 15px 0 7px;
+  color: #d8ccf3;
+  font-size: 14px;
+}
+
+.sisa-caption-box input,
+.sisa-caption-box select,
+.sisa-caption-box textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #49365f;
+  border-radius: 10px;
+  background: #0d0915;
+  color: #fff;
+  font: inherit;
+}
+
+.sisa-caption-box textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.sisa-caption-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.sisa-caption-actions button {
+  padding: 11px 15px;
+  border: 0;
+  border-radius: 10px;
+  background: #7c3aed;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sisa-caption-actions .secondary {
+  background: #30243f;
+  border: 1px solid #59456e;
+}
+
+#sisaCaptionMediaInfo,
+#sisaCaptionStatus {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #c4b5fd;
+  overflow-wrap: anywhere;
+}
+
+@media(max-width:600px) {
+  .sisa-caption-box {
+    margin: 10px auto;
+    padding: 15px;
+  }
+
+  #sisaMediaCaptionOpen {
+    right: 10px;
+    bottom: 340px;
+  }
+}
+</style>
+
+<button id="sisaMediaCaptionOpen" type="button">
+  ✨ Media Caption
+</button>
+
+<div id="sisaMediaCaptionPanel">
+  <div class="sisa-caption-box">
+    <h2 id="sisaCaptionHeading">Media Caption Studio</h2>
+
+    <p id="sisaCaptionDescription">
+      Add a topic and style to prepare a caption prompt for your selected media.
+    </p>
+
+    <div id="sisaCaptionMediaInfo">Media information will appear here.</div>
+
+    <label id="sisaCaptionTopicLabel" for="sisaCaptionTopic">
+      Describe your post
+    </label>
+    <input
+      id="sisaCaptionTopic"
+      type="text"
+      placeholder="Example: sunset road trip"
+      maxlength="500"
+    />
+
+    <label id="sisaCaptionToneLabel" for="sisaCaptionTone">
+      Caption style
+    </label>
+    <select id="sisaCaptionTone">
+      <option value="professional">Professional</option>
+      <option value="friendly">Friendly</option>
+      <option value="funny">Funny</option>
+      <option value="inspirational">Inspirational</option>
+      <option value="minimal">Minimal</option>
+      <option value="promotional">Promotional</option>
+    </select>
+
+    <label id="sisaCaptionLanguageLabel" for="sisaCaptionLanguage">
+      Caption language
+    </label>
+    <select id="sisaCaptionLanguage">
+      <option value="English">English</option>
+      <option value="Hindi">हिन्दी</option>
+      <option value="Chinese">中文</option>
+      <option value="Japanese">日本語</option>
+      <option value="Korean">한국어</option>
+      <option value="French">Français</option>
+      <option value="German">Deutsch</option>
+      <option value="Spanish">Español</option>
+      <option value="Bengali">বাংলা</option>
+      <option value="Russian">Русский</option>
+    </select>
+
+    <label id="sisaCaptionOutputLabel" for="sisaCaptionOutput">
+      Caption prompt
+    </label>
+    <textarea
+      id="sisaCaptionOutput"
+      placeholder="Your generated prompt will appear here..."
+    ></textarea>
+
+    <div class="sisa-caption-actions">
+      <button id="sisaCaptionGenerate" type="button">Generate Prompt</button>
+      <button id="sisaCaptionCopy" type="button">Copy Prompt</button>
+      <button id="sisaCaptionUse" type="button">Use in Post</button>
+      <button id="sisaCaptionClose" class="secondary" type="button">Close</button>
+    </div>
+
+    <div id="sisaCaptionStatus" aria-live="polite"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const panel = document.getElementById("sisaMediaCaptionPanel");
+  const openButton = document.getElementById("sisaMediaCaptionOpen");
+  const topic = document.getElementById("sisaCaptionTopic");
+  const tone = document.getElementById("sisaCaptionTone");
+  const language = document.getElementById("sisaCaptionLanguage");
+  const output = document.getElementById("sisaCaptionOutput");
+  const info = document.getElementById("sisaCaptionMediaInfo");
+  const status = document.getElementById("sisaCaptionStatus");
+
+  if (!panel || !openButton) return;
+
+  const dictionaries = {
+    en: {
+      button: "✨ Media Caption",
+      heading: "Media Caption Studio",
+      description: "Add a topic and style to prepare a caption prompt for your selected media.",
+      info: "Selected media files: ",
+      none: "No media selected. You can still create a prompt.",
+      topic: "Describe your post",
+      topicPlaceholder: "Example: sunset road trip",
+      tone: "Caption style",
+      language: "Caption language",
+      output: "Caption prompt",
+      outputPlaceholder: "Your generated prompt will appear here...",
+      generate: "Generate Prompt",
+      copy: "Copy Prompt",
+      use: "Use in Post",
+      close: "Close",
+      copied: "Prompt copied.",
+      empty: "Enter a short description first.",
+      generated: "Prompt prepared. This is a prompt, not an AI-generated caption.",
+      used: "Prompt copied into the post caption field, if available.",
+      copyError: "Could not copy automatically.",
+      professional: "Professional",
+      friendly: "Friendly",
+      funny: "Funny",
+      inspirational: "Inspirational",
+      minimal: "Minimal",
+      promotional: "Promotional"
+    },
+    hi: {
+      button: "✨ मीडिया कैप्शन",
+      heading: "मीडिया कैप्शन स्टूडियो",
+      description: "अपनी पोस्ट का विषय और स्टाइल चुनकर कैप्शन प्रॉम्प्ट बनाएँ।",
+      info: "चुनी गई मीडिया फाइलें: ",
+      none: "कोई मीडिया नहीं चुना गया। फिर भी प्रॉम्प्ट बना सकते हैं।",
+      topic: "अपनी पोस्ट के बारे में बताएँ",
+      topicPlaceholder: "उदाहरण: सूर्यास्त के समय रोड ट्रिप",
+      tone: "कैप्शन स्टाइल",
+      language: "कैप्शन की भाषा",
+      output: "कैप्शन प्रॉम्प्ट",
+      outputPlaceholder: "आपका प्रॉम्प्ट यहाँ दिखाई देगा...",
+      generate: "प्रॉम्प्ट बनाएँ",
+      copy: "प्रॉम्प्ट कॉपी करें",
+      use: "पोस्ट में इस्तेमाल करें",
+      close: "बंद करें",
+      copied: "प्रॉम्प्ट कॉपी हो गया।",
+      empty: "पहले पोस्ट का छोटा-सा विवरण लिखें।",
+      generated: "प्रॉम्प्ट तैयार है। यह प्रॉम्प्ट है, AI से बना अंतिम कैप्शन नहीं।",
+      used: "प्रॉम्प्ट पोस्ट के कैप्शन फ़ील्ड में डाल दिया गया, यदि उपलब्ध है।",
+      copyError: "ऑटो-कॉपी नहीं हो सका।",
+      professional: "प्रोफेशनल",
+      friendly: "दोस्ताना",
+      funny: "मज़ेदार",
+      inspirational: "प्रेरणादायक",
+      minimal: "सरल",
+      promotional: "प्रचारात्मक"
+    },
+    fr: {
+      button: "✨ Légende média",
+      heading: "Studio de légendes",
+      description: "Choisissez un sujet et un style pour préparer un prompt.",
+      info: "Fichiers sélectionnés : ",
+      none: "Aucun média sélectionné. Vous pouvez quand même créer un prompt.",
+      topic: "Décrivez votre publication",
+      topicPlaceholder: "Exemple : voyage au coucher du soleil",
+      tone: "Style de légende",
+      language: "Langue de la légende",
+      output: "Prompt de légende",
+      outputPlaceholder: "Votre prompt apparaîtra ici...",
+      generate: "Créer un prompt",
+      copy: "Copier le prompt",
+      use: "Utiliser dans la publication",
+      close: "Fermer",
+      copied: "Prompt copié.",
+      empty: "Saisissez d’abord une description.",
+      generated: "Prompt préparé. Ce n’est pas une légende générée par IA.",
+      used: "Prompt ajouté au champ de légende si disponible.",
+      copyError: "Copie automatique impossible.",
+      professional: "Professionnel",
+      friendly: "Amical",
+      funny: "Drôle",
+      inspirational: "Inspirant",
+      minimal: "Minimal",
+      promotional: "Promotionnel"
+    },
+    de: {
+      button: "✨ Medien-Caption",
+      heading: "Caption-Studio",
+      description: "Wähle Thema und Stil für einen Caption-Prompt.",
+      info: "Ausgewählte Dateien: ",
+      none: "Keine Medien ausgewählt. Du kannst trotzdem einen Prompt erstellen.",
+      topic: "Beschreibe deinen Beitrag",
+      topicPlaceholder: "Beispiel: Roadtrip bei Sonnenuntergang",
+      tone: "Caption-Stil",
+      language: "Sprache der Caption",
+      output: "Caption-Prompt",
+      outputPlaceholder: "Dein Prompt erscheint hier...",
+      generate: "Prompt erstellen",
+      copy: "Prompt kopieren",
+      use: "Im Beitrag verwenden",
+      close: "Schließen",
+      copied: "Prompt kopiert.",
+      empty: "Gib zuerst eine kurze Beschreibung ein.",
+      generated: "Prompt erstellt. Dies ist keine KI-generierte Caption.",
+      used: "Prompt in das Caption-Feld eingefügt, sofern vorhanden.",
+      copyError: "Automatisches Kopieren nicht möglich.",
+      professional: "Professionell",
+      friendly: "Freundlich",
+      funny: "Lustig",
+      inspirational: "Inspirierend",
+      minimal: "Minimal",
+      promotional: "Werbend"
+    },
+    es: {
+      button: "✨ Pie de foto",
+      heading: "Estudio de pies de foto",
+      description: "Elige un tema y estilo para preparar un prompt.",
+      info: "Archivos seleccionados: ",
+      none: "No hay archivos seleccionados. Aun así puedes crear un prompt.",
+      topic: "Describe tu publicación",
+      topicPlaceholder: "Ejemplo: viaje al atardecer",
+      tone: "Estilo del texto",
+      language: "Idioma del texto",
+      output: "Prompt del texto",
+      outputPlaceholder: "Tu prompt aparecerá aquí...",
+      generate: "Crear prompt",
+      copy: "Copiar prompt",
+      use: "Usar en publicación",
+      close: "Cerrar",
+      copied: "Prompt copiado.",
+      empty: "Escribe primero una descripción breve.",
+      generated: "Prompt preparado. No es un texto generado por IA.",
+      used: "Prompt insertado en el campo de texto si está disponible.",
+      copyError: "No se pudo copiar automáticamente.",
+      professional: "Profesional",
+      friendly: "Amigable",
+      funny: "Divertido",
+      inspirational: "Inspirador",
+      minimal: "Minimalista",
+      promotional: "Promocional"
+    },
+    ja: {
+      button: "✨ メディアキャプション",
+      heading: "キャプションスタジオ",
+      description: "テーマとスタイルを選んでプロンプトを作成します。",
+      info: "選択したファイル数：",
+      none: "メディアがなくてもプロンプトを作成できます。",
+      topic: "投稿内容を説明",
+      topicPlaceholder: "例：夕日のロードトリップ",
+      tone: "文章のスタイル",
+      language: "文章の言語",
+      output: "キャプション用プロンプト",
+      outputPlaceholder: "プロンプトがここに表示されます...",
+      generate: "プロンプト作成",
+      copy: "プロンプトをコピー",
+      use: "投稿に使用",
+      close: "閉じる",
+      copied: "コピーしました。",
+      empty: "先に短い説明を入力してください。",
+      generated: "プロンプトを作成しました。AI生成のキャプションではありません。",
+      used: "利用可能な投稿欄にプロンプトを入力しました。",
+      copyError: "自動コピーできませんでした。",
+      professional: "プロフェッショナル",
+      friendly: "フレンドリー",
+      funny: "面白い",
+      inspirational: " प्रेरण प्रेरণ", 
+      minimal: "シンプル",
+      promotional: "宣伝向け"
+    },
+    zh: {
+      button: "✨ 媒体文案",
+      heading: "媒体文案工作室",
+      description: "选择主题和风格，生成文案提示词。",
+      info: "已选文件：",
+      none: "未选择媒体，仍可创建提示词。",
+      topic: "描述你的帖子",
+      topicPlaceholder: "例如：日落公路旅行",
+      tone: "文案风格",
+      language: "文案语言",
+      output: "文案提示词",
+      outputPlaceholder: "提示词将显示在这里...",
+      generate: "生成提示词",
+      copy: "复制提示词",
+      use: "用于帖子",
+      close: "关闭",
+      copied: "提示词已复制。",
+      empty: "请先输入简短描述。",
+      generated: "提示词已准备好。这不是 AI 生成的最终文案。",
+      used: "已填入可用的帖子文案框。",
+      copyError: "无法自动复制。",
+      professional: "专业",
+      friendly: "友好",
+      funny: "幽默",
+      inspirational: "励志",
+      minimal: "简洁",
+      promotional: "推广"
+    },
+    ko: {
+      button: "✨ 미디어 캡션",
+      heading: "캡션 스튜디오",
+      description: "주제와 스타일을 선택해 캡션 프롬프트를 준비하세요.",
+      info: "선택한 파일 수: ",
+      none: "미디어가 없어도 프롬프트를 만들 수 있습니다.",
+      topic: "게시물 설명",
+      topicPlaceholder: "예: 일몰 드라이브 여행",
+      tone: "캡션 스타일",
+      language: "캡션 언어",
+      output: "캡션 프롬프트",
+      outputPlaceholder: "프롬프트가 여기에 표시됩니다...",
+      generate: "프롬프트 만들기",
+      copy: "프롬프트 복사",
+      use: "게시물에 사용",
+      close: "닫기",
+      copied: "프롬프트를 복사했습니다.",
+      empty: "먼저 짧은 설명을 입력하세요.",
+      generated: "프롬프트가 준비되었습니다. AI가 생성한 최종 캡션은 아닙니다.",
+      used: "사용 가능한 게시물 캡션 입력란에 넣었습니다.",
+      copyError: "자동 복사에 실패했습니다.",
+      professional: "전문적인",
+      friendly: "친근한",
+      funny: "재미있는",
+      inspirational: "영감을 주는",
+      minimal: "간결한",
+      promotional: "홍보용"
+    },
+    bn: {
+      button: "✨ মিডিয়া ক্যাপশন",
+      heading: "ক্যাপশন স্টুডিও",
+      description: "বিষয় ও স্টাইল বেছে ক্যাপশন প্রম্পট তৈরি করুন।",
+      info: "নির্বাচিত ফাইল: ",
+      none: "মিডিয়া না থাকলেও প্রম্পট তৈরি করা যাবে।",
+      topic: "পোস্টের বিবরণ দিন",
+      topicPlaceholder: "উদাহরণ: সূর্যাস্তের রোড ট্রিপ",
+      tone: "ক্যাপশনের ধরন",
+      language: "ক্যাপশনের ভাষা",
+      output: "ক্যাপশন প্রম্পট",
+      outputPlaceholder: "প্রম্পট এখানে দেখা যাবে...",
+      generate: "প্রম্পট তৈরি করুন",
+      copy: "প্রম্পট কপি করুন",
+      use: "পোস্টে ব্যবহার করুন",
+      close: "বন্ধ করুন",
+      copied: "প্রম্পট কপি হয়েছে।",
+      empty: "আগে একটি সংক্ষিপ্ত বিবরণ লিখুন।",
+      generated: "প্রম্পট তৈরি হয়েছে; এটি AI-তৈরি চূড়ান্ত ক্যাপশন নয়।",
+      used: "সম্ভব হলে পোস্টের ক্যাপশন ঘরে যোগ করা হয়েছে।",
+      copyError: "স্বয়ংক্রিয়ভাবে কপি করা যায়নি।",
+      professional: "পেশাদার",
+      friendly: "বন্ধুত্বপূর্ণ",
+      funny: "মজার",
+      inspirational: "অনুপ্রেরণামূলক",
+      minimal: "সংক্ষিপ্ত",
+      promotional: "প্রচারমূলক"
+    },
+    ru: {
+      button: "✨ Подпись к медиа",
+      heading: "Студия подписей",
+      description: "Выберите тему и стиль для подготовки промпта.",
+      info: "Выбранные файлы: ",
+      none: "Можно создать промпт и без выбранных файлов.",
+      topic: "Опишите публикацию",
+      topicPlaceholder: "Например: поездка на закате",
+      tone: "Стиль подписи",
+      language: "Язык подписи",
+      output: "Промпт подписи",
+      outputPlaceholder: "Промпт появится здесь...",
+      generate: "Создать промпт",
+      copy: "Копировать промпт",
+      use: "Использовать в публикации",
+      close: "Закрыть",
+      copied: "Промпт скопирован.",
+      empty: "Сначала введите краткое описание.",
+      generated: "Промпт подготовлен. Это не готовая подпись от ИИ.",
+      used: "Промпт добавлен в доступное поле подписи.",
+      copyError: "Не удалось скопировать автоматически.",
+      professional: "Профессиональный",
+      friendly: "Дружелюбный",
+      funny: "Забавный",
+      inspirational: "Вдохновляющий",
+      minimal: "Минималистичный",
+      promotional: "Рекламный"
+    }
+  };
+
+  function getText() {
+    let code = "en";
+
+    try {
+      code = (
+        localStorage.getItem("sisa_language") || "en"
+      ).split("-")[0].toLowerCase();
+    } catch (error) {}
+
+    return dictionaries[code] || dictionaries.en;
+  }
+
+  function getMediaDetails() {
+    if (
+      window.SISA_MEDIA_PREVIEW &&
+      typeof window.SISA_MEDIA_PREVIEW.getDetails === "function"
+    ) {
+      return window.SISA_MEDIA_PREVIEW.getDetails();
+    }
+
+    return [];
+  }
+
+  function refreshMediaInfo() {
+    const t = getText();
+    const media = getMediaDetails();
+
+    info.textContent = media.length
+      ? t.info + media.length
+      : t.none;
+  }
+
+  function translateUI() {
+    const t = getText();
+
+    openButton.textContent = t.button;
+    document.getElementById("sisaCaptionHeading").textContent = t.heading;
+    document.getElementById("sisaCaptionDescription").textContent = t.description;
+    document.getElementById("sisaCaptionTopicLabel").textContent = t.topic;
+    document.getElementById("sisaCaptionToneLabel").textContent = t.tone;
+    document.getElementById("sisaCaptionLanguageLabel").textContent = t.language;
+    document.getElementById("sisaCaptionOutputLabel").textContent = t.output;
+    document.getElementById("sisaCaptionGenerate").textContent = t.generate;
+    document.getElementById("sisaCaptionCopy").textContent = t.copy;
+    document.getElementById("sisaCaptionUse").textContent = t.use;
+    document.getElementById("sisaCaptionClose").textContent = t.close;
+
+    topic.placeholder = t.topicPlaceholder;
+    output.placeholder = t.outputPlaceholder;
+
+    Array.from(tone.options).forEach(function (option) {
+      if (t[option.value]) option.textContent = t[option.value];
+    });
+
+    refreshMediaInfo();
+  }
+
+  function createPrompt() {
+    const t = getText();
+    const subject = topic.value.trim();
+
+    if (!subject) {
+      status.textContent = t.empty;
+      topic.focus();
+      return;
+    }
+
+    const selectedTone = tone.options[tone.selectedIndex].text;
+    const selectedLanguage = language.value;
+    const media = getMediaDetails();
+
+    const mediaText = media.length
+      ? " Selected media files: " + media.map(function (file) {
+          return file.name + " (" + file.type + ")";
+        }).join(", ") + ". Do not assume visual details from filenames alone."
+      : "";
+
+    output.value =
+      "Create a social media caption in " + selectedLanguage +
+      ". Topic: " + subject +
+      ". Style: " + selectedTone +
+      ". Make it engaging, natural, and suitable for the selected social platform. " +
+      "Include a suitable call to action and relevant hashtags where appropriate." +
+      mediaText;
+
+    status.textContent = t.generated;
+  }
+
+  openButton.addEventListener("click", function () {
+    translateUI();
+    panel.style.display = "block";
+  });
+
+  document.getElementById("sisaCaptionGenerate").addEventListener(
+    "click",
+    createPrompt
+  );
+
+  document.getElementById("sisaCaptionCopy").addEventListener(
+    "click",
+    async function () {
+      const t = getText();
+
+      if (!output.value.trim()) {
+        createPrompt();
+        if (!output.value.trim()) return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(output.value);
+        status.textContent = t.copied;
+      } catch (error) {
+        output.focus();
+        output.select();
+        status.textContent = t.copyError;
+      }
+    }
+  );
+
+  document.getElementById("sisaCaptionUse").addEventListener(
+    "click",
+    function () {
+      const t = getText();
+
+      if (!output.value.trim()) {
+        createPrompt();
+        if (!output.value.trim()) return;
+      }
+
+      const captionField = document.getElementById("caption");
+
+      if (captionField) {
+        captionField.value = output.value;
+        captionField.dispatchEvent(new Event("input", { bubbles: true }));
+        captionField.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+
+      status.textContent = t.used;
+    }
+  );
+
+  document.getElementById("sisaCaptionClose").addEventListener(
+    "click",
+    function () {
+      panel.style.display = "none";
+    }
+  );
+
+  panel.addEventListener("click", function (event) {
+    if (event.target === panel) panel.style.display = "none";
+  });
+
+  window.addEventListener("sisa:languageChanged", translateUI);
+
+  window.SISA_MEDIA_CAPTION = {
+    open: function () {
+      translateUI();
+      panel.style.display = "block";
+    },
+    generate: createPrompt
+  };
+
+  translateUI();
+
+  /* =============== PART 2O END =============== */
+})();
+</script>
+
+<!-- =============== PART 2O END =============== -->
+  
 </body>
 </html>
