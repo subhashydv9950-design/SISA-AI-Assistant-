@@ -9167,6 +9167,89 @@ renderSchedule();
 })();
 </script>
   
+<!-- ========== PART 2X FIX: RESTORE CREATE + TOOLS ========== -->
+
+<style>
+#sisaTopToolsButton {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid #9561ff;
+  border-radius: 14px;
+  background: linear-gradient(135deg,#9858ff,#7139e8);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 750;
+  cursor: pointer;
+}
+#topCreate {
+  visibility: visible !important;
+}
+</style>
+
+<script>
+(function () {
+  const allButtons = [...document.querySelectorAll("button")];
+
+  const create = document.getElementById("topCreate") ||
+    allButtons.find(b => {
+      const t = (b.innerText || b.textContent || "")
+        .replace(/\s+/g, " ").trim().toLowerCase();
+      return t === "+ create" || t === "＋ create" || t === "create";
+    });
+
+  if (create) {
+    create.style.setProperty("display", "inline-flex", "important");
+    create.style.setProperty("visibility", "visible", "important");
+    create.style.setProperty("opacity", "1", "important");
+
+    // If the earlier code moved Create into a hidden holder,
+    // put it back beside the visible page header.
+    const holder = document.getElementById("sisaCreateMoved");
+    if (holder && holder.contains(create)) {
+      const header = [...document.querySelectorAll("header, .topbar, .page-header")]
+        .find(el => /create post/i.test(el.innerText || el.textContent));
+
+      if (header) {
+        header.appendChild(create);
+      }
+    }
+  }
+
+  const topHeader = [...document.querySelectorAll("header, .topbar, .page-header, body > div")]
+    .find(el => /create post/i.test(el.innerText || el.textContent));
+
+  if (topHeader && !document.getElementById("sisaTopToolsButton")) {
+    const tools = document.createElement("button");
+    tools.id = "sisaTopToolsButton";
+    tools.type = "button";
+    tools.textContent = "🧰 Tools";
+
+    tools.addEventListener("click", () => {
+      if (window.SISA_TOOLS_PAGE &&
+          typeof window.SISA_TOOLS_PAGE.open === "function") {
+        window.SISA_TOOLS_PAGE.open();
+      } else {
+        const page = document.getElementById("sisaToolsPage");
+        if (page) {
+          document.querySelectorAll("[id^='view-']").forEach(v => {
+            v.style.display = "none";
+          });
+          page.style.display = "block";
+          window.scrollTo(0, 0);
+        }
+      }
+    });
+
+    topHeader.appendChild(tools);
+  }
+})();
+
+/* ========== PART 2X FIX END ========== */
+</script>
+  
 
 
 
