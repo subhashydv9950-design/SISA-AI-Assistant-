@@ -2168,5 +2168,183 @@ renderSchedule();
   }
 })();
   </script>
+  <script>
+/* =====================================================
+   SISA AI ASSISTANT — PART 2G
+   MULTILINGUAL SCHEDULE MANAGER
+===================================================== */
+
+(function () {
+  const KEY = "sisa_schedule_v1";
+
+  const lang = {
+    en: ["Schedule Post", "Choose date and time", "Save Schedule",
+         "Scheduled Posts", "Delete", "No schedules yet"],
+    hi: ["पोस्ट शेड्यूल करें", "तारीख और समय चुनें", "शेड्यूल सेव करें",
+         "शेड्यूल की गई पोस्ट", "हटाएँ", "अभी कोई शेड्यूल नहीं है"],
+    zh: ["安排帖子", "选择日期和时间", "保存计划",
+         "已安排的帖子", "删除", "暂无计划"],
+    ja: ["投稿を予約", "日時を選択", "予約を保存",
+         "予約済み投稿", "削除", "予約はありません"],
+    ko: ["게시물 예약", "날짜와 시간 선택", "예약 저장",
+         "예약된 게시물", "삭제", "예약이 없습니다"],
+    fr: ["Programmer une publication", "Choisir la date et l’heure",
+         "Enregistrer", "Publications programmées", "Supprimer",
+         "Aucune programmation"],
+    de: ["Beitrag planen", "Datum und Uhrzeit auswählen",
+         "Planung speichern", "Geplante Beiträge", "Löschen",
+         "Noch keine Planungen"],
+    es: ["Programar publicación", "Elegir fecha y hora",
+         "Guardar programación", "Publicaciones programadas",
+         "Eliminar", "No hay publicaciones programadas"],
+    bn: ["পোস্টের সময় নির্ধারণ করুন", "তারিখ ও সময় নির্বাচন করুন",
+         "সময়সূচি সংরক্ষণ করুন", "নির্ধারিত পোস্ট", "মুছুন",
+         "এখনও কোনো সময়সূচি নেই"],
+    ru: ["Запланировать публикацию", "Выберите дату и время",
+         "Сохранить расписание", "Запланированные публикации",
+         "Удалить", "Расписаний пока нет"]
+  };
+
+  function t(index) {
+    const code = window.SISA_I18N?.language ||
+      localStorage.getItem("sisa_language") || "en";
+    return (lang[code] || lang.en)[index];
+  }
+
+  function getSchedules() {
+    try {
+      return JSON.parse(localStorage.getItem(KEY) || "[]");
+    } catch {
+      return [];
+    }
+  }
+
+  function saveSchedules(items) {
+    localStorage.setItem(KEY, JSON.stringify(items));
+  }
+
+  function openScheduler() {
+    document.querySelector("#sisaScheduler")?.remove();
+
+    const panel = document.createElement("div");
+    panel.id = "sisaScheduler";
+
+    Object.assign(panel.style, {
+      position: "fixed",
+      inset: "5%",
+      zIndex: "100000",
+      overflow: "auto",
+      padding: "20px",
+      borderRadius: "16px",
+      background: "#12101d",
+      color: "white",
+      border: "1px solid #8950e8"
+    });
+
+    const heading = document.createElement("h2");
+    heading.textContent = t(0);
+
+    const caption = document.createElement("p");
+    caption.textContent = t(1);
+
+    const date = document.createElement("input");
+    date.type = "datetime-local";
+    date.style.cssText =
+      "display:block;width:100%;padding:12px;margin:12px 0;box-sizing:border-box";
+
+    const save = document.createElement("button");
+    save.textContent = t(2);
+
+    const close = document.createElement("button");
+    close.textContent = "✕";
+    close.style.marginLeft = "8px";
+    close.onclick = () => panel.remove();
+
+    const listTitle = document.createElement("h3");
+    listTitle.textContent = t(3);
+
+    const list = document.createElement("div");
+
+    save.onclick = () => {
+      if (!date.value || new Date(date.value) <= new Date()) {
+        alert("Please select a future date and time.");
+        return;
+      }
+
+      const items = getSchedules();
+      items.push({
+        id: Date.now(),
+        time: date.value,
+        title: document.querySelector("#postTitle")?.value || "",
+        caption: document.querySelector("#caption")?.value || "",
+        platform: document.querySelector("#platform")?.value || "instagram"
+      });
+
+      saveSchedules(items);
+      openScheduler();
+    };
+
+    function renderList() {
+      const items = getSchedules();
+      list.replaceChildren();
+
+      if (!items.length) {
+        list.textContent = t(5);
+        return;
+      }
+
+      items.forEach(item => {
+        const row = document.createElement("div");
+        row.style.cssText =
+          "padding:12px;margin:10px 0;border:1px solid #403052;border-radius:10px";
+
+        const info = document.createElement("p");
+        info.textContent =
+          `${item.title || "Untitled"} — ${item.time} — ${item.platform}`;
+
+        const del = document.createElement("button");
+        del.textContent = t(4);
+        del.onclick = () => {
+          saveSchedules(getSchedules().filter(x => x.id !== item.id));
+          renderList();
+        };
+
+        row.append(info, del);
+        list.appendChild(row);
+      });
+    }
+
+    panel.append(heading, caption, date, save, close, listTitle, list);
+    document.body.appendChild(panel);
+    renderList();
+  }
+
+  window.SISA_SCHEDULER = { open: openScheduler, getAll: getSchedules };
+
+  const button = document.createElement("button");
+  button.textContent = "🗓️ " + t(0);
+  button.style.cssText =
+    "position:fixed;right:16px;bottom:72px;z-index:9998;padding:12px;background:#30184b;color:white;border:1px solid #8950e8;border-radius:12px";
+  button.onclick = openScheduler;
+
+  function init() {
+    if (!document.querySelector("#sisaScheduleOpen")) {
+      button.id = "sisaScheduleOpen";
+      document.body.appendChild(button);
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+
+  window.addEventListener("sisa:languageChanged", () => {
+    const existing = document.querySelector("#sisaScheduleOpen");
+    if (existing) existing.textContent = "🗓️ " + t(0);
+  });
+})();
+  </script>
 </body>
 </html>
