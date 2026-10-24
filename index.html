@@ -2783,5 +2783,336 @@ renderSchedule();
 
 /* =============== PART 2I END =============== */
   </script>
+  <script>
+/* =====================================================
+   SISA AI ASSISTANT — PART 2J
+   SEARCHABLE MULTILINGUAL LANGUAGE PICKER
+===================================================== */
+
+(function () {
+  const LANGUAGES = [
+    ["en","English"],["hi","हिन्दी"],["bn","বাংলা"],
+    ["ta","தமிழ்"],["te","తెలుగు"],["mr","मराठी"],
+    ["gu","ગુજરાતી"],["pa","ਪੰਜਾਬੀ"],["ur","اردو"],
+    ["kn","ಕನ್ನಡ"],["ml","മലയാളം"],["or","ଓଡ଼ିଆ"],
+    ["as","অসমীয়া"],["ne","नेपाली"],["sa","संस्कृत"],
+    ["doi","डोगरी"],["ks","कॉशुर"],["kok","कोंकणी"],
+    ["mni","মেইতেই"],["brx","बड़ो"],
+    ["zh","中文简体"],["zh-TW","繁體中文"],
+    ["ja","日本語"],["ko","한국어"],["fr","Français"],
+    ["de","Deutsch"],["es","Español"],["pt","Português"],
+    ["it","Italiano"],["nl","Nederlands"],["ru","Русский"],
+    ["uk","Українська"],["pl","Polski"],["cs","Čeština"],
+    ["sk","Slovenčina"],["hu","Magyar"],["ro","Română"],
+    ["bg","Български"],["el","Ελληνικά"],["sv","Svenska"],
+    ["no","Norsk"],["da","Dansk"],["fi","Suomi"],
+    ["et","Eesti"],["lv","Latviešu"],["lt","Lietuvių"],
+    ["hr","Hrvatski"],["sr","Српски"],["sl","Slovenščina"],
+    ["bs","Bosanski"],["sq","Shqip"],["mk","Македонски"],
+    ["tr","Türkçe"],["ar","العربية"],["fa","فارسی"],
+    ["he","עברית"],["id","Bahasa Indonesia"],["ms","Bahasa Melayu"],
+    ["fil","Filipino"],["vi","Tiếng Việt"],["th","ไทย"],
+    ["lo","ລາວ"],["km","ខ្មែរ"],["my","မြန်မာ"],
+    ["si","සිංහල"],["sw","Kiswahili"],["af","Afrikaans"],
+    ["am","አማርኛ"],["ha","Hausa"],["yo","Yorùbá"],
+    ["zu","isiZulu"],["ca","Català"],["eu","Euskara"],
+    ["gl","Galego"],["cy","Cymraeg"],["ga","Gaeilge"],
+    ["is","Íslenska"],["kk","Қазақша"],["uz","O‘zbek"],
+    ["az","Azərbaycanca"],["hy","Հայերեն"],["ka","ქართული"],
+    ["mn","Монгол"],["ps","پښتو"],["ku","Kurdî"],
+    ["tg","Тоҷикӣ"],["tk","Türkmençe"],["rw","Kinyarwanda"],
+    ["so","Soomaali"],["yo","Yorùbá"],["ig","Igbo"],
+    ["ny","Chichewa"],["mg","Malagasy"],["lb","Lëtzebuergesch"],
+    ["mt","Malti"],["br","Brezhoneg"],["jv","Basa Jawa"],
+    ["su","Basa Sunda"],["ceb","Cebuano"],["haw","ʻŌlelo Hawaiʻi"],
+    ["mi","Māori"],["eo","Esperanto"]
+  ];
+
+  function openPicker() {
+    document.querySelector("#sisaLanguageSearchPanel")?.remove();
+
+    const panel = document.createElement("section");
+    panel.id = "sisaLanguageSearchPanel";
+    panel.style.cssText =
+      "position:fixed;inset:4%;z-index:100003;overflow:auto;padding:20px;background:#120e1c;color:white;border:1px solid #9255e9;border-radius:18px";
+
+    const title = document.createElement("h2");
+    title.textContent = "🌐 Select App Language";
+
+    const search = document.createElement("input");
+    search.type = "search";
+    search.placeholder = "Search language...";
+    search.style.cssText =
+      "width:100%;padding:13px;box-sizing:border-box;margin:10px 0 16px";
+
+    const list = document.createElement("div");
+    list.style.cssText =
+      "display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px";
+
+    const close = document.createElement("button");
+    close.textContent = "✕ Close";
+    close.style.cssText = "padding:10px;margin-bottom:14px";
+    close.onclick = () => panel.remove();
+
+    function render(filter = "") {
+      list.replaceChildren();
+
+      const filtered = LANGUAGES.filter(([code, name]) =>
+        (name + " " + code).toLowerCase().includes(
+          filter.toLowerCase().trim()
+        )
+      );
+
+      filtered.forEach(([code, name]) => {
+        const button = document.createElement("button");
+        button.textContent = name + " (" + code + ")";
+        button.style.cssText =
+          "padding:12px 8px;background:#26163c;color:white;border:1px solid #65418c;border-radius:9px";
+
+        button.onclick = () => {
+          if (window.SISA_I18N?.setLanguage) {
+            window.SISA_I18N.setLanguage(code);
+          } else {
+            localStorage.setItem("sisa_language", code);
+            document.documentElement.lang = code;
+            window.dispatchEvent(new CustomEvent(
+              "sisa:languageChanged",
+              { detail: { language: code } }
+            ));
+          }
+
+          panel.remove();
+        };
+
+        list.appendChild(button);
+      });
+
+      if (!filtered.length) {
+        list.textContent = "No matching language found.";
+      }
+    }
+
+    search.addEventListener("input", () => render(search.value));
+
+    panel.append(title, search, close, list);
+    document.body.appendChild(panel);
+    render();
+  }
+
+  window.SISA_LANGUAGE_PICKER = {
+    open: openPicker,
+    languages: LANGUAGES
+  };
+
+  function addButton() {
+    if (document.querySelector("#sisaLanguageSearchOpen")) return;
+
+    const button = document.createElement("button");
+    button.id = "sisaLanguageSearchOpen";
+    button.textContent = "🌐 Languages";
+    button.style.cssText =
+      "position:fixed;right:16px;bottom:128px;z-index:9998;padding:12px 16px;background:#30184b;color:white;border:1px solid #8950e8;border-radius:12px";
+    button.onclick = openPicker;
+    document.body.appendChild(button);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", addButton);
+  } else {
+    addButton();
+  }
+})();
+
+/* =============== PART 2J END =============== */
+      </script>
+  <script>
+/* =====================================================
+   SISA AI ASSISTANT — PART 2K
+   MULTILINGUAL CAPTION GENERATOR
+===================================================== */
+
+(function () {
+  const labels = {
+    en: ["AI Caption Studio", "Post topic", "Choose tone",
+      "Output language", "Professional", "Funny", "Inspirational",
+      "Casual", "Generate Draft", "Copy Caption"],
+    hi: ["AI कैप्शन स्टूडियो", "पोस्ट का विषय", "टोन चुनें",
+      "आउटपुट भाषा", "प्रोफेशनल", "मज़ेदार", "प्रेरणादायक",
+      "सामान्य", "ड्राफ्ट बनाएँ", "कैप्शन कॉपी करें"],
+    zh: ["AI 文案工作室", "帖子主题", "选择语气",
+      "输出语言", "专业", "幽默", "励志",
+      "轻松", "生成草稿", "复制文案"],
+    ja: ["AIキャプションスタジオ", "投稿テーマ", "トーンを選択",
+      "出力言語", "プロフェッショナル", "面白い", " प्रेर प्रेर प्रेर",
+      "カジュアル", "下書きを生成", "キャプションをコピー"],
+    ko: ["AI 캡션 스튜디오", "게시물 주제", "톤 선택",
+      "출력 언어", "전문적인", "재미있는", "영감을 주는",
+      "편안한", "초안 생성", "캡션 복사"],
+    fr: ["Studio de légendes IA", "Sujet", "Choisir le ton",
+      "Langue de sortie", "Professionnel", "Drôle", "Inspirant",
+      "Décontracté", "Générer un brouillon", "Copier la légende"],
+    de: ["KI-Caption-Studio", "Beitragsthema", "Ton auswählen",
+      "Ausgabesprache", "Professionell", "Lustig", "Inspirierend",
+      "Locker", "Entwurf erstellen", "Caption kopieren"],
+    es: ["Estudio de captions IA", "Tema", "Elegir tono",
+      "Idioma de salida", "Profesional", "Divertido", "Inspirador",
+      "Informal", "Crear borrador", "Copiar caption"],
+    bn: ["AI ক্যাপশন স্টুডিও", "পোস্টের বিষয়", "টোন নির্বাচন করুন",
+      "আউটপুট ভাষা", "পেশাদার", "মজার", "অনুপ্রেরণামূলক",
+      "সাধারণ", "খসড়া তৈরি করুন", "ক্যাপশন কপি করুন"],
+    ru: ["Студия AI-подписей", "Тема публикации", "Выберите тон",
+      "Язык результата", "Профессиональный", "Весёлый", "Вдохновляющий",
+      "Неформальный", "Создать черновик", "Копировать подпись"]
+  };
+
+  const fallback = labels.en;
+
+  function getText() {
+    const code = window.SISA_I18N?.language ||
+      localStorage.getItem("sisa_language") || "en";
+    return labels[code] || fallback;
+  }
+
+  function openStudio() {
+    const t = getText();
+    document.querySelector("#sisaCaptionStudio")?.remove();
+
+    const panel = document.createElement("section");
+    panel.id = "sisaCaptionStudio";
+    panel.style.cssText =
+      "position:fixed;inset:5%;z-index:100004;overflow:auto;padding:22px;background:#120e1c;color:white;border:1px solid #9255e9;border-radius:18px";
+
+    const heading = document.createElement("h2");
+    heading.textContent = t[0];
+
+    const topicLabel = document.createElement("label");
+    topicLabel.textContent = t[1];
+
+    const topic = document.createElement("input");
+    topic.placeholder = "e.g. travel, fashion, product launch";
+    topic.style.cssText =
+      "width:100%;box-sizing:border-box;padding:12px;margin:8px 0 16px";
+
+    const toneLabel = document.createElement("label");
+    toneLabel.textContent = t[2];
+
+    const tone = document.createElement("select");
+    tone.style.cssText =
+      "display:block;width:100%;padding:12px;margin:8px 0 16px";
+
+    ["professional", "funny", "inspirational", "casual"].forEach(
+      (value, index) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = t[index + 4];
+        tone.appendChild(option);
+      }
+    );
+
+    const languageLabel = document.createElement("label");
+    languageLabel.textContent = t[3];
+
+    const language = document.createElement("select");
+    language.style.cssText =
+      "display:block;width:100%;padding:12px;margin:8px 0 16px";
+
+    (window.SISA_LANGUAGE_PICKER?.languages || [
+      ["en", "English"], ["hi", "हिन्दी"],
+      ["zh", "中文"], ["ja", "日本語"], ["ko", "한국어"],
+      ["fr", "Français"], ["de", "Deutsch"]
+    ]).forEach(([code, name]) => {
+      const option = document.createElement("option");
+      option.value = code;
+      option.textContent = name;
+      language.appendChild(option);
+    });
+
+    language.value = window.SISA_I18N?.language || "en";
+
+    const generate = document.createElement("button");
+    generate.textContent = t[8];
+    generate.style.cssText =
+      "padding:12px 16px;background:#7b3fe4;color:white;border:0;border-radius:10px";
+
+    const output = document.createElement("textarea");
+    output.placeholder = "Your caption draft will appear here...";
+    output.rows = 5;
+    output.style.cssText =
+      "display:block;width:100%;box-sizing:border-box;padding:12px;margin:16px 0";
+
+    const copy = document.createElement("button");
+    copy.textContent = t[9];
+    copy.onclick = async () => {
+      if (!output.value.trim()) return;
+      try {
+        await navigator.clipboard.writeText(output.value);
+        alert("Caption copied!");
+      } catch {
+        output.select();
+        alert("Select and copy the caption manually.");
+      }
+    };
+
+    const close = document.createElement("button");
+    close.textContent = "✕ Close";
+    close.style.marginLeft = "8px";
+    close.onclick = () => panel.remove();
+
+    generate.onclick = () => {
+      const subject = topic.value.trim();
+      if (!subject) {
+        alert("Please enter a post topic.");
+        return;
+      }
+
+      const languageName =
+        language.options[language.selectedIndex]?.text || language.value;
+
+      const toneText = {
+        professional: "professional",
+        funny: "funny",
+        inspirational: "inspirational",
+        casual: "casual"
+      }[tone.value];
+
+      output.value =
+        `Create a ${toneText} social media caption in ${languageName} ` +
+        `about: ${subject}.\n\n` +
+        `Add a clear call to action and relevant hashtags.`;
+
+      output.focus();
+    };
+
+    panel.append(
+      heading, topicLabel, topic, toneLabel, tone,
+      languageLabel, language, generate, output, copy, close
+    );
+
+    document.body.appendChild(panel);
+  }
+
+  window.SISA_CAPTION_STUDIO = { open: openStudio };
+
+  function init() {
+    if (document.querySelector("#sisaCaptionStudioOpen")) return;
+
+    const button = document.createElement("button");
+    button.id = "sisaCaptionStudioOpen";
+    button.textContent = "✨ AI Caption Studio";
+    button.style.cssText =
+      "position:fixed;right:16px;bottom:184px;z-index:9998;padding:12px 16px;background:#30184b;color:white;border:1px solid #8950e8;border-radius:12px";
+    button.onclick = openStudio;
+    document.body.appendChild(button);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+
+/* =============== PART 2K END =============== */
+                                         </script>
 </body>
 </html>
