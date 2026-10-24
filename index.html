@@ -7600,6 +7600,362 @@ renderSchedule();
 })();
 </script>
 <!-- =============== PART 2T END =============== -->
+  <!-- =====================================================
+     SISA AI ASSISTANT — PART 2U
+     SMART HASHTAG COLLECTIONS
+===================================================== -->
+
+<style>
+#sisaTagOpen{
+ position:fixed;right:16px;bottom:370px;z-index:9995;
+ border:0;border-radius:12px;padding:12px 15px;
+ background:#9333ea;color:white;font-weight:700;
+}
+#sisaTagPanel{
+ display:none;position:fixed;inset:0;z-index:10003;
+ background:#080610f2;align-items:center;justify-content:center;
+ padding:14px;color:white;font-family:Arial,sans-serif;
+}
+.sisa-tag-card{
+ width:100%;max-width:480px;max-height:90vh;overflow:auto;
+ box-sizing:border-box;padding:18px;border-radius:18px;
+ background:#171326;border:1px solid #7044b9;
+}
+.sisa-tag-card h2{color:#c4a5ff;margin-top:0}
+.sisa-tag-card input,.sisa-tag-card select,.sisa-tag-card textarea{
+ width:100%;box-sizing:border-box;padding:11px;margin:6px 0 12px;
+ border-radius:9px;border:1px solid #49375f;
+ background:#0e0b18;color:#fff;
+}
+.sisa-tag-card button{
+ width:100%;padding:12px;margin-top:8px;border:0;
+ border-radius:9px;background:#8b5cf6;color:white;font-weight:700;
+}
+.sisa-tag-card .sisa-tag-close{background:#302940}
+#sisaTagOutput{
+ min-height:90px;resize:vertical;
+}
+.sisa-tag-collection{
+ margin-top:10px;padding:12px;border-radius:10px;
+ background:#241b36;border:1px solid #49375f;
+ overflow-wrap:anywhere;
+}
+.sisa-tag-collection button{background:#49306c}
+</style>
+
+<button id="sisaTagOpen" type="button"># Hashtag Sets</button>
+
+<div id="sisaTagPanel">
+ <div class="sisa-tag-card">
+  <h2 id="sisaTagHeading"># Hashtag Collections</h2>
+  <p id="sisaTagInfo">Generate and save reusable hashtag sets.</p>
+
+  <label id="sisaTagNameLabel" for="sisaTagName">Collection name</label>
+  <input id="sisaTagName" maxlength="60" placeholder="e.g. Travel posts">
+
+  <label id="sisaTagTopicLabel" for="sisaTagTopic">Topic keywords</label>
+  <input id="sisaTagTopic" maxlength="100" placeholder="travel, nature, photography">
+
+  <label id="sisaTagPlatformLabel" for="sisaTagPlatform">Platform</label>
+  <select id="sisaTagPlatform">
+   <option>Instagram</option>
+   <option>Facebook</option>
+   <option>YouTube</option>
+   <option>TikTok</option>
+   <option>LinkedIn</option>
+   <option>X</option>
+  </select>
+
+  <button id="sisaTagGenerate" type="button">✨ Generate Hashtags</button>
+
+  <label id="sisaTagOutputLabel" for="sisaTagOutput">Hashtags</label>
+  <textarea id="sisaTagOutput" rows="4"
+   placeholder="#Travel #Photography"></textarea>
+
+  <button id="sisaTagSave" type="button">💾 Save Collection</button>
+
+  <h3 id="sisaTagSavedHeading">Saved collections</h3>
+  <div id="sisaTagCollections"></div>
+
+  <button id="sisaTagClose" class="sisa-tag-close" type="button">Close</button>
+ </div>
+</div>
+
+<script>
+(function(){
+ "use strict";
+
+ const $=id=>document.getElementById(id);
+ const KEY="sisa_hashtag_collections_v1";
+ const panel=$("sisaTagPanel");
+
+ const translations={
+  en:{
+   heading:"# Hashtag Collections",info:"Generate and save reusable hashtag sets.",
+   name:"Collection name",topic:"Topic keywords",platform:"Platform",
+   generate:"✨ Generate Hashtags",output:"Hashtags",save:"💾 Save Collection",
+   saved:"Saved collections",close:"Close",need:"Enter a collection name and hashtags.",
+   empty:"No saved collections yet.",copy:"📋 Copy",use:"Use",del:"Delete",
+   copied:"Copied!",button:"# Hashtag Sets"
+  },
+  hi:{
+   heading:"# हैशटैग कलेक्शन",info:"हैशटैग बनाएं और दोबारा इस्तेमाल करने के लिए सेव करें।",
+   name:"कलेक्शन का नाम",topic:"विषय के कीवर्ड",platform:"प्लेटफॉर्म",
+   generate:"✨ हैशटैग बनाएं",output:"हैशटैग",save:"💾 कलेक्शन सेव करें",
+   saved:"सेव किए गए कलेक्शन",close:"बंद करें",
+   need:"कलेक्शन का नाम और हैशटैग लिखें।",
+   empty:"अभी कोई कलेक्शन सेव नहीं है।",copy:"📋 कॉपी",use:"इस्तेमाल करें",
+   del:"हटाएं",copied:"कॉपी हो गया!",button:"# हैशटैग सेट"
+  },
+  fr:{
+   heading:"# Collections de hashtags",info:"Créez et enregistrez des ensembles réutilisables.",
+   name:"Nom de la collection",topic:"Mots-clés",platform:"Plateforme",
+   generate:"✨ Générer les hashtags",output:"Hashtags",save:"💾 Enregistrer",
+   saved:"Collections enregistrées",close:"Fermer",need:"Saisissez un nom et des hashtags.",
+   empty:"Aucune collection enregistrée.",copy:"📋 Copier",use:"Utiliser",
+   del:"Supprimer",copied:"Copié !",button:"# Collections"
+  },
+  de:{
+   heading:"# Hashtag-Sammlungen",info:"Erstelle und speichere wiederverwendbare Hashtag-Sets.",
+   name:"Sammlungsname",topic:"Schlüsselwörter",platform:"Plattform",
+   generate:"✨ Hashtags erstellen",output:"Hashtags",save:"💾 Sammlung speichern",
+   saved:"Gespeicherte Sammlungen",close:"Schließen",
+   need:"Name und Hashtags eingeben.",empty:"Noch keine Sammlungen gespeichert.",
+   copy:"📋 Kopieren",use:"Verwenden",del:"Löschen",copied:"Kopiert!",
+   button:"# Hashtag-Sets"
+  },
+  es:{
+   heading:"# Colecciones de hashtags",info:"Crea y guarda conjuntos de hashtags reutilizables.",
+   name:"Nombre de la colección",topic:"Palabras clave",platform:"Plataforma",
+   generate:"✨ Generar hashtags",output:"Hashtags",save:"💾 Guardar colección",
+   saved:"Colecciones guardadas",close:"Cerrar",need:"Introduce un nombre y hashtags.",
+   empty:"No hay colecciones guardadas.",copy:"📋 Copiar",use:"Usar",
+   del:"Eliminar",copied:"¡Copiado!",button:"# Colecciones"
+  },
+  zh:{
+   heading:"# 标签合集",info:"生成并保存可重复使用的话题标签。",
+   name:"合集名称",topic:"主题关键词",platform:"平台",
+   generate:"✨ 生成标签",output:"话题标签",save:"💾 保存合集",
+   saved:"已保存的合集",close:"关闭",need:"请输入合集名称和标签。",
+   empty:"暂无已保存的合集。",copy:"📋 复制",use:"使用",
+   del:"删除",copied:"已复制！",button:"# 标签合集"
+  },
+  ja:{
+   heading:"# ハッシュタグ集",info:"再利用できるハッシュタグセットを作成・保存します。",
+   name:"コレクション名",topic:"キーワード",platform:"プラットフォーム",
+   generate:"✨ タグを生成",output:"ハッシュタグ",save:"💾 保存",
+   saved:"保存済みコレクション",close:"閉じる",
+   need:"名前とハッシュタグを入力してください。",
+   empty:"保存されたコレクションはありません。",copy:"📋 コピー",
+   use:"使用",del:"削除",copied:"コピーしました！",button:"# タグ集"
+  },
+  ko:{
+   heading:"# 해시태그 모음",info:"재사용할 해시태그 세트를 만들고 저장하세요.",
+   name:"모음 이름",topic:"주제 키워드",platform:"플랫폼",
+   generate:"✨ 해시태그 생성",output:"해시태그",save:"💾 모음 저장",
+   saved:"저장된 모음",close:"닫기",need:"이름과 해시태그를 입력하세요.",
+   empty:"저장된 모음이 없습니다.",copy:"📋 복사",use:"사용",
+   del:"삭제",copied:"복사 완료!",button:"# 해시태그 모음"
+  },
+  bn:{
+   heading:"# হ্যাশট্যাগ সংগ্রহ",info:"পুনরায় ব্যবহারের জন্য হ্যাশট্যাগ সেট তৈরি ও সংরক্ষণ করুন।",
+   name:"সংগ্রহের নাম",topic:"বিষয়ের কীওয়ার্ড",platform:"প্ল্যাটফর্ম",
+   generate:"✨ হ্যাশট্যাগ তৈরি",output:"হ্যাশট্যাগ",save:"💾 সংগ্রহ সংরক্ষণ",
+   saved:"সংরক্ষিত সংগ্রহ",close:"বন্ধ করুন",
+   need:"একটি নাম ও হ্যাশট্যাগ লিখুন।",empty:"এখনও কোনো সংগ্রহ নেই।",
+   copy:"📋 কপি",use:"ব্যবহার",del:"মুছুন",copied:"কপি হয়েছে!",
+   button:"# হ্যাশট্যাগ সেট"
+  },
+  ru:{
+   heading:"# Подборки хэштегов",info:"Создавайте и сохраняйте наборы хэштегов для повторного использования.",
+   name:"Название подборки",topic:"Ключевые слова",platform:"Платформа",
+   generate:"✨ Создать хэштеги",output:"Хэштеги",save:"💾 Сохранить подборку",
+   saved:"Сохранённые подборки",close:"Закрыть",need:"Введите название и хэштеги.",
+   empty:"Подборок пока нет.",copy:"📋 Копировать",use:"Использовать",
+   del:"Удалить",copied:"Скопировано!",button:"# Подборки"
+  }
+ };
+
+ const categoryTags={
+  travel:["Travel","TravelGram","Explore","Wanderlust","Adventure"],
+  nature:["Nature","NatureLovers","Outdoors","Landscape","Earth"],
+  food:["Food","Foodie","FoodLovers","Tasty","FoodPhotography"],
+  fashion:["Fashion","Style","OOTD","FashionInspo","Trendy"],
+  fitness:["Fitness","Workout","HealthyLifestyle","Gym","FitnessMotivation"],
+  business:["Business","Entrepreneur","Marketing","SmallBusiness","Growth"],
+  photography:["Photography","PhotoOfTheDay","PhotographyLovers","PhotoArt"],
+  gaming:["Gaming","Gamer","Gameplay","GamingCommunity","VideoGames"],
+  music:["Music","MusicLovers","NowPlaying","NewMusic","Musician"],
+  beauty:["Beauty","Makeup","Skincare","BeautyTips","Glow"],
+  education:["Education","Learning","StudyTips","Knowledge","StudentLife"],
+  tech:["Technology","Tech","Innovation","Digital","FutureTech"]
+ };
+
+ function language(){
+  const code=(window.SISA_LANGUAGE&&window.SISA_LANGUAGE.current)
+   ||localStorage.getItem("sisa_language")||"en";
+  return translations[code]?code:"en";
+ }
+ function t(){return translations[language()];}
+
+ function load(){
+  try{
+   const value=JSON.parse(localStorage.getItem(KEY)||"[]");
+   return Array.isArray(value)?value:[];
+  }catch(e){return [];}
+ }
+ function persist(items){
+  localStorage.setItem(KEY,JSON.stringify(items.slice(0,100)));
+ }
+ function slug(value){
+  return value.normalize("NFKD").replace(/[\u0300-\u036f]/g,"")
+   .replace(/[^\p{L}\p{N}]/gu,"");
+ }
+ function render(){
+  const area=$("sisaTagCollections");
+  area.replaceChildren();
+  const items=load();
+
+  if(!items.length){
+   const p=document.createElement("p");
+   p.textContent=t().empty;
+   area.appendChild(p);
+   return;
+  }
+
+  items.slice().reverse().forEach(item=>{
+   const card=document.createElement("div");
+   card.className="sisa-tag-collection";
+
+   const title=document.createElement("strong");
+   title.textContent=item.name;
+
+   const content=document.createElement("p");
+   content.textContent=item.tags;
+
+   const copy=document.createElement("button");
+   copy.type="button";
+   copy.textContent=t().copy;
+   copy.onclick=async()=>{
+    try{
+     await navigator.clipboard.writeText(item.tags);
+     copy.textContent=t().copied;
+    }catch(e){
+     $("sisaTagOutput").value=item.tags;
+     $("sisaTagOutput").focus();
+     $("sisaTagOutput").select();
+    }
+   };
+
+   const use=document.createElement("button");
+   use.type="button";
+   use.textContent=t().use;
+   use.onclick=()=>{
+    $("sisaTagName").value=item.name;
+    $("sisaTagTopic").value=item.topic||"";
+    $("sisaTagPlatform").value=item.platform;
+    $("sisaTagOutput").value=item.tags;
+   };
+
+   const del=document.createElement("button");
+   del.type="button";
+   del.textContent="🗑 "+t().del;
+   del.onclick=()=>{
+    persist(load().filter(x=>x.id!==item.id));
+    render();
+   };
+
+   card.append(title,content,copy,use,del);
+   area.appendChild(card);
+  });
+ }
+
+ function applyLanguage(){
+  const x=t();
+  $("sisaTagHeading").textContent=x.heading;
+  $("sisaTagInfo").textContent=x.info;
+  $("sisaTagNameLabel").textContent=x.name;
+  $("sisaTagTopicLabel").textContent=x.topic;
+  $("sisaTagPlatformLabel").textContent=x.platform;
+  $("sisaTagGenerate").textContent=x.generate;
+  $("sisaTagOutputLabel").textContent=x.output;
+  $("sisaTagSave").textContent=x.save;
+  $("sisaTagSavedHeading").textContent=x.saved;
+  $("sisaTagClose").textContent=x.close;
+  $("sisaTagOpen").textContent=x.button;
+  render();
+ }
+
+ $("sisaTagOpen").onclick=()=>{
+  applyLanguage();
+  panel.style.display="flex";
+ };
+ $("sisaTagClose").onclick=()=>panel.style.display="none";
+ panel.addEventListener("click",e=>{
+  if(e.target===panel)panel.style.display="none";
+ });
+
+ $("sisaTagGenerate").onclick=()=>{
+  const raw=$("sisaTagTopic").value.trim();
+  if(!raw){alert(t().need);return;}
+
+  const tags=[];
+  const words=raw.split(/[\s,;#]+/).filter(Boolean);
+
+  words.forEach(word=>{
+   const tag=slug(word);
+   if(tag)tags.push("#"+tag);
+  });
+
+  const normalized=raw.toLowerCase();
+  Object.keys(categoryTags).forEach(category=>{
+   if(normalized.includes(category)){
+    categoryTags[category].forEach(tag=>tags.push("#"+tag));
+   }
+  });
+
+  const platform=$("sisaTagPlatform").value;
+  if(platform==="YouTube")tags.push("#Shorts");
+  if(platform==="Instagram")tags.push("#Instagram");
+
+  $("sisaTagOutput").value=[...new Set(tags)].slice(0,30).join(" ");
+ };
+
+ $("sisaTagSave").onclick=()=>{
+  const name=$("sisaTagName").value.trim();
+  const tags=$("sisaTagOutput").value.trim();
+  if(!name||!tags){alert(t().need);return;}
+
+  const items=load();
+  items.push({
+   id:"tag_"+Date.now()+"_"+Math.random().toString(36).slice(2,7),
+   name:name,
+   topic:$("sisaTagTopic").value.trim(),
+   platform:$("sisaTagPlatform").value,
+   tags:tags,
+   createdAt:new Date().toISOString()
+  });
+
+  try{
+   persist(items);
+   render();
+  }catch(e){
+   alert("Unable to save. Browser storage may be full.");
+  }
+ };
+
+ window.addEventListener("sisa:languageChanged",applyLanguage);
+ applyLanguage();
+
+ window.SISA_TAG_COLLECTIONS={
+  open:()=>{applyLanguage();panel.style.display="flex";},
+  list:load
+ };
+
+ /* =============== PART 2U END — HASHTAG COLLECTIONS =============== */
+})();
+</script>
+<!-- =============== PART 2U END =============== -->
   
 </body>
 </html>
