@@ -8688,6 +8688,518 @@ renderSchedule();
 /* =============== PART 2W END — CONTENT IDEA VAULT =============== */
 </script>
   
+<!-- =====================================================
+ SISA AI ASSISTANT — PART 2X
+ TOOLS PAGE • FIXED TOP • 20 TOOLS
+===================================================== -->
+
+<style>
+/* Tools page: start at the top, with no artificial blank space */
+#sisaToolsPage {
+  display: none;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 16px 16px 32px;
+  color: inherit;
+  background: transparent;
+  scroll-margin-top: 0;
+}
+
+#sisaToolsPage .sisa-tools-heading {
+  font-size: 25px;
+  font-weight: 750;
+  margin: 0 0 6px;
+}
+
+#sisaToolsPage .sisa-tools-description {
+  margin: 0 0 20px;
+  opacity: .7;
+  font-size: 14px;
+}
+
+#sisaToolsPage .sisa-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-content: start;
+}
+
+#sisaToolsPage .sisa-tool-card {
+  min-width: 0;
+  min-height: 100px;
+  padding: 12px;
+  box-sizing: border-box;
+  border: 1px solid #30243f;
+  border-radius: 15px;
+  background: #120e1c;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+#sisaToolsPage .sisa-tool-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+#sisaToolsPage .sisa-tool-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+#sisaToolsPage .sisa-tool-open {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 42px;
+  box-sizing: border-box;
+  padding: 9px 7px;
+  border: 1px solid #7541bd;
+  border-radius: 10px;
+  background: #29183e;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+#sisaToolsPage .sisa-tool-open:active {
+  background: #57318c;
+}
+
+#sisaToolsPage .sisa-tools-footer {
+  margin-top: 22px;
+  font-size: 12px;
+  opacity: .6;
+  text-align: center;
+}
+
+/* Tools tab */
+#sisaToolsTab {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  min-height: 48px;
+  padding: 7px 2px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+#sisaToolsTab.sisa-tools-active {
+  color: #b58aff !important;
+}
+
+/* Tools button replaces the top Create button */
+#sisaTopToolsButton {
+  min-width: 108px;
+  min-height: 48px;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #9b5cff, #7438e8);
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Keep the relocated Create action inside the post form */
+#sisaRelocatedCreate {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  margin: 16px 0;
+  padding: 13px 18px;
+  border: 0;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #9b5cff, #7438e8);
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 380px) {
+  #sisaToolsPage {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  #sisaToolsPage .sisa-tools-grid {
+    gap: 8px;
+  }
+
+  #sisaToolsPage .sisa-tool-card {
+    padding: 9px;
+  }
+
+  #sisaTopToolsButton {
+    min-width: 96px;
+    padding: 10px;
+  }
+}
+</style>
+
+<section id="sisaToolsPage">
+  <h2 class="sisa-tools-heading">🧰 Tools</h2>
+  <p class="sisa-tools-description">
+    All your content tools in one place.
+  </p>
+  <div class="sisa-tools-grid" id="sisaToolsGrid"></div>
+  <p class="sisa-tools-footer">
+    SISA AI ASSISTANT · YOUR PERSONAL CONTENT WORKSPACE
+  </p>
+</section>
+
+<script>
+(function () {
+  "use strict";
+
+  if (window.SISA_TOOLS_PAGE_V2) return;
+
+  const page = document.getElementById("sisaToolsPage");
+  const grid = document.getElementById("sisaToolsGrid");
+
+  if (!page || !grid) return;
+
+  const tools = [
+    {name:"Saved Drafts", icon:"📁", keys:["saved drafts"]},
+    {name:"Schedule Post", icon:"📅", keys:["schedule post"]},
+    {name:"AI Caption Studio", icon:"✨", keys:["ai caption studio"]},
+    {name:"Hashtag Studio", icon:"🏷️", keys:["hashtag studio"]},
+    {name:"Content Calendar", icon:"🗓️", keys:["content calendar"]},
+    {name:"Bulk Planner", icon:"📋", keys:["bulk planner"]},
+    {name:"Performance", icon:"📊", keys:["performance"]},
+    {name:"Hashtag Sets", icon:"#️⃣", keys:["hashtag sets"]},
+    {name:"Post Builder", icon:"📝", keys:["post builder"]},
+    {name:"Idea Vault", icon:"💡", keys:["idea vault"]},
+    {name:"Publishing Checklist", icon:"✅", keys:["publishing checklist","post checklist"]},
+    {name:"Languages", icon:"🌐", keys:["languages"]},
+    {name:"Media Caption", icon:"🖼️", keys:["media caption"]},
+    {name:"Media Preview", icon:"🌄", keys:["media preview"]},
+    {name:"Media Details", icon:"📷", keys:["media details"]},
+    {name:"Backup", icon:"💾", keys:["backup"]},
+    {name:"About SISA", icon:"ℹ️", keys:["about sisa"]},
+    {name:"Settings", icon:"⚙️", keys:["settings"]},
+    {name:"Create Post", icon:"➕", keys:["open content studio","create post"]},
+    {name:"Media Upload", icon:"📤", keys:["upload media"]}
+  ];
+
+  const hiddenOriginals = new Set();
+  let active = false;
+  let originalCreate = null;
+  let createPlaceholder = null;
+  let topToolsButton = null;
+
+  function norm(text) {
+    return String(text || "").replace(/\s+/g, " ").trim().toLowerCase();
+  }
+
+  function visible(el) {
+    if (!el || !el.isConnected) return false;
+    const style = getComputedStyle(el);
+    return style.display !== "none" &&
+           style.visibility !== "hidden";
+  }
+
+  function candidates() {
+    return Array.from(document.querySelectorAll(
+      "button, a, [role='button']"
+    )).filter(el =>
+      !page.contains(el) &&
+      el.id !== "sisaToolsTab" &&
+      el.id !== "sisaTopToolsButton" &&
+      el.id !== "sisaRelocatedCreate"
+    );
+  }
+
+  function findButton(tool) {
+    const all = candidates();
+
+    // Prefer exact matching floating feature buttons.
+    const matches = all.filter(el => {
+      const text = norm(el.innerText || el.textContent);
+      if (!text || text.length > 100) return false;
+      return tool.keys.some(key => text.includes(key));
+    });
+
+    return matches.find(el =>
+      getComputedStyle(el).position === "fixed"
+    ) || matches.find(el => visible(el));
+  }
+
+  function makeCard(tool) {
+    const card = document.createElement("div");
+    card.className = "sisa-tool-card";
+
+    const title = document.createElement("div");
+    title.className = "sisa-tool-title";
+
+    const icon = document.createElement("span");
+    icon.className = "sisa-tool-icon";
+    icon.textContent = tool.icon;
+
+    const text = document.createElement("span");
+    text.textContent = tool.name;
+
+    title.append(icon, text);
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "sisa-tool-open";
+    button.textContent = "Open " + tool.name;
+
+    button.addEventListener("click", () => {
+      openTool(tool);
+    });
+
+    card.append(title, button);
+    return card;
+  }
+
+  function openTool(tool) {
+    const apiMap = {
+      "Saved Drafts": ["SISA_DRAFT_MANAGER", "open"],
+      "Schedule Post": ["SISA_SCHEDULE_MANAGER", "open"],
+      "AI Caption Studio": ["SISA_CAPTION_STUDIO", "open"],
+      "Hashtag Studio": ["SISA_HASHTAGS", "open"],
+      "Content Calendar": ["SISA_CONTENT_CALENDAR", "open"],
+      "Bulk Planner": ["SISA_BULK_PLANNER", "open"],
+      "Performance": ["SISA_PERFORMANCE", "open"],
+      "Hashtag Sets": ["SISA_HASHTAG_COLLECTIONS", "open"],
+      "Post Builder": ["SISA_POST_BUILDER", "open"],
+      "Idea Vault": ["SISA_IDEA_VAULT", "open"],
+      "Publishing Checklist": ["SISA_PUBLISHING_CHECKLIST", "open"],
+      "Languages": ["SISA_LANGUAGE_PICKER", "open"],
+      "Media Caption": ["SISA_MEDIA_CAPTION", "open"],
+      "Media Preview": ["SISA_MEDIA_PREVIEW", "open"],
+      "Media Details": ["SISA_MEDIA_DETAILS", "open"],
+      "Backup": ["SISA_BACKUP", "open"],
+      "About SISA": ["SISA_ABOUT", "open"],
+      "Settings": ["SISA_SETTINGS", "open"]
+    };
+
+    const mapping = apiMap[tool.name];
+    if (mapping) {
+      const api = window[mapping[0]];
+      if (api && typeof api[mapping[1]] === "function") {
+        api[mapping[1]]();
+        return;
+      }
+    }
+
+    const original = findButton(tool);
+    if (original && original !== topToolsButton) {
+      original.click();
+      return;
+    }
+
+    if (tool.name === "Create Post" || tool.name === "Media Upload") {
+      const home = document.getElementById("view-home");
+      const create = document.getElementById("view-create");
+
+      if (create) {
+        showExistingView(create);
+      } else if (home) {
+        showExistingView(home);
+      } else {
+        alert("The existing Create screen could not be located.");
+      }
+      return;
+    }
+
+    alert(tool.name + " is not connected to an existing feature yet.");
+  }
+
+  function showExistingView(view) {
+    page.style.display = "none";
+    document.querySelectorAll("[id^='view-']").forEach(el => {
+      el.style.display = "none";
+    });
+    view.style.display = "";
+    active = false;
+    updateTab();
+    window.scrollTo({top:0, behavior:"smooth"});
+  }
+
+  function updateTab() {
+    const tab = document.getElementById("sisaToolsTab");
+    if (tab) tab.classList.toggle("sisa-tools-active", active);
+  }
+
+  function render() {
+    grid.replaceChildren();
+
+    tools.forEach(tool => {
+      // Create stable, predictable tool cards.
+      grid.appendChild(makeCard(tool));
+    });
+  }
+
+  function findBottomNav() {
+    const list = Array.from(document.querySelectorAll(
+      "nav, [role='navigation'], .bottom-nav, .bottom-navigation"
+    ));
+
+    return list.find(nav => {
+      if (page.contains(nav)) return false;
+      const text = norm(nav.innerText || nav.textContent);
+      const r = nav.getBoundingClientRect();
+
+      return text.includes("create") &&
+             text.includes("draft") &&
+             r.height > 0 && r.height < 180;
+    });
+  }
+
+  function addToolsTab() {
+    let tab = document.getElementById("sisaToolsTab");
+    if (tab) return tab;
+
+    const nav = findBottomNav();
+    if (!nav) return null;
+
+    // Keep all five tabs on one row.
+    nav.style.flexWrap = "nowrap";
+    nav.style.alignItems = "stretch";
+
+    tab = document.createElement("button");
+    tab.id = "sisaToolsTab";
+    tab.type = "button";
+    tab.innerHTML = "<span>🧰</span><span>Tools</span>";
+
+    tab.addEventListener("click", event => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      // Place the Tools page in the existing content flow if needed.
+      const main = document.querySelector("main") ||
+                   document.querySelector(".main-content") ||
+                   document.querySelector("#app");
+
+      if (main && !main.contains(page)) {
+        main.insertBefore(page, main.firstChild);
+      }
+
+      document.querySelectorAll("[id^='view-']").forEach(el => {
+        el.style.display = "none";
+      });
+
+      // Hide the Create screen while Tools is open.
+      const home = document.getElementById("view-home");
+      if (home) home.style.display = "none";
+
+      page.style.display = "block";
+      active = true;
+      updateTab();
+
+      // Render content before scrolling to the page top.
+      render();
+      window.scrollTo({top:0, behavior:"instant"});
+    });
+
+    nav.appendChild(tab);
+    return tab;
+  }
+
+  function moveCreateButton() {
+    if (document.getElementById("sisaRelocatedCreate")) return;
+
+    const topCreate = Array.from(document.querySelectorAll("button"))
+      .find(el => {
+        const t = norm(el.innerText || el.textContent);
+        return t === "+ create" || t === "create";
+      });
+
+    if (!topCreate) return;
+
+    const caption = document.getElementById("caption");
+    const hashtags = document.getElementById("hashtags");
+    const anchor = hashtags || caption;
+
+    if (!anchor || !anchor.parentElement) return;
+
+    originalCreate = topCreate;
+    createPlaceholder = document.createComment("Original Create button location");
+    topCreate.parentNode.insertBefore(createPlaceholder, topCreate);
+
+    topToolsButton = document.createElement("button");
+    topToolsButton.id = "sisaTopToolsButton";
+    topToolsButton.type = "button";
+    topToolsButton.textContent = "🧰 Tools";
+    topToolsButton.addEventListener("click", () => {
+      const tab = addToolsTab();
+      if (tab) tab.click();
+    });
+
+    topCreate.replaceWith(topToolsButton);
+
+    const relocated = document.createElement("button");
+    relocated.id = "sisaRelocatedCreate";
+    relocated.type = "button";
+    relocated.textContent = "＋ Create";
+
+    relocated.addEventListener("click", () => {
+      // Return to the existing Create screen without making a fake post.
+      const createView = document.getElementById("view-create");
+      if (createView) {
+        showExistingView(createView);
+      } else if (originalCreate && originalCreate.isConnected) {
+        originalCreate.click();
+      } else {
+        alert("Your existing Create action could not be found.");
+      }
+    });
+
+    anchor.parentElement.insertBefore(relocated, anchor.nextSibling);
+  }
+
+  function init() {
+    addToolsTab();
+    render();
+    moveCreateButton();
+  }
+
+  window.SISA_TOOLS_PAGE_V2 = {
+    open: () => {
+      const tab = addToolsTab();
+      if (tab) tab.click();
+    },
+    refresh: render
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, {once:true});
+  } else {
+    init();
+  }
+
+  window.addEventListener("load", init);
+  window.addEventListener("sisa:languageChanged", render);
+
+  /* =============== PART 2X END — TOOLS PAGE V2 =============== */
+})();
+</script>
+  
 
 
 
