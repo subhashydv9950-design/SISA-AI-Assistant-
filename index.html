@@ -3113,6 +3113,185 @@ renderSchedule();
 })();
 
 /* =============== PART 2K END =============== */
-                                         </script>
+  </script>
+  <script>
+/* =====================================================
+   SISA AI ASSISTANT — PART 2L
+   HASHTAG GENERATOR
+===================================================== */
+
+(function () {
+  const TEXT = {
+    en: ["Hashtag Studio", "Enter post topic", "Platform",
+      "Generate Hashtags", "Copy Hashtags", "Your hashtags appear here"],
+    hi: ["हैशटैग स्टूडियो", "पोस्ट का विषय लिखें", "प्लेटफ़ॉर्म",
+      "हैशटैग बनाएँ", "हैशटैग कॉपी करें", "हैशटैग यहाँ दिखाई देंगे"],
+    fr: ["Studio de hashtags", "Sujet de la publication", "Plateforme",
+      "Générer des hashtags", "Copier les hashtags", "Vos hashtags apparaîtront ici"],
+    de: ["Hashtag-Studio", "Beitragsthema", "Plattform",
+      "Hashtags erstellen", "Hashtags kopieren", "Hier erscheinen deine Hashtags"],
+    zh: ["标签工作室", "帖子主题", "平台",
+      "生成标签", "复制标签", "标签将在此显示"],
+    ja: ["ハッシュタグスタジオ", "投稿テーマ", "プラットフォーム",
+      "タグを作成", "タグをコピー", "ここにタグが表示されます"],
+    ko: ["해시태그 스튜디오", "게시물 주제", "플랫폼",
+      "해시태그 생성", "해시태그 복사", "여기에 해시태그가 표시됩니다"],
+    es: ["Estudio de hashtags", "Tema de publicación", "Plataforma",
+      "Generar hashtags", "Copiar hashtags", "Aquí aparecerán los hashtags"],
+    bn: ["হ্যাশট্যাগ স্টুডিও", "পোস্টের বিষয়", "প্ল্যাটফর্ম",
+      "হ্যাশট্যাগ তৈরি করুন", "হ্যাশট্যাগ কপি করুন", "এখানে হ্যাশট্যাগ দেখা যাবে"],
+    ru: ["Студия хэштегов", "Тема публикации", "Платформа",
+      "Создать хэштеги", "Копировать хэштеги", "Здесь появятся хэштеги"]
+  };
+
+  const TAGS = {
+    travel: ["travel", "travelgram", "wanderlust", "explore"],
+    food: ["food", "foodie", "instafood", "foodlover"],
+    fashion: ["fashion", "style", "ootd", "fashionstyle"],
+    fitness: ["fitness", "workout", "fitlife", "health"],
+    business: ["business", "entrepreneur", "marketing", "smallbusiness"],
+    photography: ["photography", "photooftheday", "creative", "camera"],
+    nature: ["nature", "naturelovers", "outdoors", "beautiful"],
+    gaming: ["gaming", "gamer", "gameplay", "videogames"],
+    music: ["music", "musician", "newmusic", "musiclover"],
+    default: ["contentcreator", "newpost", "discover", "creative"]
+  };
+
+  function getLabels() {
+    const code = window.SISA_I18N?.language ||
+      localStorage.getItem("sisa_language") || "en";
+    return TEXT[code] || TEXT.en;
+  }
+
+  function makeHashtags(topic) {
+    const value = topic.toLowerCase();
+    let found = TAGS.default;
+
+    for (const category of Object.keys(TAGS)) {
+      if (category !== "default" && value.includes(category)) {
+        found = TAGS[category];
+        break;
+      }
+    }
+
+    const cleaned = topic
+      .normalize("NFKD")
+      .replace(/[^\p{L}\p{N}\s]/gu, "")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 3)
+      .join("");
+
+    const tags = cleaned ? [cleaned, ...found] : found;
+    return [...new Set(tags)].map(tag => "#" + tag).join(" ");
+  }
+
+  function open() {
+    const t = getLabels();
+    document.querySelector("#sisaHashtagPanel")?.remove();
+
+    const panel = document.createElement("section");
+    panel.id = "sisaHashtagPanel";
+    panel.style.cssText =
+      "position:fixed;inset:5%;z-index:100005;overflow:auto;padding:22px;background:#120e1c;color:white;border:1px solid #9255e9;border-radius:18px";
+
+    const title = document.createElement("h2");
+    title.textContent = "🏷️ " + t[0];
+
+    const label = document.createElement("label");
+    label.textContent = t[1];
+
+    const topic = document.createElement("input");
+    topic.placeholder = "e.g. travel, food, photography";
+    topic.style.cssText =
+      "display:block;width:100%;box-sizing:border-box;padding:12px;margin:8px 0 16px";
+
+    const platformLabel = document.createElement("label");
+    platformLabel.textContent = t[2];
+
+    const platform = document.createElement("select");
+    platform.style.cssText =
+      "display:block;width:100%;padding:12px;margin:8px 0 16px";
+
+    ["Instagram", "Facebook", "YouTube", "TikTok"].forEach(name => {
+      const option = document.createElement("option");
+      option.textContent = name;
+      option.value = name.toLowerCase();
+      platform.appendChild(option);
+    });
+
+    const generate = document.createElement("button");
+    generate.textContent = t[3];
+    generate.style.cssText =
+      "padding:12px 16px;background:#7b3fe4;color:white;border:0;border-radius:10px";
+
+    const output = document.createElement("textarea");
+    output.rows = 4;
+    output.placeholder = t[5];
+    output.style.cssText =
+      "display:block;width:100%;box-sizing:border-box;padding:12px;margin:16px 0";
+
+    generate.onclick = () => {
+      if (!topic.value.trim()) {
+        alert("Please enter a topic first.");
+        return;
+      }
+
+      output.value = makeHashtags(topic.value);
+
+      if (platform.value === "youtube") {
+        output.value += "\n#Shorts";
+      }
+    };
+
+    const copy = document.createElement("button");
+    copy.textContent = t[4];
+    copy.onclick = async () => {
+      if (!output.value.trim()) return;
+      try {
+        await navigator.clipboard.writeText(output.value);
+        alert("Hashtags copied!");
+      } catch {
+        output.select();
+        alert("Select and copy the hashtags manually.");
+      }
+    };
+
+    const close = document.createElement("button");
+    close.textContent = "✕ Close";
+    close.style.marginLeft = "8px";
+    close.onclick = () => panel.remove();
+
+    panel.append(
+      title, label, topic, platformLabel, platform,
+      generate, output, copy, close
+    );
+    document.body.appendChild(panel);
+  }
+
+  window.SISA_HASHTAGS = { open, generate: makeHashtags };
+
+  function init() {
+    if (document.querySelector("#sisaHashtagOpen")) return;
+
+    const button = document.createElement("button");
+    button.id = "sisaHashtagOpen";
+    button.textContent = "🏷️ Hashtag Studio";
+    button.style.cssText =
+      "position:fixed;right:16px;bottom:240px;z-index:9998;padding:12px 16px;background:#30184b;color:white;border:1px solid #8950e8;border-radius:12px";
+    button.onclick = open;
+    document.body.appendChild(button);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+
+/* =============== PART 2L END =============== */
+  </script>
 </body>
 </html>
