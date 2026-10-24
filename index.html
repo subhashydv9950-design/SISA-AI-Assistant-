@@ -7219,5 +7219,387 @@ renderSchedule();
 })();
 </script>
 <!-- =============== PART 2S END =============== -->
+  <!-- =====================================================
+     SISA AI ASSISTANT — PART 2T
+     CONTENT PERFORMANCE TRACKER
+===================================================== -->
+
+<style>
+#sisaStatsOpen{
+ position:fixed;right:16px;bottom:320px;z-index:9996;
+ border:0;border-radius:12px;padding:12px 15px;
+ background:#6d28d9;color:#fff;font-weight:700;
+}
+#sisaStatsPanel{
+ display:none;position:fixed;inset:0;z-index:10002;
+ background:#080610f2;align-items:center;justify-content:center;
+ padding:14px;color:white;font-family:Arial,sans-serif;
+}
+.sisa-stats-card{
+ width:100%;max-width:520px;max-height:90vh;overflow:auto;
+ box-sizing:border-box;padding:18px;border-radius:18px;
+ background:#171326;border:1px solid #7044b9;
+}
+.sisa-stats-card h2{color:#c4a5ff;margin-top:0}
+.sisa-stats-card input,.sisa-stats-card select{
+ width:100%;box-sizing:border-box;padding:11px;margin:6px 0 12px;
+ border-radius:9px;border:1px solid #49375f;
+ background:#0e0b18;color:#fff;
+}
+.sisa-stats-card button{
+ width:100%;padding:12px;margin-top:8px;border:0;
+ border-radius:9px;background:#8b5cf6;color:#fff;font-weight:700;
+}
+.sisa-stats-card .close{background:#302940}
+.sisa-stat-grid{
+ display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0;
+}
+.sisa-stat-box{
+ background:#241b36;border:1px solid #49375f;
+ padding:14px;border-radius:12px;
+}
+.sisa-stat-box small{color:#c4b5fd}
+.sisa-stat-number{font-size:24px;font-weight:800;margin-top:8px}
+#sisaStatsRecords article{
+ background:#211a31;padding:12px;border-radius:10px;margin-top:10px;
+}
+</style>
+
+<button id="sisaStatsOpen" type="button">📊 Performance</button>
+
+<div id="sisaStatsPanel">
+ <div class="sisa-stats-card">
+  <h2 id="sisaStatsHeading">📊 Content Performance</h2>
+  <p id="sisaStatsIntro">
+   Record your post metrics manually to track performance over time.
+  </p>
+
+  <div class="sisa-stat-grid">
+   <div class="sisa-stat-box">
+    <small id="sisaStatPostsLabel">Posts tracked</small>
+    <div class="sisa-stat-number" id="sisaStatPosts">0</div>
+   </div>
+   <div class="sisa-stat-box">
+    <small id="sisaStatReachLabel">Total reach</small>
+    <div class="sisa-stat-number" id="sisaStatReach">0</div>
+   </div>
+   <div class="sisa-stat-box">
+    <small id="sisaStatLikesLabel">Likes</small>
+    <div class="sisa-stat-number" id="sisaStatLikes">0</div>
+   </div>
+   <div class="sisa-stat-box">
+    <small id="sisaStatEngagementLabel">Engagement rate</small>
+    <div class="sisa-stat-number" id="sisaStatEngagement">0%</div>
+   </div>
+  </div>
+
+  <h3 id="sisaStatsAddHeading">Add post metrics</h3>
+
+  <label id="sisaStatsTitleLabel" for="sisaStatsPostTitle">Post title</label>
+  <input id="sisaStatsPostTitle" maxlength="120"
+   placeholder="Enter a post name">
+
+  <label id="sisaStatsPlatformLabel" for="sisaStatsPlatform">Platform</label>
+  <select id="sisaStatsPlatform">
+   <option>Instagram</option>
+   <option>Facebook</option>
+   <option>YouTube</option>
+   <option>TikTok</option>
+   <option>LinkedIn</option>
+   <option>X</option>
+  </select>
+
+  <label id="sisaStatsReachInputLabel" for="sisaStatsReachInput">Reach</label>
+  <input id="sisaStatsReachInput" type="number" min="0" step="1" value="0">
+
+  <label id="sisaStatsLikesInputLabel" for="sisaStatsLikesInput">Likes</label>
+  <input id="sisaStatsLikesInput" type="number" min="0" step="1" value="0">
+
+  <label id="sisaStatsCommentsLabel" for="sisaStatsComments">Comments</label>
+  <input id="sisaStatsComments" type="number" min="0" step="1" value="0">
+
+  <label id="sisaStatsSharesLabel" for="sisaStatsShares">Shares</label>
+  <input id="sisaStatsShares" type="number" min="0" step="1" value="0">
+
+  <button id="sisaStatsSave" type="button">💾 Save Metrics</button>
+  <button id="sisaStatsExport" type="button">⬇ Export CSV</button>
+
+  <h3 id="sisaStatsHistoryHeading">Recent records</h3>
+  <div id="sisaStatsRecords"></div>
+
+  <button id="sisaStatsClose" class="close" type="button">Close</button>
+ </div>
+</div>
+
+<script>
+(function(){
+ "use strict";
+
+ const $ = id => document.getElementById(id);
+ const KEY = "sisa_performance_records_v1";
+ const panel = $("sisaStatsPanel");
+
+ const translations = {
+  en:{
+   heading:"📊 Content Performance",intro:"Enter your metrics manually. These figures are not fetched automatically.",
+   posts:"Posts tracked",reach:"Total reach",likes:"Likes",rate:"Engagement rate",
+   add:"Add post metrics",title:"Post title",platform:"Platform",comments:"Comments",
+   shares:"Shares",save:"💾 Save Metrics",export:"⬇ Export CSV",
+   history:"Recent records",close:"Close",need:"Enter a post title.",
+   saved:"Metrics saved.",empty:"No records yet.",delete:"Delete",
+   placeholder:"Enter a post name",button:"📊 Performance"
+  },
+  hi:{
+   heading:"📊 कंटेंट परफॉर्मेंस",intro:"आंकड़े खुद भरें। ये आंकड़े अपने-आप प्लेटफॉर्म से नहीं आते।",
+   posts:"ट्रैक की गई पोस्ट",reach:"कुल रीच",likes:"लाइक्स",rate:"एंगेजमेंट रेट",
+   add:"पोस्ट के आंकड़े जोड़ें",title:"पोस्ट का नाम",platform:"प्लेटफॉर्म",
+   comments:"कमेंट",shares:"शेयर",save:"💾 आंकड़े सेव करें",
+   export:"⬇ CSV डाउनलोड",history:"हाल के रिकॉर्ड",close:"बंद करें",
+   need:"पोस्ट का नाम लिखें।",saved:"आंकड़े सेव हो गए।",
+   empty:"अभी कोई रिकॉर्ड नहीं है।",delete:"हटाएं",
+   placeholder:"पोस्ट का नाम लिखें",button:"📊 परफॉर्मेंस"
+  },
+  fr:{
+   heading:"📊 Performances",intro:"Saisissez les statistiques manuellement. Elles ne sont pas récupérées automatiquement.",
+   posts:"Publications suivies",reach:"Portée totale",likes:"J’aime",rate:"Taux d’engagement",
+   add:"Ajouter des statistiques",title:"Titre de la publication",platform:"Plateforme",
+   comments:"Commentaires",shares:"Partages",save:"💾 Enregistrer",
+   export:"⬇ Exporter CSV",history:"Enregistrements récents",close:"Fermer",
+   need:"Saisissez un titre.",saved:"Statistiques enregistrées.",
+   empty:"Aucun enregistrement.",delete:"Supprimer",
+   placeholder:"Nom de la publication",button:"📊 Performances"
+  },
+  de:{
+   heading:"📊 Content-Leistung",intro:"Trage Kennzahlen manuell ein. Sie werden nicht automatisch abgerufen.",
+   posts:"Erfasste Beiträge",reach:"Gesamte Reichweite",likes:"Likes",rate:"Interaktionsrate",
+   add:"Kennzahlen hinzufügen",title:"Beitragstitel",platform:"Plattform",
+   comments:"Kommentare",shares:"Geteilt",save:"💾 Kennzahlen speichern",
+   export:"⬇ CSV exportieren",history:"Letzte Einträge",close:"Schließen",
+   need:"Bitte einen Titel eingeben.",saved:"Kennzahlen gespeichert.",
+   empty:"Noch keine Einträge.",delete:"Löschen",
+   placeholder:"Beitragsname",button:"📊 Performance"
+  },
+  es:{
+   heading:"📊 Rendimiento",intro:"Introduce las métricas manualmente. No se obtienen automáticamente.",
+   posts:"Publicaciones registradas",reach:"Alcance total",likes:"Me gusta",rate:"Tasa de interacción",
+   add:"Añadir métricas",title:"Título de publicación",platform:"Plataforma",
+   comments:"Comentarios",shares:"Compartidos",save:"💾 Guardar métricas",
+   export:"⬇ Exportar CSV",history:"Registros recientes",close:"Cerrar",
+   need:"Introduce un título.",saved:"Métricas guardadas.",
+   empty:"Todavía no hay registros.",delete:"Eliminar",
+   placeholder:"Nombre de la publicación",button:"📊 Rendimiento"
+  },
+  zh:{
+   heading:"📊 内容表现",intro:"请手动填写数据。系统不会自动获取这些数据。",
+   posts:"已跟踪帖子",reach:"总触达",likes:"点赞",rate:"互动率",
+   add:"添加帖子数据",title:"帖子标题",platform:"平台",comments:"评论",
+   shares:"分享",save:"💾 保存数据",export:"⬇ 导出 CSV",
+   history:"最近记录",close:"关闭",need:"请输入帖子标题。",
+   saved:"数据已保存。",empty:"暂无记录。",delete:"删除",
+   placeholder:"输入帖子名称",button:"📊 内容表现"
+  },
+  ja:{
+   heading:"📊 投稿パフォーマンス",intro:"数値を手動で入力してください。自動取得ではありません。",
+   posts:"記録した投稿",reach:"合計リーチ",likes:"いいね",rate:"エンゲージメント率",
+   add:"投稿データを追加",title:"投稿タイトル",platform:"プラットフォーム",
+   comments:"コメント",shares:"シェア",save:"💾 保存",
+   export:"⬇ CSVを書き出す",history:"最近の記録",close:"閉じる",
+   need:"投稿タイトルを入力してください。",saved:"保存しました。",
+   empty:"記録はありません。",delete:"削除",
+   placeholder:"投稿名",button:"📊 パフォーマンス"
+  },
+  ko:{
+   heading:"📊 콘텐츠 성과",intro:"통계를 직접 입력하세요. 자동으로 가져오지 않습니다.",
+   posts:"기록된 게시물",reach:"총 도달",likes:"좋아요",rate:"참여율",
+   add:"게시물 통계 추가",title:"게시물 제목",platform:"플랫폼",
+   comments:"댓글",shares:"공유",save:"💾 통계 저장",
+   export:"⬇ CSV 내보내기",history:"최근 기록",close:"닫기",
+   need:"게시물 제목을 입력하세요.",saved:"저장되었습니다.",
+   empty:"기록이 없습니다.",delete:"삭제",
+   placeholder:"게시물 이름",button:"📊 성과"
+  },
+  bn:{
+   heading:"📊 কনটেন্ট পারফরম্যান্স",intro:"পরিসংখ্যান নিজে লিখুন। এগুলো স্বয়ংক্রিয়ভাবে আনা হয় না।",
+   posts:"ট্র্যাক করা পোস্ট",reach:"মোট রিচ",likes:"লাইক",rate:"এনগেজমেন্ট হার",
+   add:"পোস্টের পরিসংখ্যান যোগ করুন",title:"পোস্টের শিরোনাম",
+   platform:"প্ল্যাটফর্ম",comments:"মন্তব্য",shares:"শেয়ার",
+   save:"💾 সংরক্ষণ",export:"⬇ CSV এক্সপোর্ট",history:"সাম্প্রতিক রেকর্ড",
+   close:"বন্ধ করুন",need:"পোস্টের শিরোনাম লিখুন।",saved:"সংরক্ষিত হয়েছে।",
+   empty:"এখনও কোনো রেকর্ড নেই।",delete:"মুছুন",
+   placeholder:"পোস্টের নাম",button:"📊 পারফরম্যান্স"
+  },
+  ru:{
+   heading:"📊 Эффективность контента",intro:"Введите показатели вручную. Они не загружаются автоматически.",
+   posts:"Отслеживаемые публикации",reach:"Общий охват",likes:"Лайки",rate:"Вовлечённость",
+   add:"Добавить показатели",title:"Название публикации",platform:"Платформа",
+   comments:"Комментарии",shares:"Репосты",save:"💾 Сохранить",
+   export:"⬇ Экспорт CSV",history:"Последние записи",close:"Закрыть",
+   need:"Введите название публикации.",saved:"Показатели сохранены.",
+   empty:"Записей пока нет.",delete:"Удалить",
+   placeholder:"Название публикации",button:"📊 Эффективность"
+  }
+ };
+
+ function getLang(){
+  const code=(window.SISA_LANGUAGE&&window.SISA_LANGUAGE.current)
+   ||localStorage.getItem("sisa_language")||"en";
+  return translations[code]?code:"en";
+ }
+
+ function t(){return translations[getLang()];}
+
+ function load(){
+  try{
+   const data=JSON.parse(localStorage.getItem(KEY)||"[]");
+   return Array.isArray(data)?data:[];
+  }catch(e){return [];}
+ }
+
+ function save(data){
+  localStorage.setItem(KEY,JSON.stringify(data.slice(0,500)));
+ }
+
+ function number(id){
+  const value=Number($(id).value);
+  return Number.isFinite(value)&&value>=0?Math.floor(value):0;
+ }
+
+ function applyLanguage(){
+  const x=t();
+  $("sisaStatsHeading").textContent=x.heading;
+  $("sisaStatsIntro").textContent=x.intro;
+  $("sisaStatPostsLabel").textContent=x.posts;
+  $("sisaStatReachLabel").textContent=x.reach;
+  $("sisaStatLikesLabel").textContent=x.likes;
+  $("sisaStatEngagementLabel").textContent=x.rate;
+  $("sisaStatsAddHeading").textContent=x.add;
+  $("sisaStatsTitleLabel").textContent=x.title;
+  $("sisaStatsPlatformLabel").textContent=x.platform;
+  $("sisaStatsCommentsLabel").textContent=x.comments;
+  $("sisaStatsSharesLabel").textContent=x.shares;
+  $("sisaStatsSave").textContent=x.save;
+  $("sisaStatsExport").textContent=x.export;
+  $("sisaStatsHistoryHeading").textContent=x.history;
+  $("sisaStatsClose").textContent=x.close;
+  $("sisaStatsPostTitle").placeholder=x.placeholder;
+  $("sisaStatsOpen").textContent=x.button;
+  render();
+ }
+
+ function render(){
+  const records=load();
+  const totalReach=records.reduce((s,r)=>s+(r.reach||0),0);
+  const totalLikes=records.reduce((s,r)=>s+(r.likes||0),0);
+  const interactions=records.reduce(
+   (s,r)=>s+(r.likes||0)+(r.comments||0)+(r.shares||0),0
+  );
+  const rate=totalReach>0?(interactions/totalReach)*100:0;
+
+  $("sisaStatPosts").textContent=records.length;
+  $("sisaStatReach").textContent=totalReach.toLocaleString();
+  $("sisaStatLikes").textContent=totalLikes.toLocaleString();
+  $("sisaStatEngagement").textContent=rate.toFixed(1)+"%";
+
+  const container=$("sisaStatsRecords");
+  container.replaceChildren();
+
+  if(!records.length){
+   const p=document.createElement("p");
+   p.textContent=t().empty;
+   container.appendChild(p);
+   return;
+  }
+
+  records.slice().reverse().slice(0,15).forEach(record=>{
+   const article=document.createElement("article");
+   const title=document.createElement("strong");
+   title.textContent=record.title;
+
+   const details=document.createElement("p");
+   details.textContent=record.platform+" · "+record.date+
+    " · Reach: "+record.reach+" · Likes: "+record.likes+
+    " · Comments: "+record.comments+" · Shares: "+record.shares;
+
+   const del=document.createElement("button");
+   del.type="button";
+   del.textContent="🗑 "+t().delete;
+   del.onclick=()=>{
+    save(load().filter(item=>item.id!==record.id));
+    render();
+   };
+
+   article.append(title,details,del);
+   container.appendChild(article);
+  });
+ }
+
+ $("sisaStatsOpen").onclick=()=>{
+  applyLanguage();
+  panel.style.display="flex";
+ };
+ $("sisaStatsClose").onclick=()=>panel.style.display="none";
+ panel.addEventListener("click",e=>{
+  if(e.target===panel)panel.style.display="none";
+ });
+
+ $("sisaStatsSave").onclick=()=>{
+  const title=$("sisaStatsPostTitle").value.trim();
+  if(!title){alert(t().need);return;}
+
+  const record={
+   id:"stat_"+Date.now()+"_"+Math.random().toString(36).slice(2,7),
+   title:title,
+   platform:$("sisaStatsPlatform").value,
+   reach:number("sisaStatsReachInput"),
+   likes:number("sisaStatsLikesInput"),
+   comments:number("sisaStatsComments"),
+   shares:number("sisaStatsShares"),
+   date:new Date().toISOString().slice(0,10)
+  };
+
+  const records=load();
+  records.push(record);
+
+  try{
+   save(records);
+   $("sisaStatsPostTitle").value="";
+   ["sisaStatsReachInput","sisaStatsLikesInput",
+    "sisaStatsComments","sisaStatsShares"].forEach(id=>$(id).value="0");
+   render();
+   alert(t().saved);
+  }catch(e){
+   alert("Unable to save. Browser storage may be full.");
+  }
+ };
+
+ $("sisaStatsExport").onclick=()=>{
+  const records=load();
+  const csvCell=value=>'"'+String(value??"").replace(/"/g,'""')+'"';
+  const rows=[
+   ["Title","Platform","Date","Reach","Likes","Comments","Shares"],
+   ...records.map(r=>[
+    r.title,r.platform,r.date,r.reach,r.likes,r.comments,r.shares
+   ])
+  ];
+  const csv="\uFEFF"+rows.map(row=>row.map(csvCell).join(",")).join("\r\n");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="SISA-Performance.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+ };
+
+ window.addEventListener("sisa:languageChanged",applyLanguage);
+ applyLanguage();
+
+ window.SISA_PERFORMANCE={render:render};
+
+ /* =============== PART 2T END — PERFORMANCE TRACKER =============== */
+})();
+</script>
+<!-- =============== PART 2T END =============== -->
+  
 </body>
 </html>
