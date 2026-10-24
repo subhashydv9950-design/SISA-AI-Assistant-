@@ -2630,5 +2630,158 @@ renderSchedule();
   }
 })();
   </script>
+  <script>
+/* =====================================================
+   SISA AI ASSISTANT — PART 2I
+   ABOUT US + FOUNDER + CONTACT
+===================================================== */
+
+(function () {
+  const old = document.getElementById("sisaAboutPanel");
+  if (old) old.remove();
+
+  function openAbout() {
+    const lang = localStorage.getItem("sisa_language") || "en";
+
+    const words = {
+      en: {
+        title: "About SISA AI",
+        desc: "Your multilingual AI-powered social media assistant.",
+        founder: "Founder & Developer",
+        contact: "Contact",
+        email: "Email",
+        instagram: "Instagram",
+        close: "Close"
+      },
+      hi: {
+        title: "SISA AI के बारे में",
+        desc: "आपका बहुभाषी AI सोशल मीडिया असिस्टेंट।",
+        founder: "संस्थापक और डेवलपर",
+        contact: "संपर्क करें",
+        email: "ईमेल",
+        instagram: "इंस्टाग्राम",
+        close: "बंद करें"
+      },
+      fr: {
+        title: "À propos de SISA AI",
+        desc: "Votre assistant de réseaux sociaux multilingue basé sur l’IA.",
+        founder: "Fondateur et développeur",
+        contact: "Contact",
+        email: "E-mail",
+        instagram: "Instagram",
+        close: "Fermer"
+      },
+      de: {
+        title: "Über SISA AI",
+        desc: "Dein mehrsprachiger KI-Assistent für soziale Medien.",
+        founder: "Gründer und Entwickler",
+        contact: "Kontakt",
+        email: "E-Mail",
+        instagram: "Instagram",
+        close: "Schließen"
+      },
+      zh: {
+        title: "关于 SISA AI",
+        desc: "您的多语言人工智能社交媒体助手。",
+        founder: "创始人和开发者",
+        contact: "联系方式",
+        email: "电子邮件",
+        instagram: "Instagram",
+        close: "关闭"
+      },
+      ja: {
+        title: "SISA AIについて",
+        desc: "多言語対応のAIソーシャルメディアアシスタント。",
+        founder: "創設者・開発者",
+        contact: "お問い合わせ",
+        email: "メール",
+        instagram: "Instagram",
+        close: "閉じる"
+      },
+      ko: {
+        title: "SISA AI 소개",
+        desc: "다국어 AI 소셜 미디어 도우미입니다.",
+        founder: "창립자 및 개발자",
+        contact: "연락처",
+        email: "이메일",
+        instagram: "Instagram",
+        close: "닫기"
+      }
+    };
+
+    const t = words[lang] || {
+      title: "About SISA AI",
+      desc: "Your multilingual AI-powered social media assistant.",
+      founder: "Founder & Developer",
+      contact: "Contact",
+      email: "Email",
+      instagram: "Instagram",
+      close: "Close"
+    };
+
+    const panel = document.createElement("section");
+    panel.id = "sisaAboutPanel";
+    panel.style.cssText =
+      "position:fixed;inset:7%;z-index:100002;overflow:auto;padding:24px;background:#151020;color:white;border:1px solid #9255e9;border-radius:18px;box-shadow:0 15px 50px #0009";
+
+    const heading = document.createElement("h2");
+    heading.textContent = t.title;
+    heading.style.color = "#bb86fc";
+
+    const description = document.createElement("p");
+    description.textContent = t.desc;
+
+    const founder = document.createElement("h3");
+    founder.textContent = t.founder;
+
+    const name = document.createElement("p");
+    name.textContent = "Subhash Yadav";
+
+    const contact = document.createElement("h3");
+    contact.textContent = t.contact;
+
+    const email = document.createElement("p");
+    email.textContent = t.email + ": yahu9950@gmail.com";
+
+    const instagram = document.createElement("p");
+    instagram.textContent = t.instagram + ": @iamsubhash177";
+
+    const close = document.createElement("button");
+    close.textContent = t.close;
+    close.style.cssText =
+      "padding:12px 18px;background:#7b3fe4;color:white;border:0;border-radius:10px";
+    close.onclick = () => panel.remove();
+
+    panel.append(
+      heading, description, founder, name,
+      contact, email, instagram, close
+    );
+
+    document.body.appendChild(panel);
+  }
+
+  window.SISA_ABOUT = { open: openAbout };
+
+  function addAboutButton() {
+    if (document.getElementById("sisaAboutOpen")) return;
+
+    const button = document.createElement("button");
+    button.id = "sisaAboutOpen";
+    button.textContent = "ⓘ About SISA";
+    button.style.cssText =
+      "position:fixed;left:16px;bottom:72px;z-index:9998;padding:12px 16px;background:#30184b;color:white;border:1px solid #8950e8;border-radius:12px";
+    button.onclick = openAbout;
+    document.body.appendChild(button);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", addAboutButton);
+  } else {
+    addAboutButton();
+  }
+})();
+
+/* =============== PART 2I END =============== */
+  </script>
 </body>
 </html>
