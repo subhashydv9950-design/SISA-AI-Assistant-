@@ -6835,5 +6835,389 @@ renderSchedule();
 /* =============== PART 2R END — BACKUP & RESTORE =============== */
 </script>
 <!-- =============== PART 2R END =============== -->
+  <!-- =====================================================
+     SISA AI ASSISTANT — PART 2S
+     BULK CONTENT PLANNER
+===================================================== -->
+
+<style>
+#sisaBulkOpen{
+ position:fixed;right:16px;bottom:270px;z-index:9997;
+ border:0;border-radius:12px;padding:12px 15px;
+ background:#a855f7;color:#fff;font-weight:700;
+}
+#sisaBulkPanel{
+ display:none;position:fixed;inset:0;z-index:10001;
+ background:#080610f2;align-items:center;justify-content:center;
+ padding:14px;color:#fff;font-family:Arial,sans-serif;
+}
+.sisa-bulk-card{
+ width:100%;max-width:520px;max-height:90vh;overflow:auto;
+ background:#171326;border:1px solid #7044b9;
+ border-radius:18px;padding:18px;box-sizing:border-box;
+}
+.sisa-bulk-card h2{color:#c4a5ff;margin-top:0}
+.sisa-bulk-card input,.sisa-bulk-card select,
+.sisa-bulk-card textarea{
+ width:100%;box-sizing:border-box;margin:6px 0 12px;
+ padding:11px;border-radius:9px;border:1px solid #49375f;
+ background:#0e0b18;color:#fff;
+}
+.sisa-bulk-card button{
+ width:100%;padding:12px;margin-top:8px;border:0;
+ border-radius:9px;background:#8b5cf6;color:white;font-weight:bold;
+}
+.sisa-bulk-card .sisa-bulk-close{background:#302940}
+#sisaBulkResults article{
+ background:#211a31;padding:12px;border-radius:10px;
+ margin-top:10px;border:1px solid #49375f;
+}
+#sisaBulkResults small{color:#c4b5fd}
+</style>
+
+<button id="sisaBulkOpen" type="button">🗓 Bulk Planner</button>
+
+<div id="sisaBulkPanel">
+ <div class="sisa-bulk-card">
+  <h2 id="sisaBulkHeading">🗓 Bulk Content Planner</h2>
+  <p id="sisaBulkIntro">
+   Create a batch of post ideas and save them as local drafts.
+  </p>
+
+  <label for="sisaBulkTopic" id="sisaBulkTopicLabel">Topic or campaign</label>
+  <input id="sisaBulkTopic" placeholder="e.g. Travel photography">
+
+  <label for="sisaBulkCount" id="sisaBulkCountLabel">Number of posts</label>
+  <select id="sisaBulkCount">
+   <option value="3">3 posts</option>
+   <option value="5" selected>5 posts</option>
+   <option value="7">7 posts</option>
+   <option value="10">10 posts</option>
+  </select>
+
+  <label for="sisaBulkPlatform" id="sisaBulkPlatformLabel">Platform</label>
+  <select id="sisaBulkPlatform">
+   <option>Instagram</option>
+   <option>Facebook</option>
+   <option>YouTube</option>
+   <option>TikTok</option>
+   <option>LinkedIn</option>
+   <option>X</option>
+  </select>
+
+  <label for="sisaBulkStart" id="sisaBulkStartLabel">Start date</label>
+  <input id="sisaBulkStart" type="date">
+
+  <label for="sisaBulkInterval" id="sisaBulkIntervalLabel">Days between posts</label>
+  <select id="sisaBulkInterval">
+   <option value="1">1 day</option>
+   <option value="2" selected>2 days</option>
+   <option value="3">3 days</option>
+   <option value="7">7 days</option>
+  </select>
+
+  <button id="sisaBulkGenerate" type="button">✨ Generate Plan</button>
+  <div id="sisaBulkResults" aria-live="polite"></div>
+
+  <button id="sisaBulkSave" type="button">💾 Save All as Drafts</button>
+  <button id="sisaBulkClose" class="sisa-bulk-close" type="button">Close</button>
+ </div>
+</div>
+
+<script>
+(function(){
+ "use strict";
+
+ const $ = id => document.getElementById(id);
+ const panel = $("sisaBulkPanel");
+ let plans = [];
+
+ const words = {
+  en:{
+   heading:"🗓 Bulk Content Planner",
+   intro:"Create a batch of post ideas and save them as local drafts.",
+   topic:"Topic or campaign",count:"Number of posts",platform:"Platform",
+   start:"Start date",interval:"Days between posts",
+   generate:"✨ Generate Plan",save:"💾 Save All as Drafts",close:"Close",
+   topicPlaceholder:"e.g. Travel photography",
+   needTopic:"Enter a topic first.",generated:"Generated",
+   saved:"Saved drafts:",ideas:[
+    "Introduce the topic","Share a useful tip","Show behind the scenes",
+    "Answer a common question","Share a personal insight",
+    "Present a step-by-step guide","Share a common mistake",
+    "Highlight a key benefit","Share a checklist","Invite audience opinions"
+   ]
+  },
+  hi:{
+   heading:"🗓 बल्क कंटेंट प्लानर",
+   intro:"एक साथ पोस्ट के आइडिया बनाएं और ड्राफ्ट में सेव करें।",
+   topic:"विषय या कैंपेन",count:"पोस्ट की संख्या",platform:"प्लेटफॉर्म",
+   start:"शुरू करने की तारीख",interval:"पोस्ट के बीच दिन",
+   generate:"✨ प्लान बनाएं",save:"💾 सभी ड्राफ्ट सेव करें",close:"बंद करें",
+   topicPlaceholder:"जैसे ट्रैवल फोटोग्राफी",
+   needTopic:"पहले कोई विषय लिखें।",generated:"तैयार किए गए पोस्ट",
+   saved:"सेव किए गए ड्राफ्ट:",ideas:[
+    "विषय का परिचय दें","एक उपयोगी टिप साझा करें",
+    "पर्दे के पीछे की झलक दिखाएं","एक आम सवाल का जवाब दें",
+    "अपना अनुभव साझा करें","स्टेप-बाय-स्टेप गाइड दें",
+    "एक आम गलती बताएं","मुख्य फायदा समझाएं",
+    "एक चेकलिस्ट साझा करें","दर्शकों की राय पूछें"
+   ]
+  },
+  fr:{
+   heading:"🗓 Planificateur de contenu",
+   intro:"Créez plusieurs idées et enregistrez-les comme brouillons locaux.",
+   topic:"Sujet ou campagne",count:"Nombre de publications",platform:"Plateforme",
+   start:"Date de début",interval:"Jours entre les publications",
+   generate:"✨ Créer le planning",save:"💾 Enregistrer les brouillons",close:"Fermer",
+   topicPlaceholder:"Ex. photographie de voyage",
+   needTopic:"Saisissez d’abord un sujet.",generated:"Publications créées",
+   saved:"Brouillons enregistrés :",ideas:[
+    "Présenter le sujet","Partager un conseil utile","Montrer les coulisses",
+    "Répondre à une question fréquente","Partager une expérience",
+    "Créer un guide étape par étape","Expliquer une erreur fréquente",
+    "Présenter un avantage","Partager une liste","Demander l’avis du public"
+   ]
+  },
+  de:{
+   heading:"🗓 Content-Planer",
+   intro:"Erstelle mehrere Beitragsideen und speichere sie als lokale Entwürfe.",
+   topic:"Thema oder Kampagne",count:"Anzahl der Beiträge",platform:"Plattform",
+   start:"Startdatum",interval:"Tage zwischen Beiträgen",
+   generate:"✨ Plan erstellen",save:"💾 Alle Entwürfe speichern",close:"Schließen",
+   topicPlaceholder:"z. B. Reisefotografie",
+   needTopic:"Bitte zuerst ein Thema eingeben.",generated:"Erstellte Beiträge",
+   saved:"Gespeicherte Entwürfe:",ideas:[
+    "Thema vorstellen","Nützlichen Tipp teilen","Hinter die Kulissen zeigen",
+    "Häufige Frage beantworten","Erfahrung teilen","Schritt-für-Schritt-Anleitung",
+    "Häufigen Fehler erklären","Vorteil hervorheben","Checkliste teilen",
+    "Meinung der Community erfragen"
+   ]
+  },
+  es:{
+   heading:"🗓 Planificador de contenido",
+   intro:"Crea varias ideas y guárdalas como borradores locales.",
+   topic:"Tema o campaña",count:"Número de publicaciones",platform:"Plataforma",
+   start:"Fecha de inicio",interval:"Días entre publicaciones",
+   generate:"✨ Crear plan",save:"💾 Guardar borradores",close:"Cerrar",
+   topicPlaceholder:"Ej. fotografía de viajes",
+   needTopic:"Introduce primero un tema.",generated:"Publicaciones creadas",
+   saved:"Borradores guardados:",ideas:[
+    "Presentar el tema","Compartir un consejo útil","Mostrar el detrás de cámaras",
+    "Responder una pregunta frecuente","Compartir una experiencia",
+    "Crear una guía paso a paso","Explicar un error común","Destacar un beneficio",
+    "Compartir una lista","Pedir opiniones"
+   ]
+  },
+  zh:{
+   heading:"🗓 批量内容规划器",
+   intro:"批量创建帖子创意并保存为本地草稿。",
+   topic:"主题或活动",count:"帖子数量",platform:"平台",
+   start:"开始日期",interval:"帖子间隔天数",
+   generate:"✨ 生成计划",save:"💾 保存全部草稿",close:"关闭",
+   topicPlaceholder:"例如：旅行摄影",
+   needTopic:"请先输入主题。",generated:"已生成帖子",
+   saved:"已保存草稿：",ideas:[
+    "介绍主题","分享实用技巧","展示幕后内容","回答常见问题",
+    "分享个人经验","制作分步指南","解释常见错误","突出主要优势",
+    "分享清单","征求观众意见"
+   ]
+  },
+  ja:{
+   heading:"🗓 一括コンテンツプランナー",
+   intro:"投稿アイデアをまとめて作成し、ローカル下書きとして保存します。",
+   topic:"テーマまたはキャンペーン",count:"投稿数",platform:"プラットフォーム",
+   start:"開始日",interval:"投稿間隔（日）",
+   generate:"✨ 計画を作成",save:"💾 下書きをすべて保存",close:"閉じる",
+   topicPlaceholder:"例：旅行写真",
+   needTopic:"先にテーマを入力してください。",generated:"作成した投稿",
+   saved:"保存した下書き：",ideas:[
+    "テーマを紹介","役立つコツを共有","舞台裏を紹介","よくある質問に回答",
+    "経験を共有","手順ガイドを作成","よくある間違いを説明",
+    "メリットを紹介","チェックリストを共有","意見を聞く"
+   ]
+  },
+  ko:{
+   heading:"🗓 일괄 콘텐츠 플래너",
+   intro:"게시물 아이디어를 여러 개 만들고 로컬 초안으로 저장하세요.",
+   topic:"주제 또는 캠페인",count:"게시물 수",platform:"플랫폼",
+   start:"시작 날짜",interval:"게시물 간격(일)",
+   generate:"✨ 계획 만들기",save:"💾 초안 모두 저장",close:"닫기",
+   topicPlaceholder:"예: 여행 사진",
+   needTopic:"먼저 주제를 입력하세요.",generated:"생성된 게시물",
+   saved:"저장된 초안:",ideas:[
+    "주제 소개","유용한 팁 공유","비하인드 장면","자주 묻는 질문 답변",
+    "경험 공유","단계별 가이드","흔한 실수 설명","장점 강조",
+    "체크리스트 공유","의견 묻기"
+   ]
+  },
+  bn:{
+   heading:"🗓 বাল্ক কনটেন্ট প্ল্যানার",
+   intro:"একসঙ্গে পোস্টের ধারণা তৈরি করে স্থানীয় ড্রাফট হিসেবে সংরক্ষণ করুন।",
+   topic:"বিষয় বা ক্যাম্পেইন",count:"পোস্টের সংখ্যা",platform:"প্ল্যাটফর্ম",
+   start:"শুরুর তারিখ",interval:"পোস্টের ব্যবধান (দিন)",
+   generate:"✨ পরিকল্পনা তৈরি",save:"💾 সব ড্রাফট সংরক্ষণ",close:"বন্ধ করুন",
+   topicPlaceholder:"যেমন: ভ্রমণের ফটোগ্রাফি",
+   needTopic:"আগে একটি বিষয় লিখুন।",generated:"তৈরি করা পোস্ট",
+   saved:"সংরক্ষিত ড্রাফট:",ideas:[
+    "বিষয় পরিচয় করান","কার্যকর টিপস দিন","পেছনের দৃশ্য দেখান",
+    "সাধারণ প্রশ্নের উত্তর দিন","অভিজ্ঞতা শেয়ার করুন","ধাপে ধাপে নির্দেশিকা",
+    "সাধারণ ভুল ব্যাখ্যা করুন","সুবিধা তুলে ধরুন","চেকলিস্ট দিন","মতামত চান"
+   ]
+  },
+  ru:{
+   heading:"🗓 Планировщик контента",
+   intro:"Создавайте идеи публикаций и сохраняйте их как локальные черновики.",
+   topic:"Тема или кампания",count:"Количество публикаций",platform:"Платформа",
+   start:"Дата начала",interval:"Интервал в днях",
+   generate:"✨ Создать план",save:"💾 Сохранить черновики",close:"Закрыть",
+   topicPlaceholder:"Например: туристическая фотография",
+   needTopic:"Сначала введите тему.",generated:"Созданные публикации",
+   saved:"Сохранённые черновики:",ideas:[
+    "Представить тему","Поделиться полезным советом","Показать закулисье",
+    "Ответить на частый вопрос","Поделиться опытом","Пошаговое руководство",
+    "Объяснить распространённую ошибку","Показать преимущество",
+    "Поделиться списком","Спросить мнение аудитории"
+   ]
+  }
+ };
+
+ function lang(){
+  let code = localStorage.getItem("sisa_language") || "en";
+  if(window.SISA_LANGUAGE && window.SISA_LANGUAGE.current)
+   code = window.SISA_LANGUAGE.current;
+  return words[code] ? code : "en";
+ }
+
+ function applyLanguage(){
+  const t=words[lang()];
+  $("sisaBulkHeading").textContent=t.heading;
+  $("sisaBulkIntro").textContent=t.intro;
+  $("sisaBulkTopicLabel").textContent=t.topic;
+  $("sisaBulkCountLabel").textContent=t.count;
+  $("sisaBulkPlatformLabel").textContent=t.platform;
+  $("sisaBulkStartLabel").textContent=t.start;
+  $("sisaBulkIntervalLabel").textContent=t.interval;
+  $("sisaBulkGenerate").textContent=t.generate;
+  $("sisaBulkSave").textContent=t.save;
+  $("sisaBulkClose").textContent=t.close;
+  $("sisaBulkTopic").placeholder=t.topicPlaceholder;
+  $("sisaBulkOpen").textContent=lang()==="hi"?"🗓 बल्क प्लानर":"🗓 Bulk Planner";
+ }
+
+ function dateString(date){
+  return date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2,"0")
+   +"-"+String(date.getDate()).padStart(2,"0");
+ }
+
+ $("sisaBulkStart").value=dateString(new Date());
+
+ $("sisaBulkOpen").onclick=()=>{
+  applyLanguage();
+  panel.style.display="flex";
+ };
+
+ $("sisaBulkClose").onclick=()=>panel.style.display="none";
+ panel.addEventListener("click",e=>{
+  if(e.target===panel) panel.style.display="none";
+ });
+
+ $("sisaBulkGenerate").onclick=function(){
+  const t=words[lang()];
+  const topic=$("sisaBulkTopic").value.trim();
+  if(!topic){alert(t.needTopic);return;}
+
+  const count=Number($("sisaBulkCount").value);
+  const interval=Number($("sisaBulkInterval").value);
+  const start=$("sisaBulkStart").value || dateString(new Date());
+  const platform=$("sisaBulkPlatform").value;
+  const results=$("sisaBulkResults");
+  plans=[];
+
+  for(let i=0;i<count;i++){
+   const date=new Date(start+"T12:00:00");
+   date.setDate(date.getDate()+i*interval);
+
+   plans.push({
+    id:"bulk_"+Date.now()+"_"+i,
+    title:topic+" — "+t.ideas[i%t.ideas.length],
+    topic:topic,
+    idea:t.ideas[i%t.ideas.length],
+    platform:platform,
+    date:dateString(date),
+    caption:topic+". "+t.ideas[i%t.ideas.length]+
+      ". Share your thoughts and join the conversation!",
+    hashtags:"#"+topic.replace(/[^a-zA-Z0-9\u0900-\u097F]/g,"")+
+      " #ContentCreator #SocialMedia",
+    status:"draft"
+   });
+  }
+
+  results.replaceChildren();
+  const heading=document.createElement("p");
+  heading.textContent=t.generated+": "+plans.length;
+  results.appendChild(heading);
+
+  plans.forEach((plan,index)=>{
+   const article=document.createElement("article");
+   const title=document.createElement("strong");
+   title.textContent=(index+1)+". "+plan.title;
+
+   const details=document.createElement("p");
+   details.textContent=plan.date+" · "+plan.platform;
+
+   const edit=document.createElement("button");
+   edit.type="button";
+   edit.textContent=lang()==="hi"?"✏️ शीर्षक बदलें":"✏️ Edit title";
+   edit.onclick=()=>{
+    const changed=prompt("Edit post title:",plan.title);
+    if(changed && changed.trim()){
+     plan.title=changed.trim();
+     title.textContent=(index+1)+". "+plan.title;
+    }
+   };
+
+   article.append(title,details,edit);
+   results.appendChild(article);
+  });
+ };
+
+ $("sisaBulkSave").onclick=function(){
+  if(!plans.length)return;
+
+  try{
+   const key="sisa_saved_drafts_v1";
+   let existing=JSON.parse(localStorage.getItem(key)||"[]");
+   if(!Array.isArray(existing))existing=[];
+
+   plans.forEach(plan=>existing.unshift({
+    ...plan,
+    createdAt:new Date().toISOString()
+   }));
+
+   existing=existing.slice(0,100);
+   localStorage.setItem(key,JSON.stringify(existing));
+
+   $("sisaBulkResults").insertAdjacentText(
+    "afterbegin",words[lang()].saved+" "+plans.length+" "
+   );
+   plans=[];
+  }catch(error){
+   alert("Could not save drafts. Check browser storage.");
+  }
+ };
+
+ window.addEventListener("sisa:languageChanged",applyLanguage);
+ applyLanguage();
+
+ window.SISA_BULK_PLANNER={
+  open:()=>{applyLanguage();panel.style.display="flex";},
+  getPlans:()=>plans.slice()
+ };
+
+ /* =============== PART 2S END — BULK CONTENT PLANNER =============== */
+})();
+</script>
+<!-- =============== PART 2S END =============== -->
 </body>
 </html>
