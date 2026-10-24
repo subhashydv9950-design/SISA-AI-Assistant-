@@ -2346,5 +2346,289 @@ renderSchedule();
   });
 })();
   </script>
+  <script>
+/* =====================================================
+   SISA AI ASSISTANT — PART 2H
+   MULTILINGUAL SETTINGS PANEL
+===================================================== */
+
+(function () {
+  const KEY = "sisa_settings_v1";
+
+  const translations = {
+    en: {
+      title: "Settings",
+      language: "App Language",
+      theme: "Appearance",
+      dark: "Dark",
+      light: "Light",
+      autosave: "Auto-save drafts",
+      save: "Save Settings",
+      close: "Close",
+      done: "Settings saved!"
+    },
+    hi: {
+      title: "सेटिंग्स",
+      language: "ऐप की भाषा",
+      theme: "दिखावट",
+      dark: "डार्क",
+      light: "लाइट",
+      autosave: "ड्राफ्ट ऑटो-सेव",
+      save: "सेटिंग्स सेव करें",
+      close: "बंद करें",
+      done: "सेटिंग्स सेव हो गईं!"
+    },
+    zh: {
+      title: "设置",
+      language: "应用语言",
+      theme: "外观",
+      dark: "深色",
+      light: "浅色",
+      autosave: "自动保存草稿",
+      save: "保存设置",
+      close: "关闭",
+      done: "设置已保存！"
+    },
+    ja: {
+      title: "設定",
+      language: "アプリの言語",
+      theme: "外観",
+      dark: "ダーク",
+      light: "ライト",
+      autosave: "下書きを自動保存",
+      save: "設定を保存",
+      close: "閉じる",
+      done: "設定を保存しました！"
+    },
+    ko: {
+      title: "설정",
+      language: "앱 언어",
+      theme: "화면 모드",
+      dark: "다크",
+      light: "라이트",
+      autosave: "임시 글 자동 저장",
+      save: "설정 저장",
+      close: "닫기",
+      done: "설정이 저장되었습니다!"
+    },
+    fr: {
+      title: "Paramètres",
+      language: "Langue de l’application",
+      theme: "Apparence",
+      dark: "Sombre",
+      light: "Clair",
+      autosave: "Enregistrement automatique",
+      save: "Enregistrer",
+      close: "Fermer",
+      done: "Paramètres enregistrés !"
+    },
+    de: {
+      title: "Einstellungen",
+      language: "App-Sprache",
+      theme: "Darstellung",
+      dark: "Dunkel",
+      light: "Hell",
+      autosave: "Entwürfe automatisch speichern",
+      save: "Einstellungen speichern",
+      close: "Schließen",
+      done: "Einstellungen gespeichert!"
+    },
+    es: {
+      title: "Configuración",
+      language: "Idioma de la aplicación",
+      theme: "Apariencia",
+      dark: "Oscuro",
+      light: "Claro",
+      autosave: "Guardar borradores automáticamente",
+      save: "Guardar configuración",
+      close: "Cerrar",
+      done: "¡Configuración guardada!"
+    },
+    bn: {
+      title: "সেটিংস",
+      language: "অ্যাপের ভাষা",
+      theme: "চেহারা",
+      dark: "ডার্ক",
+      light: "লাইট",
+      autosave: "খসড়া স্বয়ংক্রিয়ভাবে সংরক্ষণ",
+      save: "সেটিংস সংরক্ষণ করুন",
+      close: "বন্ধ করুন",
+      done: "সেটিংস সংরক্ষিত হয়েছে!"
+    },
+    ru: {
+      title: "Настройки",
+      language: "Язык приложения",
+      theme: "Оформление",
+      dark: "Тёмная",
+      light: "Светлая",
+      autosave: "Автосохранение черновиков",
+      save: "Сохранить настройки",
+      close: "Закрыть",
+      done: "Настройки сохранены!"
+    }
+  };
+
+  const languageNames = [
+    ["en", "English"], ["hi", "हिन्दी"],
+    ["bn", "বাংলা"], ["ta", "தமிழ்"],
+    ["te", "తెలుగు"], ["mr", "मराठी"],
+    ["gu", "ગુજરાતી"], ["pa", "ਪੰਜਾਬੀ"],
+    ["ur", "اردو"], ["zh", "中文"],
+    ["ja", "日本語"], ["ko", "한국어"],
+    ["fr", "Français"], ["de", "Deutsch"],
+    ["es", "Español"], ["pt", "Português"],
+    ["it", "Italiano"], ["ru", "Русский"],
+    ["uk", "Українська"], ["ar", "العربية"],
+    ["id", "Bahasa Indonesia"], ["vi", "Tiếng Việt"],
+    ["tr", "Türkçe"], ["th", "ไทย"],
+    ["ms", "Bahasa Melayu"], ["fil", "Filipino"],
+    ["nl", "Nederlands"], ["pl", "Polski"],
+    ["el", "Ελληνικά"], ["sv", "Svenska"],
+    ["da", "Dansk"], ["fi", "Suomi"],
+    ["ne", "नेपाली"], ["si", "සිංහල"],
+    ["sw", "Kiswahili"], ["fa", "فارسی"],
+    ["he", "עברית"], ["kk", "Қазақша"]
+  ];
+
+  function getSettings() {
+    try {
+      return JSON.parse(localStorage.getItem(KEY)) || {
+        theme: "dark",
+        autoSave: true
+      };
+    } catch {
+      return { theme: "dark", autoSave: true };
+    }
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.dataset.sisaTheme = theme;
+    document.body.style.background =
+      theme === "light" ? "#f4f1fa" : "#0b0912";
+    document.body.style.color =
+      theme === "light" ? "#191323" : "#ffffff";
+  }
+
+  function openSettings() {
+    const code = window.SISA_I18N?.language ||
+      localStorage.getItem("sisa_language") || "en";
+    const t = translations[code] || translations.en;
+    const settings = getSettings();
+
+    document.querySelector("#sisaSettingsPanel")?.remove();
+
+    const panel = document.createElement("section");
+    panel.id = "sisaSettingsPanel";
+    panel.style.cssText = [
+      "position:fixed", "inset:5%", "z-index:100001",
+      "overflow:auto", "padding:22px",
+      "border:1px solid #9255e9", "border-radius:18px",
+      "background:#151020", "color:white",
+      "box-shadow:0 15px 50px #0009"
+    ].join(";");
+
+    const heading = document.createElement("h2");
+    heading.textContent = t.title;
+
+    const langLabel = document.createElement("label");
+    langLabel.textContent = t.language;
+    langLabel.style.display = "block";
+
+    const select = document.createElement("select");
+    select.style.cssText =
+      "display:block;width:100%;padding:12px;margin:8px 0 18px";
+
+    languageNames.forEach(([value, name]) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = name;
+      option.selected = value === code;
+      select.appendChild(option);
+    });
+
+    const themeLabel = document.createElement("label");
+    themeLabel.textContent = t.theme;
+    themeLabel.style.display = "block";
+
+    const theme = document.createElement("select");
+    theme.style.cssText =
+      "display:block;width:100%;padding:12px;margin:8px 0 18px";
+
+    [["dark", t.dark], ["light", t.light]].forEach(([value, name]) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = name;
+      option.selected = settings.theme === value;
+      theme.appendChild(option);
+    });
+
+    const autoLabel = document.createElement("label");
+    autoLabel.style.display = "block";
+    const auto = document.createElement("input");
+    auto.type = "checkbox";
+    auto.checked = settings.autoSave;
+    auto.style.marginRight = "8px";
+    autoLabel.append(auto, document.createTextNode(t.autosave));
+
+    const save = document.createElement("button");
+    save.textContent = t.save;
+    save.style.cssText =
+      "padding:12px 16px;margin-top:20px;background:#7b3fe4;color:white;border:0;border-radius:10px";
+
+    const close = document.createElement("button");
+    close.textContent = t.close;
+    close.style.cssText = "padding:12px;margin-left:8px";
+    close.onclick = () => panel.remove();
+
+    save.onclick = () => {
+      const newSettings = {
+        theme: theme.value,
+        autoSave: auto.checked
+      };
+
+      localStorage.setItem(KEY, JSON.stringify(newSettings));
+      applyTheme(newSettings.theme);
+
+      if (window.SISA_I18N) {
+        window.SISA_I18N.setLanguage(select.value);
+      } else {
+        localStorage.setItem("sisa_language", select.value);
+      }
+
+      alert(t.done);
+      panel.remove();
+    };
+
+    panel.append(
+      heading, langLabel, select, themeLabel,
+      theme, autoLabel, save, close
+    );
+
+    document.body.appendChild(panel);
+  }
+
+  window.SISA_SETTINGS = { open: openSettings, get: getSettings };
+
+  function init() {
+    if (document.querySelector("#sisaSettingsOpen")) return;
+
+    const button = document.createElement("button");
+    button.id = "sisaSettingsOpen";
+    button.textContent = "⚙️ Settings";
+    button.style.cssText =
+      "position:fixed;left:16px;bottom:16px;z-index:9998;padding:12px 16px;background:#30184b;color:white;border:1px solid #8950e8;border-radius:12px";
+    button.onclick = openSettings;
+    document.body.appendChild(button);
+
+    applyTheme(getSettings().theme);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+  </script>
 </body>
 </html>
