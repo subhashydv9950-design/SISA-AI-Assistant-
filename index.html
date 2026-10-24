@@ -791,5 +791,665 @@ refreshStats();
 renderDrafts();
 renderSchedule();
 </script>
+  
+<!-- SISA AI ASSISTANT — PART 2A: MULTILINGUAL ENGINE -->
+
+<style>
+#sisaLanguagePanel{
+  position:fixed;inset:0;z-index:1000;
+  display:none;align-items:center;justify-content:center;
+  padding:18px;background:#05030bdc;backdrop-filter:blur(10px)
+}
+#sisaLanguagePanel.open{display:flex}
+.sisa-lang-card{
+  width:min(480px,100%);max-height:82dvh;overflow:auto;
+  background:#120e1f;color:#f8f4ff;border:1px solid #382650;
+  border-radius:22px;padding:22px;
+  box-shadow:0 20px 80px #0009
+}
+.sisa-lang-card h2{margin:0 0 7px;font-size:21px}
+.sisa-lang-card p{font-size:12px;color:#aaa0bf;line-height:1.6}
+.sisa-lang-search,.sisa-lang-select{
+  width:100%;padding:12px;margin:10px 0;
+  color:white;background:#090711;border:1px solid #352844;
+  border-radius:11px
+}
+.sisa-lang-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px
+}
+.sisa-lang-option{
+  background:#1b152b;border:1px solid #332644;color:#eee5ff;
+  border-radius:11px;padding:12px;text-align:left;font-size:12px
+}
+.sisa-lang-option.selected{
+  border-color:#a276ff;background:#48277766
+}
+.sisa-lang-footer{display:flex;justify-content:flex-end;gap:9px;margin-top:16px}
+.sisa-lang-option small{display:block;color:#a99bbb;margin-top:4px}
+@media(max-width:420px){
+  .sisa-lang-grid{grid-template-columns:1fr}
+}
+</style>
+
+<div id="sisaLanguagePanel" role="dialog"
+     aria-modal="true" aria-labelledby="sisaLangTitle">
+  <div class="sisa-lang-card">
+    <h2 id="sisaLangTitle">🌐 App language</h2>
+    <p id="sisaLangDescription">
+      Choose your preferred language. Your selection will be saved on this device.
+    </p>
+    <input id="sisaLangSearch" class="sisa-lang-search"
+           placeholder="Search languages..." autocomplete="off">
+    <div id="sisaLangGrid" class="sisa-lang-grid"></div>
+    <div class="sisa-lang-footer">
+      <button class="btn" id="sisaLangCancel">Cancel</button>
+      <button class="btn btn-primary" id="sisaLangApply">Apply language</button>
+    </div>
+    <p id="sisaLangNotice" aria-live="polite"></p>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const languages = [
+    ["en","English","English"],
+    ["hi","हिंदी","Hindi"],
+    ["bn","বাংলা","Bengali"],
+    ["ta","தமிழ்","Tamil"],
+    ["te","తెలుగు","Telugu"],
+    ["mr","मराठी","Marathi"],
+    ["gu","ગુજરાતી","Gujarati"],
+    ["pa","ਪੰਜਾਬੀ","Punjabi"],
+    ["ur","اردو","Urdu"],
+    ["kn","ಕನ್ನಡ","Kannada"],
+    ["ml","മലയാളം","Malayalam"],
+    ["or","ଓଡ଼ିଆ","Odia"],
+    ["as","অসমীয়া","Assamese"],
+    ["ne","नेपाली","Nepali"],
+    ["sa","संस्कृतम्","Sanskrit"],
+    ["zh","简体中文","Chinese (Simplified)"],
+    ["zh-TW","繁體中文","Chinese (Traditional)"],
+    ["ja","日本語","Japanese"],
+    ["ko","한국어","Korean"],
+    ["fr","Français","French"],
+    ["de","Deutsch","German"],
+    ["es","Español","Spanish"],
+    ["pt","Português","Portuguese"],
+    ["it","Italiano","Italian"],
+    ["nl","Nederlands","Dutch"],
+    ["ru","Русский","Russian"],
+    ["uk","Українська","Ukrainian"],
+    ["pl","Polski","Polish"],
+    ["cs","Čeština","Czech"],
+    ["sk","Slovenčina","Slovak"],
+    ["hu","Magyar","Hungarian"],
+    ["ro","Română","Romanian"],
+    ["bg","Български","Bulgarian"],
+    ["el","Ελληνικά","Greek"],
+    ["sv","Svenska","Swedish"],
+    ["no","Norsk","Norwegian"],
+    ["da","Dansk","Danish"],
+    ["fi","Suomi","Finnish"],
+    ["et","Eesti","Estonian"],
+    ["lv","Latviešu","Latvian"],
+    ["lt","Lietuvių","Lithuanian"],
+    ["hr","Hrvatski","Croatian"],
+    ["sr","Српски","Serbian"],
+    ["sl","Slovenščina","Slovenian"],
+    ["bs","Bosanski","Bosnian"],
+    ["sq","Shqip","Albanian"],
+    ["mk","Македонски","Macedonian"],
+    ["tr","Türkçe","Turkish"],
+    ["ar","العربية","Arabic"],
+    ["fa","فارسی","Persian"],
+    ["he","עברית","Hebrew"],
+    ["id","Bahasa Indonesia","Indonesian"],
+    ["ms","Bahasa Melayu","Malay"],
+    ["fil","Filipino","Filipino"],
+    ["vi","Tiếng Việt","Vietnamese"],
+    ["th","ไทย","Thai"],
+    ["lo","ລາວ","Lao"],
+    ["km","ខ្មែរ","Khmer"],
+    ["my","မြန်မာ","Burmese"],
+    ["si","සිංහල","Sinhala"],
+    ["sw","Kiswahili","Swahili"],
+    ["af","Afrikaans","Afrikaans"],
+    ["am","አማርኛ","Amharic"],
+    ["ha","Hausa","Hausa"],
+    ["yo","Yorùbá","Yoruba"],
+    ["zu","isiZulu","Zulu"],
+    ["ca","Català","Catalan"],
+    ["eu","Euskara","Basque"],
+    ["gl","Galego","Galician"],
+    ["cy","Cymraeg","Welsh"],
+    ["ga","Gaeilge","Irish"],
+    ["is","Íslenska","Icelandic"],
+    ["kk","Қазақша","Kazakh"],
+    ["uz","O‘zbek","Uzbek"],
+    ["az","Azərbaycan","Azerbaijani"],
+    ["hy","Հայերեն","Armenian"],
+    ["ka","ქართული","Georgian"],
+    ["mn","Монгол","Mongolian"]
+  ];
+
+  /*
+    This first dictionary translates the primary app navigation
+    and common actions. Additional screen-specific translations
+    can be added here in later parts.
+  */
+  const T = {
+    en:{
+      dashboard:"Dashboard",studio:"AI Content Studio",drafts:"My Drafts",
+      schedule:"Schedule",assistant:"AI Assistant",about:"About SISA",
+      create:"＋ Create",welcome:"Welcome to SISA",
+      subtitle:"Your content. Your schedule. Your control.",
+      eyebrow:"✦ YOUR PERSONAL AI WORKSPACE",
+      hero1:"Create smarter.",hero2:"Publish with confidence.",
+      intro:"Organize your social content, explore caption ideas and prepare your next post — all in one beautifully designed workspace.",
+      openStudio:"✧ Open Content Studio",viewDrafts:"View my drafts ↗",
+      savedDrafts:"Saved drafts",mediaSelected:"Media selected",
+      upcoming:"Upcoming",quickActions:"Quick actions",
+      uploadTitle:"01 / Add your content",detailsTitle:"02 / Content details",
+      scheduleTitle:"03 / Optional schedule",
+      browse:"Browse files",saveDraft:"▤ Save draft",clear:"Clear",
+      suggest:"✧ Suggest caption & hashtags",
+      caption:"Caption",hashtags:"Hashtags",platform:"Platform",
+      contentType:"Content type",title:"Post title / topic",
+      dateTime:"Date and time",note:"Reminder / note",
+      plannedContent:"Your planned content",founder:"Founder & Developer",
+      apply:"Apply language",cancel:"Cancel",language:"App language",
+      search:"Search languages...",emptyDrafts:"No drafts yet.",
+      noSchedule:"No planned content yet."
+    },
+    hi:{
+      dashboard:"डैशबोर्ड",studio:"AI कंटेंट स्टूडियो",drafts:"मेरे ड्राफ्ट",
+      schedule:"शेड्यूल",assistant:"AI असिस्टेंट",about:"SISA के बारे में",
+      create:"＋ बनाएँ",welcome:"SISA में आपका स्वागत है",
+      subtitle:"आपका कंटेंट, आपका शेड्यूल, आपका नियंत्रण।",
+      eyebrow:"✦ आपका निजी AI वर्कस्पेस",
+      hero1:"स्मार्ट तरीके से बनाएँ.",hero2:"विश्वास के साथ प्रकाशित करें.",
+      intro:"अपने सोशल कंटेंट को व्यवस्थित करें, कैप्शन के सुझाव देखें और अगली पोस्ट तैयार करें।",
+      openStudio:"✧ कंटेंट स्टूडियो खोलें",viewDrafts:"मेरे ड्राफ्ट देखें ↗",
+      savedDrafts:"सेव किए ड्राफ्ट",mediaSelected:"चुनी गई फाइलें",
+      upcoming:"आने वाले",quickActions:"त्वरित विकल्प",
+      uploadTitle:"01 / अपना कंटेंट जोड़ें",detailsTitle:"02 / कंटेंट की जानकारी",
+      scheduleTitle:"03 / वैकल्पिक शेड्यूल",
+      browse:"फाइलें चुनें",saveDraft:"▤ ड्राफ्ट सेव करें",clear:"साफ करें",
+      suggest:"✧ कैप्शन और हैशटैग सुझाएँ",
+      caption:"कैप्शन",hashtags:"हैशटैग",platform:"प्लेटफॉर्म",
+      contentType:"कंटेंट का प्रकार",title:"पोस्ट का शीर्षक / विषय",
+      dateTime:"तारीख और समय",note:"रिमाइंडर / नोट",
+      plannedContent:"आपका शेड्यूल किया कंटेंट",founder:"संस्थापक और डेवलपर",
+      apply:"भाषा लागू करें",cancel:"रद्द करें",language:"ऐप की भाषा",
+      search:"भाषा खोजें...",emptyDrafts:"अभी कोई ड्राफ्ट नहीं है।",
+      noSchedule:"अभी कोई कंटेंट शेड्यूल नहीं है।"
+    },
+    bn:{
+      dashboard:"ড্যাশবোর্ড",studio:"AI কনটেন্ট স্টুডিও",drafts:"আমার ড্রাফট",
+      schedule:"সময়সূচি",assistant:"AI সহকারী",about:"SISA সম্পর্কে",
+      create:"＋ তৈরি করুন",welcome:"SISA-তে স্বাগতম",
+      subtitle:"আপনার কনটেন্ট, আপনার সময়সূচি, আপনার নিয়ন্ত্রণ।",
+      savedDrafts:"সংরক্ষিত ড্রাফট",mediaSelected:"নির্বাচিত ফাইল",
+      quickActions:"দ্রুত কাজ",browse:"ফাইল বেছে নিন",
+      saveDraft:"ড্রাফট সংরক্ষণ করুন",clear:"মুছুন",
+      caption:"ক্যাপশন",hashtags:"হ্যাশট্যাগ",platform:"প্ল্যাটফর্ম",
+      contentType:"কনটেন্টের ধরন",dateTime:"তারিখ ও সময়",
+      apply:"ভাষা প্রয়োগ করুন",cancel:"বাতিল"
+    },
+    ta:{
+      dashboard:"முகப்பு பலகை",studio:"AI உள்ளடக்க ஸ்டுடியோ",
+      drafts:"எனது வரைவுகள்",schedule:"அட்டவணை",
+      assistant:"AI உதவியாளர்",about:"SISA பற்றி",
+      create:"＋ உருவாக்கு",welcome:"SISA-க்கு வரவேற்கிறோம்",
+      savedDrafts:"சேமித்த வரைவுகள்",quickActions:"விரைவு செயல்கள்",
+      browse:"கோப்புகளைத் தேர்ந்தெடு",saveDraft:"வரைவைச் சேமி",
+      clear:"அழி",caption:"தலைப்பு உரை",hashtags:"ஹேஷ்டேக்குகள்",
+      platform:"தளம்",dateTime:"தேதி மற்றும் நேரம்",
+      apply:"மொழியைப் பயன்படுத்து",cancel:"ரத்துசெய்"
+    },
+    te:{
+      dashboard:"డ్యాష్‌బోర్డ్",studio:"AI కంటెంట్ స్టూడియో",
+      drafts:"నా డ్రాఫ్ట్‌లు",schedule:"షెడ్యూల్",
+      assistant:"AI సహాయకుడు",about:"SISA గురించి",
+      create:"＋ సృష్టించు",welcome:"SISAకి స్వాగతం",
+      savedDrafts:"సేవ్ చేసిన డ్రాఫ్ట్‌లు",quickActions:"త్వరిత చర్యలు",
+      browse:"ఫైళ్లను ఎంచుకోండి",saveDraft:"డ్రాఫ్ట్ సేవ్ చేయండి",
+      clear:"తొలగించు",caption:"క్యాప్షన్",hashtags:"హ్యాష్‌ట్యాగ్‌లు",
+      platform:"ప్లాట్‌ఫారమ్",dateTime:"తేదీ మరియు సమయం",
+      apply:"భాషను వర్తింపజేయండి",cancel:"రద్దు"
+    },
+    mr:{
+      dashboard:"डॅशबोर्ड",studio:"AI कंटेंट स्टुडिओ",
+      drafts:"माझे ड्राफ्ट",schedule:"वेळापत्रक",
+      assistant:"AI सहाय्यक",about:"SISA विषयी",
+      create:"＋ तयार करा",welcome:"SISA मध्ये स्वागत आहे",
+      savedDrafts:"जतन केलेले ड्राफ्ट",quickActions:"जलद कृती",
+      browse:"फाइल निवडा",saveDraft:"ड्राफ्ट जतन करा",
+      clear:"पुसून टाका",caption:"कॅप्शन",hashtags:"हॅशटॅग",
+      platform:"प्लॅटफॉर्म",dateTime:"तारीख आणि वेळ",
+      apply:"भाषा लागू करा",cancel:"रद्द करा"
+    },
+    gu:{
+      dashboard:"ડેશબોર્ડ",studio:"AI કન્ટેન્ટ સ્ટુડિયો",
+      drafts:"મારા ડ્રાફ્ટ",schedule:"સમયપત્રક",
+      assistant:"AI સહાયક",about:"SISA વિશે",
+      create:"＋ બનાવો",welcome:"SISA માં આપનું સ્વાગત છે",
+      savedDrafts:"સાચવેલા ડ્રાફ્ટ",quickActions:"ઝડપી કાર્યો",
+      browse:"ફાઇલ પસંદ કરો",saveDraft:"ડ્રાફ્ટ સાચવો",
+      clear:"સાફ કરો",caption:"કેપ્શન",hashtags:"હેશટેગ",
+      platform:"પ્લેટફોર્મ",dateTime:"તારીખ અને સમય",
+      apply:"ભાષા લાગુ કરો",cancel:"રદ કરો"
+    },
+    pa:{
+      dashboard:"ਡੈਸ਼ਬੋਰਡ",studio:"AI ਸਮੱਗਰੀ ਸਟੂਡੀਓ",
+      drafts:"ਮੇਰੇ ਡਰਾਫਟ",schedule:"ਸਮਾਂ-ਸਾਰਣੀ",
+      assistant:"AI ਸਹਾਇਕ",about:"SISA ਬਾਰੇ",
+      create:"＋ ਬਣਾਓ",welcome:"SISA ਵਿੱਚ ਤੁਹਾਡਾ ਸੁਆਗਤ ਹੈ",
+      savedDrafts:"ਸੰਭਾਲੇ ਡਰਾਫਟ",quickActions:"ਤੇਜ਼ ਕਾਰਵਾਈਆਂ",
+      browse:"ਫਾਈਲਾਂ ਚੁਣੋ",saveDraft:"ਡਰਾਫਟ ਸੰਭਾਲੋ",
+      clear:"ਸਾਫ਼ ਕਰੋ",caption:"ਕੈਪਸ਼ਨ",hashtags:"ਹੈਸ਼ਟੈਗ",
+      platform:"ਪਲੇਟਫਾਰਮ",dateTime:"ਤਾਰੀਖ ਅਤੇ ਸਮਾਂ",
+      apply:"ਭਾਸ਼ਾ ਲਾਗੂ ਕਰੋ",cancel:"ਰੱਦ ਕਰੋ"
+    },
+    zh:{
+      dashboard:"仪表板",studio:"AI 内容工作室",drafts:"我的草稿",
+      schedule:"发布计划",assistant:"AI 助手",about:"关于 SISA",
+      create:"＋ 创建",welcome:"欢迎使用 SISA",
+      subtitle:"内容、计划与管理，一站完成。",
+      savedDrafts:"已保存草稿",mediaSelected:"已选择媒体",
+      quickActions:"快捷操作",browse:"选择文件",
+      saveDraft:"保存草稿",clear:"清除",caption:"文案",
+      hashtags:"标签",platform:"平台",dateTime:"日期和时间",
+      apply:"应用语言",cancel:"取消"
+    },
+    "zh-TW":{
+      dashboard:"儀表板",studio:"AI 內容工作室",drafts:"我的草稿",
+      schedule:"發布排程",assistant:"AI 助理",about:"關於 SISA",
+      create:"＋ 建立",welcome:"歡迎使用 SISA",
+      savedDrafts:"已儲存草稿",quickActions:"快速操作",
+      browse:"選擇檔案",saveDraft:"儲存草稿",clear:"清除",
+      caption:"貼文說明",hashtags:"標籤",platform:"平台",
+      dateTime:"日期和時間",apply:"套用語言",cancel:"取消"
+    },
+    ja:{
+      dashboard:"ダッシュボード",studio:"AIコンテンツスタジオ",
+      drafts:"マイ下書き",schedule:"スケジュール",
+      assistant:"AIアシスタント",about:"SISAについて",
+      create:"＋ 作成",welcome:"SISAへようこそ",
+      savedDrafts:"保存した下書き",quickActions:"クイックアクション",
+      browse:"ファイルを選択",saveDraft:"下書きを保存",
+      clear:"クリア",caption:"キャプション",hashtags:"ハッシュタグ",
+      platform:"プラットフォーム",dateTime:"日時",
+      apply:"言語を適用",cancel:"キャンセル"
+    },
+    ko:{
+      dashboard:"대시보드",studio:"AI 콘텐츠 스튜디오",
+      drafts:"내 초안",schedule:"일정",assistant:"AI 어시스턴트",
+      about:"SISA 소개",create:"＋ 만들기",welcome:"SISA에 오신 것을 환영합니다",
+      savedDrafts:"저장된 초안",quickActions:"빠른 작업",
+      browse:"파일 선택",saveDraft:"초안 저장",clear:"지우기",
+      caption:"캡션",hashtags:"해시태그",platform:"플랫폼",
+      dateTime:"날짜 및 시간",apply:"언어 적용",cancel:"취소"
+    },
+    fr:{
+      dashboard:"Tableau de bord",studio:"Studio de contenu IA",
+      drafts:"Mes brouillons",schedule:"Planning",
+      assistant:"Assistant IA",about:"À propos de SISA",
+      create:"＋ Créer",welcome:"Bienvenue sur SISA",
+      savedDrafts:"Brouillons enregistrés",quickActions:"Actions rapides",
+      browse:"Choisir des fichiers",saveDraft:"Enregistrer le brouillon",
+      clear:"Effacer",caption:"Légende",hashtags:"Hashtags",
+      platform:"Plateforme",dateTime:"Date et heure",
+      apply:"Appliquer la langue",cancel:"Annuler"
+    },
+    de:{
+      dashboard:"Dashboard",studio:"KI-Content-Studio",
+      drafts:"Meine Entwürfe",schedule:"Zeitplan",
+      assistant:"KI-Assistent",about:"Über SISA",
+      create:"＋ Erstellen",welcome:"Willkommen bei SISA",
+      savedDrafts:"Gespeicherte Entwürfe",quickActions:"Schnellaktionen",
+      browse:"Dateien auswählen",saveDraft:"Entwurf speichern",
+      clear:"Leeren",caption:"Bildunterschrift",hashtags:"Hashtags",
+      platform:"Plattform",dateTime:"Datum und Uhrzeit",
+      apply:"Sprache anwenden",cancel:"Abbrechen"
+    },
+    es:{
+      dashboard:"Panel",studio:"Estudio de contenido IA",
+      drafts:"Mis borradores",schedule:"Programación",
+      assistant:"Asistente IA",about:"Acerca de SISA",
+      create:"＋ Crear",welcome:"Bienvenido a SISA",
+      savedDrafts:"Borradores guardados",quickActions:"Acciones rápidas",
+      browse:"Elegir archivos",saveDraft:"Guardar borrador",
+      clear:"Limpiar",caption:"Descripción",hashtags:"Hashtags",
+      platform:"Plataforma",dateTime:"Fecha y hora",
+      apply:"Aplicar idioma",cancel:"Cancelar"
+    },
+    pt:{
+      dashboard:"Painel",studio:"Estúdio de conteúdo IA",
+      drafts:"Meus rascunhos",schedule:"Agendamento",
+      assistant:"Assistente IA",about:"Sobre a SISA",
+      create:"＋ Criar",welcome:"Bem-vindo à SISA",
+      savedDrafts:"Rascunhos salvos",quickActions:"Ações rápidas",
+      browse:"Selecionar arquivos",saveDraft:"Salvar rascunho",
+      clear:"Limpar",caption:"Legenda",hashtags:"Hashtags",
+      platform:"Plataforma",dateTime:"Data e hora",
+      apply:"Aplicar idioma",cancel:"Cancelar"
+    },
+    it:{
+      dashboard:"Dashboard",studio:"Studio contenuti IA",
+      drafts:"Le mie bozze",schedule:"Programmazione",
+      assistant:"Assistente IA",about:"Informazioni su SISA",
+      create:"＋ Crea",welcome:"Benvenuto in SISA",
+      savedDrafts:"Bozze salvate",quickActions:"Azioni rapide",
+      browse:"Scegli file",saveDraft:"Salva bozza",clear:"Cancella",
+      caption:"Didascalia",hashtags:"Hashtag",platform:"Piattaforma",
+      dateTime:"Data e ora",apply:"Applica lingua",cancel:"Annulla"
+    },
+    ru:{
+      dashboard:"Панель управления",studio:"ИИ-студия контента",
+      drafts:"Мои черновики",schedule:"Расписание",
+      assistant:"ИИ-помощник",about:"О SISA",
+      create:"＋ Создать",welcome:"Добро пожаловать в SISA",
+      savedDrafts:"Сохранённые черновики",quickActions:"Быстрые действия",
+      browse:"Выбрать файлы",saveDraft:"Сохранить черновик",
+      clear:"Очистить",caption:"Подпись",hashtags:"Хэштеги",
+      platform:"Платформа",dateTime:"Дата и время",
+      apply:"Применить язык",cancel:"Отмена"
+    },
+    uk:{
+      dashboard:"Панель керування",studio:"AI-студія контенту",
+      drafts:"Мої чернетки",schedule:"Розклад",
+      assistant:"AI-помічник",about:"Про SISA",
+      create:"＋ Створити",welcome:"Ласкаво просимо до SISA",
+      savedDrafts:"Збережені чернетки",quickActions:"Швидкі дії",
+      browse:"Вибрати файли",saveDraft:"Зберегти чернетку",
+      clear:"Очистити",caption:"Підпис",hashtags:"Хештеги",
+      platform:"Платформа",dateTime:"Дата й час",
+      apply:"Застосувати мову",cancel:"Скасувати"
+    },
+    id:{
+      dashboard:"Dasbor",studio:"Studio Konten AI",drafts:"Draf Saya",
+      schedule:"Jadwal",assistant:"Asisten AI",about:"Tentang SISA",
+      create:"＋ Buat",welcome:"Selamat datang di SISA",
+      savedDrafts:"Draf tersimpan",quickActions:"Aksi cepat",
+      browse:"Pilih file",saveDraft:"Simpan draf",clear:"Bersihkan",
+      caption:"Keterangan",hashtags:"Tagar",platform:"Platform",
+      dateTime:"Tanggal dan waktu",apply:"Terapkan bahasa",cancel:"Batal"
+    },
+    vi:{
+      dashboard:"Bảng điều khiển",studio:"Studio nội dung AI",
+      drafts:"Bản nháp của tôi",schedule:"Lịch đăng",
+      assistant:"Trợ lý AI",about:"Giới thiệu SISA",
+      create:"＋ Tạo",welcome:"Chào mừng đến với SISA",
+      savedDrafts:"Bản nháp đã lưu",quickActions:"Thao tác nhanh",
+      browse:"Chọn tệp",saveDraft:"Lưu bản nháp",clear:"Xóa",
+      caption:"Chú thích",hashtags:"Thẻ hashtag",platform:"Nền tảng",
+      dateTime:"Ngày và giờ",apply:"Áp dụng ngôn ngữ",cancel:"Hủy"
+    },
+    tr:{
+      dashboard:"Kontrol paneli",studio:"Yapay Zekâ İçerik Stüdyosu",
+      drafts:"Taslaklarım",schedule:"Planlama",
+      assistant:"Yapay Zekâ Asistanı",about:"SISA hakkında",
+      create:"＋ Oluştur",welcome:"SISA'ya hoş geldiniz",
+      savedDrafts:"Kaydedilen taslaklar",quickActions:"Hızlı işlemler",
+      browse:"Dosya seç",saveDraft:"Taslağı kaydet",clear:"Temizle",
+      caption:"Açıklama",hashtags:"Etiketler",platform:"Platform",
+      dateTime:"Tarih ve saat",apply:"Dili uygula",cancel:"İptal"
+    },
+    ar:{
+      dashboard:"لوحة التحكم",studio:"استوديو المحتوى بالذكاء الاصطناعي",
+      drafts:"مسوداتي",schedule:"الجدولة",assistant:"مساعد الذكاء الاصطناعي",
+      about:"حول SISA",create:"＋ إنشاء",welcome:"مرحبًا بك في SISA",
+      savedDrafts:"المسودات المحفوظة",quickActions:"إجراءات سريعة",
+      browse:"اختيار الملفات",saveDraft:"حفظ المسودة",clear:"مسح",
+      caption:"التعليق",hashtags:"الوسوم",platform:"المنصة",
+      dateTime:"التاريخ والوقت",apply:"تطبيق اللغة",cancel:"إلغاء"
+    },
+    ur:{
+      dashboard:"ڈیش بورڈ",studio:"AI مواد اسٹوڈیو",
+      drafts:"میرے ڈرافٹس",schedule:"شیڈول",
+      assistant:"AI معاون",about:"SISA کے بارے میں",
+      create:"＋ بنائیں",welcome:"SISA میں خوش آمدید",
+      savedDrafts:"محفوظ شدہ ڈرافٹس",quickActions:"فوری کام",
+      browse:"فائلیں منتخب کریں",saveDraft:"ڈرافٹ محفوظ کریں",
+      clear:"صاف کریں",caption:"کیپشن",hashtags:"ہیش ٹیگز",
+      platform:"پلیٹ فارم",dateTime:"تاریخ اور وقت",
+      apply:"زبان لاگو کریں",cancel:"منسوخ کریں"
+    },
+    ms:{
+      dashboard:"Papan pemuka",studio:"Studio Kandungan AI",
+      drafts:"Draf Saya",schedule:"Jadual",assistant:"Pembantu AI",
+      about:"Tentang SISA",create:"＋ Cipta",welcome:"Selamat datang ke SISA",
+      savedDrafts:"Draf tersimpan",quickActions:"Tindakan pantas",
+      browse:"Pilih fail",saveDraft:"Simpan draf",clear:"Kosongkan",
+      caption:"Kapsyen",hashtags:"Hashtag",platform:"Platform",
+      dateTime:"Tarikh dan masa",apply:"Gunakan bahasa",cancel:"Batal"
+    },
+    fil:{
+      dashboard:"Dashboard",studio:"AI Content Studio",drafts:"Mga Draft",
+      schedule:"Iskedyul",assistant:"AI Assistant",about:"Tungkol sa SISA",
+      create:"＋ Gumawa",welcome:"Maligayang pagdating sa SISA",
+      savedDrafts:"Mga naka-save na draft",quickActions:"Mabilis na aksyon",
+      browse:"Pumili ng mga file",saveDraft:"I-save ang draft",
+      clear:"I-clear",caption:"Caption",hashtags:"Hashtags",
+      platform:"Platform",dateTime:"Petsa at oras",
+      apply:"Ilapat ang wika",cancel:"Kanselahin"
+    }
+  };
+
+  const translations = {
+    bn:T.bn,ta:T.ta,te:T.te,mr:T.mr,gu:T.gu,pa:T.pa,
+    zh:T.zh,"zh-TW":T["zh-TW"],ja:T.ja,ko:T.ko,fr:T.fr,de:T.de,
+    es:T.es,pt:T.pt,it:T.it,ru:T.ru,uk:T.uk,id:T.id,vi:T.vi,
+    tr:T.tr,ar:T.ar,ur:T.ur,ms:T.ms,fil:T.fil
+  };
+
+  // Common interface elements use stable selectors.
+  const targets = {
+    dashboard:[
+      ['.nav[data-view="home"]', "dashboard"]
+    ],
+    studio:[
+      ['.nav[data-view="studio"]',"studio"],
+      ['.nav[data-view="drafts"]',"drafts"],
+      ['.nav[data-view="schedule"]',"schedule"],
+      ['.nav[data-view="assistant"]',"assistant"],
+      ['.nav[data-view="about"]',"about"],
+      ['#topCreate',"create"],
+      ['#pageTitle',"welcome"],
+      ['#pageSubtitle',"subtitle"],
+      ['.hero .eyebrow',"eyebrow"],
+      ['.hero h1',"hero1"],
+      ['.hero .gradient',"hero2"],
+      ['.hero p',"intro"],
+      ['.hero [data-go="studio"]',"openStudio"],
+      ['.hero [data-go="drafts"]',"viewDrafts"],
+      ['.section-head h3',"quickActions"],
+      ['.stat:nth-child(1) .stat-top span:first-child',"savedDrafts"],
+      ['.stat:nth-child(2) .stat-top span:first-child',"mediaSelected"],
+      ['.stat:nth-child(3) .stat-top span:first-child',"upcoming"],
+      ['#chooseFiles',"browse"],
+      ['#suggestButton',"suggest"],
+      ['#saveDraftButton',"saveDraft"],
+      ['#clearButton',"clear"],
+      ['label[for="caption"]',"caption"],
+      ['label[for="hashtags"]',"hashtags"],
+      ['label[for="platform"]',"platform"],
+      ['label[for="contentType"]',"contentType"],
+      ['label[for="postTitle"]',"title"],
+      ['label[for="scheduleTime"]',"dateTime"],
+      ['label[for="scheduleNote"]',"note"],
+      ['.mobile-bottom [data-go="home"]',"dashboard"],
+      ['.mobile-bottom [data-go="studio"]',"create"],
+      ['.mobile-bottom [data-go="drafts"]',"drafts"],
+      ['.mobile-bottom [data-go="schedule"]',"schedule"]
+    ]
+  };
+  const panel=document.getElementById("sisaLanguagePanel");
+  const grid=document.getElementById("sisaLangGrid");
+  const search=document.getElementById("sisaLangSearch");
+  const notice=document.getElementById("sisaLangNotice");
+  let chosen="en";
+  let current="en";
+
+  try{
+    current=localStorage.getItem("sisa_language")||"en";
+    if(!languages.some(l=>l[0]===current))current="en";
+    chosen=current;
+  }catch(e){}
+
+  function dictionary(code){
+    return translations[code]||T[code]||T.en;
+  }
+
+  function openPanel(){
+    chosen=current;
+    search.value="";
+    renderOptions();
+    panel.classList.add("open");
+    search.focus();
+  }
+  function closePanel(){panel.classList.remove("open")}
+
+  function renderOptions(){
+    const query=search.value.trim().toLocaleLowerCase();
+    grid.innerHTML="";
+    languages.filter(l=>
+      (l[1]+" "+l[2]+" "+l[0]).toLocaleLowerCase().includes(query)
+    ).forEach(l=>{
+      const b=document.createElement("button");
+      b.type="button";
+      b.className="sisa-lang-option"+(chosen===l[0]?" selected":"");
+      b.innerHTML="";
+      const title=document.createElement("span");
+      title.textContent=l[1];
+      const sub=document.createElement("small");
+      sub.textContent=l[2];
+      b.append(title,sub);
+      b.setAttribute("aria-pressed",String(chosen===l[0]));
+      b.addEventListener("click",()=>{
+        chosen=l[0];
+        renderOptions();
+      });
+      grid.appendChild(b);
+    });
+   document.getElementById("sisaLangTitle").textContent=
+      (dictionary(chosen).language||"🌐 App language");
+    document.getElementById("sisaLangApply").textContent=
+      dictionary(chosen).apply||T.en.apply;
+    document.getElementById("sisaLangCancel").textContent=
+      dictionary(chosen).cancel||T.en.cancel;
+    document.getElementById("sisaLangSearch").placeholder=
+      dictionary(chosen).search||T.en.search;
+  }
+
+  function setText(selector,value){
+    if(!value)return;
+    document.querySelectorAll(selector).forEach(el=>{
+      if(el.children.length===0)el.textContent=value;
+      else if(el.id==="topCreate")el.textContent=value;
+      else if(el.id==="suggestButton"||el.id==="saveDraftButton"||el.id==="clearButton"||el.id==="chooseFiles")el.textContent=value;
+    });
+  }
+
+  function applyLanguage(code){
+    const lang=languages.find(l=>l[0]===code);
+    const d=dictionary(code);
+    if(!lang)return;
+    current=code;
+    document.documentElement.lang=code;
+    document.documentElement.dir=["ar","ur","fa","he"].includes(code)?"rtl":"ltr";
+
+    // Update primary navigation.
+    const navKeys=["dashboard","studio","drafts","schedule","assistant","about"];
+    document.querySelectorAll(".sidebar .nav[data-view]").forEach((el,i)=>{
+      const key=navKeys[i];
+      if(d[key])el.innerHTML="";
+      if(d[key]){
+        const icon=document.createElement("span");
+        icon.className="ico";
+        icon.textContent=["⌂","✧","▤","◷","◉","ⓘ"][i];
+        el.append(icon,document.createTextNode(" "+d[key]));
+      }
+    });
+
+    // Dashboard labels.
+    const title=d.welcome||T.en.welcome;
+    const subtitle=d.subtitle||T.en.subtitle;
+    if(document.getElementById("pageTitle")?.closest("#view-home")||
+      document.getElementById("view-home").classList.contains("active")){
+      document.getElementById("pageTitle").textContent=title;
+      document.getElementById("pageSubtitle").textContent=subtitle;
+    }
+    setText("#topCreate",d.create);
+    setText("#chooseFiles",d.browse);
+    setText("#suggestButton",d.suggest);
+    setText("#saveDraftButton",d.saveDraft);
+    setText("#clearButton",d.clear);
+    setText('label[for="caption"]',d.caption);
+    setText('label[for="hashtags"]',d.hashtags);
+    setText('label[for="platform"]',d.platform);
+    setText('label[for="contentType"]',d.contentType);
+    setText('label[for="postTitle"]',d.title);
+    setText('label[for="scheduleTime"]',d.dateTime);
+    setText('label[for="scheduleNote"]',d.note);
+    setText(".stat:nth-child(1) .stat-top span:first-child",d.savedDrafts);
+    setText(".stat:nth-child(2) .stat-top span:first-child",d.mediaSelected);
+    setText(".section-head h3",d.quickActions);
+    setText("#view-schedule .card-title",d.plannedContent);
+    setText("#view-about .card-title",d.founder);
+
+    const langBtn=document.getElementById("languageButton");
+    if(langBtn)langBtn.textContent="🌐 "+code.toUpperCase();
+
+    document.getElementById("sisaLangDescription").textContent=
+      d.subtitle||T.en.subtitle;
+
+    try{localStorage.setItem("sisa_language",code)}catch(e){}
+    notice.textContent=lang[2]+" selected.";
+    if(typeof window.sisaOnLanguageChanged==="function"){
+      window.sisaOnLanguageChanged(code);
+    }
+  }
+
+  /*
+    Make the language button open the language picker.
+    Replacing the old button also removes the previous demo listener.
+  */
+    const oldButton=document.getElementById("languageButton");
+  if(oldButton){
+    const newButton=oldButton.cloneNode(true);
+    oldButton.replaceWith(newButton);
+    newButton.addEventListener("click",openPanel);
+    newButton.textContent="🌐 "+current.toUpperCase();
+  }
+
+  document.getElementById("sisaLangApply").addEventListener("click",()=>{
+    applyLanguage(chosen);
+    closePanel();
+    const name=languages.find(l=>l[0]===current)?.[1]||current;
+    if(typeof window.notify==="function")window.notify("Language selected: "+name);
+  });
+  document.getElementById("sisaLangCancel").addEventListener("click",closePanel);
+  search.addEventListener("input",renderOptions);
+  panel.addEventListener("click",e=>{if(e.target===panel)closePanel()});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")closePanel()});
+
+  // Keep the chosen language available to future modules.
+  window.SISA_LANGUAGE={
+    get current(){return current},
+    list:languages.map(l=>({code:l[0],name:l[1],englishName:l[2]})),
+    translate:key=>dictionary(current)[key]||T.en[key]||key,
+    apply:applyLanguage,
+    open:openPanel
+  };
+  renderOptions();
+  applyLanguage(current);
+})();
+</script>
+<!-- END PART 2A -->
+  
 </body>
 </html>
