@@ -1450,6 +1450,43 @@ renderSchedule();
 })();
 </script>
 <!-- END PART 2A -->
-  
+  <script>
+/* SISA PART 2B — LANGUAGE MEMORY */
+
+(function () {
+  const KEY = "sisa_language";
+
+  window.SISA_I18N = {
+    language: localStorage.getItem(KEY) || "en",
+
+    setLanguage(code) {
+      this.language = code;
+      localStorage.setItem(KEY, code);
+
+      if (window.SISA_LANGUAGE) {
+        window.SISA_LANGUAGE.current = code;
+        window.SISA_LANGUAGE.apply();
+      }
+
+      document.documentElement.lang = code;
+      window.dispatchEvent(
+        new CustomEvent("sisa:languageChanged", {
+          detail: { language: code }
+        })
+      );
+    },
+
+    text(key, fallback) {
+      if (window.SISA_LANGUAGE) {
+        const result = window.SISA_LANGUAGE.translate(key);
+        if (result && result !== key) return result;
+      }
+      return fallback || key;
+    }
+  };
+
+  document.documentElement.lang = window.SISA_I18N.language;
+})();
+  </script>
 </body>
 </html>
