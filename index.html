@@ -3293,5 +3293,533 @@ renderSchedule();
 
 /* =============== PART 2L END =============== */
   </script>
+  <!-- =====================================================
+     SISA AI ASSISTANT — PART 2M
+     MEDIA PREVIEW: IMAGE + VIDEO
+===================================================== -->
+
+<style>
+#sisaMediaPreviewOpen {
+  position: fixed;
+  right: 18px;
+  bottom: 245px;
+  z-index: 9990;
+  border: 1px solid #8b5cf6;
+  border-radius: 14px;
+  background: linear-gradient(135deg,#7c3aed,#4c1d95);
+  color: #fff;
+  padding: 12px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 5px 24px #7c3aed44;
+}
+
+#sisaMediaPanel {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: #080611ee;
+  color: #fff;
+  padding: 20px;
+  overflow-y: auto;
+  font-family: Arial, sans-serif;
+}
+
+#sisaMediaPanel .sisa-media-box {
+  max-width: 900px;
+  margin: 25px auto;
+  padding: 22px;
+  background: #151020;
+  border: 1px solid #39245c;
+  border-radius: 20px;
+}
+
+#sisaMediaPanel h2 {
+  color: #c4b5fd;
+  margin-top: 0;
+}
+
+.sisa-media-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.sisa-media-btn {
+  background: #7c3aed;
+  border: 0;
+  border-radius: 10px;
+  color: white;
+  padding: 11px 15px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.sisa-media-btn.secondary {
+  background: #292039;
+  border: 1px solid #514064;
+}
+
+#sisaMediaInput {
+  display: none;
+}
+
+#sisaMediaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(145px,1fr));
+  gap: 13px;
+  margin-top: 18px;
+}
+
+.sisa-media-card {
+  position: relative;
+  min-width: 0;
+  background: #211831;
+  border: 1px solid #45315d;
+  border-radius: 13px;
+  padding: 8px;
+  overflow: hidden;
+}
+
+.sisa-media-card img,
+.sisa-media-card video {
+  display: block;
+  width: 100%;
+  height: 145px;
+  object-fit: contain;
+  background: #080611;
+  border-radius: 8px;
+}
+
+.sisa-media-name {
+  font-size: 12px;
+  color: #ddd6fe;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+
+.sisa-media-size {
+  font-size: 11px;
+  color: #a99cbd;
+  margin-top: 4px;
+}
+
+.sisa-media-remove {
+  margin-top: 8px;
+  width: 100%;
+  padding: 7px;
+  background: #44202f;
+  border: 1px solid #713047;
+  border-radius: 8px;
+  color: #fecdd3;
+  cursor: pointer;
+}
+
+#sisaMediaStatus {
+  color: #c4b5fd;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+@media(max-width:600px) {
+  #sisaMediaPanel {
+    padding: 10px;
+  }
+
+  #sisaMediaPanel .sisa-media-box {
+    margin: 12px auto;
+    padding: 15px;
+  }
+
+  #sisaMediaPreviewOpen {
+    right: 10px;
+    bottom: 240px;
+  }
+}
+</style>
+
+<button id="sisaMediaPreviewOpen" type="button">
+  🖼️ Media Preview
+</button>
+
+<div id="sisaMediaPanel">
+  <div class="sisa-media-box">
+    <h2 id="sisaMediaHeading">Media Preview Studio</h2>
+
+    <p id="sisaMediaDescription">
+      Select images or videos to preview them before creating your post.
+    </p>
+
+    <div class="sisa-media-actions">
+      <button class="sisa-media-btn" id="sisaMediaChoose" type="button">
+        ＋ Choose Media
+      </button>
+
+      <button class="sisa-media-btn secondary" id="sisaMediaClear" type="button">
+        Clear All
+      </button>
+
+      <button class="sisa-media-btn secondary" id="sisaMediaClose" type="button">
+        Close
+      </button>
+    </div>
+
+    <input
+      id="sisaMediaInput"
+      type="file"
+      accept="image/*,video/*"
+      multiple
+    />
+
+    <div id="sisaMediaStatus" aria-live="polite">
+      No media selected.
+    </div>
+
+    <div id="sisaMediaGrid"></div>
+
+    <p style="color:#a99cbd;font-size:12px;margin-top:20px">
+      Preview only: selected files stay in this browser session.
+      This feature does not publish or upload anything to Instagram.
+    </p>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const panel = document.getElementById("sisaMediaPanel");
+  const openBtn = document.getElementById("sisaMediaPreviewOpen");
+  const chooseBtn = document.getElementById("sisaMediaChoose");
+  const clearBtn = document.getElementById("sisaMediaClear");
+  const closeBtn = document.getElementById("sisaMediaClose");
+  const input = document.getElementById("sisaMediaInput");
+  const grid = document.getElementById("sisaMediaGrid");
+  const status = document.getElementById("sisaMediaStatus");
+
+  if (!panel || !openBtn || !input || !grid) return;
+
+  const text = {
+    en: {
+      button: "🖼️ Media Preview",
+      heading: "Media Preview Studio",
+      description: "Select images or videos to preview them before creating your post.",
+      choose: "＋ Choose Media",
+      clear: "Clear All",
+      close: "Close",
+      empty: "No media selected.",
+      count: "Selected files: ",
+      remove: "Remove",
+      image: "Image",
+      video: "Video",
+      unsupported: "Please select image or video files only."
+    },
+    hi: {
+      button: "🖼️ मीडिया प्रीव्यू",
+      heading: "मीडिया प्रीव्यू स्टूडियो",
+      description: "पोस्ट बनाने से पहले अपनी इमेज या वीडियो देखें।",
+      choose: "＋ मीडिया चुनें",
+      clear: "सब हटाएँ",
+      close: "बंद करें",
+      empty: "कोई मीडिया नहीं चुना गया।",
+      count: "चुनी गई फाइलें: ",
+      remove: "हटाएँ",
+      image: "इमेज",
+      video: "वीडियो",
+      unsupported: "केवल इमेज या वीडियो फाइल चुनें।"
+    },
+    fr: {
+      button: "🖼️ Aperçu média",
+      heading: "Studio d’aperçu média",
+      description: "Prévisualisez vos images et vidéos avant de créer votre publication.",
+      choose: "＋ Choisir des médias",
+      clear: "Tout effacer",
+      close: "Fermer",
+      empty: "Aucun média sélectionné.",
+      count: "Fichiers sélectionnés : ",
+      remove: "Supprimer",
+      image: "Image",
+      video: "Vidéo",
+      unsupported: "Sélectionnez uniquement des images ou vidéos."
+    },
+    de: {
+      button: "🖼️ Medienvorschau",
+      heading: "Medienvorschau-Studio",
+      description: "Sieh dir Bilder und Videos vor deinem Beitrag an.",
+      choose: "＋ Medien auswählen",
+      clear: "Alle löschen",
+      close: "Schließen",
+      empty: "Keine Medien ausgewählt.",
+      count: "Ausgewählte Dateien: ",
+      remove: "Entfernen",
+      image: "Bild",
+      video: "Video",
+      unsupported: "Bitte nur Bild- oder Videodateien auswählen."
+    },
+    es: {
+      button: "🖼️ Vista previa",
+      heading: "Estudio de vista previa",
+      description: "Previsualiza imágenes y vídeos antes de crear tu publicación.",
+      choose: "＋ Elegir archivos",
+      clear: "Borrar todo",
+      close: "Cerrar",
+      empty: "No hay archivos seleccionados.",
+      count: "Archivos seleccionados: ",
+      remove: "Eliminar",
+      image: "Imagen",
+      video: "Vídeo",
+      unsupported: "Selecciona solo imágenes o vídeos."
+    },
+    ja: {
+      button: "🖼️ メディアプレビュー",
+      heading: "メディアプレビュー",
+      description: "投稿を作成する前に画像や動画を確認できます。",
+      choose: "＋ メディアを選択",
+      clear: "すべて削除",
+      close: "閉じる",
+      empty: "メディアが選択されていません。",
+      count: "選択したファイル：",
+      remove: "削除",
+      image: "画像",
+      video: "動画",
+      unsupported: "画像または動画を選択してください。"
+    },
+    zh: {
+      button: "🖼️ 媒体预览",
+      heading: "媒体预览工作室",
+      description: "创建帖子前预览图片和视频。",
+      choose: "＋ 选择媒体",
+      clear: "全部清除",
+      close: "关闭",
+      empty: "尚未选择媒体。",
+      count: "已选文件：",
+      remove: "移除",
+      image: "图片",
+      video: "视频",
+      unsupported: "请只选择图片或视频文件。"
+    },
+    ko: {
+      button: "🖼️ 미디어 미리보기",
+      heading: "미디어 미리보기 스튜디오",
+      description: "게시물을 만들기 전에 이미지와 동영상을 미리 보세요.",
+      choose: "＋ 미디어 선택",
+      clear: "모두 지우기",
+      close: "닫기",
+      empty: "선택한 미디어가 없습니다.",
+      count: "선택한 파일: ",
+      remove: "삭제",
+      image: "이미지",
+      video: "동영상",
+      unsupported: "이미지 또는 동영상 파일만 선택하세요."
+    },
+    bn: {
+      button: "🖼️ মিডিয়া প্রিভিউ",
+      heading: "মিডিয়া প্রিভিউ স্টুডিও",
+      description: "পোস্ট তৈরির আগে ছবি বা ভিডিও দেখুন।",
+      choose: "＋ মিডিয়া বাছুন",
+      clear: "সব মুছুন",
+      close: "বন্ধ করুন",
+      empty: "কোনো মিডিয়া নির্বাচন করা হয়নি।",
+      count: "নির্বাচিত ফাইল: ",
+      remove: "সরান",
+      image: "ছবি",
+      video: "ভিডিও",
+      unsupported: "শুধু ছবি বা ভিডিও ফাইল নির্বাচন করুন।"
+    },
+    ru: {
+      button: "🖼️ Предпросмотр",
+      heading: "Предпросмотр медиа",
+      description: "Просматривайте изображения и видео перед созданием публикации.",
+      choose: "＋ Выбрать медиа",
+      clear: "Очистить всё",
+      close: "Закрыть",
+      empty: "Медиа не выбраны.",
+      count: "Выбрано файлов: ",
+      remove: "Удалить",
+      image: "Изображение",
+      video: "Видео",
+      unsupported: "Выберите только изображения или видео."
+    }
+  };
+
+  const files = [];
+  let language = "en";
+
+  function getLanguage() {
+    try {
+      const saved = localStorage.getItem("sisa_language");
+      if (saved) return saved.split("-")[0].toLowerCase();
+    } catch (error) {}
+
+    if (window.SISA_I18N && window.SISA_I18N.language) {
+      return String(window.SISA_I18N.language).split("-")[0].toLowerCase();
+    }
+
+    return "en";
+  }
+
+  function words() {
+    return text[language] || text.en;
+  }
+
+  function updateLanguage() {
+    language = getLanguage();
+    const t = words();
+
+    openBtn.textContent = t.button;
+    document.getElementById("sisaMediaHeading").textContent = t.heading;
+    document.getElementById("sisaMediaDescription").textContent = t.description;
+    chooseBtn.textContent = t.choose;
+    clearBtn.textContent = t.clear;
+    closeBtn.textContent = t.close;
+    render();
+  }
+
+  function render() {
+    const t = words();
+    grid.replaceChildren();
+
+    status.textContent = files.length
+      ? t.count + files.length
+      : t.empty;
+
+    files.forEach(function (item, index) {
+      const card = document.createElement("div");
+      card.className = "sisa-media-card";
+
+      let preview;
+
+      if (item.file.type.startsWith("image/")) {
+        preview = document.createElement("img");
+        preview.alt = item.file.name;
+      } else {
+        preview = document.createElement("video");
+        preview.controls = true;
+        preview.preload = "metadata";
+        preview.setAttribute("playsinline", "");
+      }
+
+      preview.src = item.url;
+      card.appendChild(preview);
+
+      const name = document.createElement("div");
+      name.className = "sisa-media-name";
+      name.textContent = item.file.name;
+      card.appendChild(name);
+
+      const size = document.createElement("div");
+      size.className = "sisa-media-size";
+      size.textContent = (item.file.size / (1024 * 1024)).toFixed(2) + " MB";
+      card.appendChild(size);
+
+      const remove = document.createElement("button");
+      remove.className = "sisa-media-remove";
+      remove.type = "button";
+      remove.textContent = "✕ " + t.remove;
+
+      remove.addEventListener("click", function () {
+        URL.revokeObjectURL(item.url);
+        files.splice(index, 1);
+        render();
+      });
+
+      card.appendChild(remove);
+      grid.appendChild(card);
+    });
+  }
+
+  openBtn.addEventListener("click", function () {
+    updateLanguage();
+    panel.style.display = "block";
+  });
+
+  chooseBtn.addEventListener("click", function () {
+    input.click();
+  });
+
+  input.addEventListener("change", function () {
+    const t = words();
+    let rejected = false;
+
+    Array.from(input.files || []).forEach(function (file) {
+      const valid = file.type.startsWith("image/") ||
+                    file.type.startsWith("video/");
+
+      if (!valid) {
+        rejected = true;
+        return;
+      }
+
+      const duplicate = files.some(function (item) {
+        return item.file.name === file.name &&
+               item.file.size === file.size &&
+               item.file.lastModified === file.lastModified;
+      });
+
+      if (!duplicate) {
+        files.push({
+          file: file,
+          url: URL.createObjectURL(file)
+        });
+      }
+    });
+
+    render();
+
+    if (rejected && files.length === 0) {
+      status.textContent = t.unsupported;
+    }
+
+    input.value = "";
+  });
+
+  clearBtn.addEventListener("click", function () {
+    files.forEach(function (item) {
+      URL.revokeObjectURL(item.url);
+    });
+
+    files.length = 0;
+    render();
+  });
+
+  closeBtn.addEventListener("click", function () {
+    panel.style.display = "none";
+  });
+
+  panel.addEventListener("click", function (event) {
+    if (event.target === panel) {
+      panel.style.display = "none";
+    }
+  });
+
+  window.addEventListener("sisa:languageChanged", updateLanguage);
+
+  window.SISA_MEDIA_PREVIEW = {
+    open: function () {
+      updateLanguage();
+      panel.style.display = "block";
+    },
+    close: function () {
+      panel.style.display = "none";
+    },
+    count: function () {
+      return files.length;
+    },
+    clear: function () {
+      files.forEach(function (item) {
+        URL.revokeObjectURL(item.url);
+      });
+      files.length = 0;
+      render();
+    }
+  };
+
+  updateLanguage();
+
+  /* =============== PART 2M END =============== */
+})();
+ </script>
 </body>
 </html>
