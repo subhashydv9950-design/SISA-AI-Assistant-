@@ -13788,6 +13788,264 @@ renderSchedule();
 
 <!-- END PART 2AO -->
   
+<!-- =====================================================
+     SISA AI ASSISTANT — PART 2AP
+     PRIVATE NOTES VAULT
+===================================================== -->
+
+<style>
+#sisaPrivateVault{
+  display:none;position:fixed;inset:0;z-index:100010;
+  overflow-y:auto;background:#090711;color:#f8f3ff;
+  padding:18px 14px 35px;font-family:Arial,sans-serif
+}
+#sisaPrivateVault .pv-wrap{max-width:620px;margin:auto}
+#sisaPrivateVault .pv-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#sisaPrivateVault h2{font-size:22px;margin:0}
+#sisaPrivateVault .pv-muted{font-size:13px;line-height:1.5;color:#b9aaca}
+#sisaPrivateVault .pv-card{
+  margin:14px 0;padding:15px;background:#151020;
+  border:1px solid #38264e;border-radius:14px
+}
+#sisaPrivateVault label{display:block;margin:12px 0 6px;font-size:13px;color:#dac9ed}
+#sisaPrivateVault input,#sisaPrivateVault textarea{
+  box-sizing:border-box;width:100%;padding:12px;
+  border:1px solid #49345e;border-radius:9px;
+  background:#0c0913;color:white;font-size:14px
+}
+#sisaPrivateVault textarea{min-height:120px;resize:vertical}
+#sisaPrivateVault .pv-btn{
+  padding:10px 12px;border:1px solid #60417c;border-radius:9px;
+  background:#21142f;color:white;font-weight:600;cursor:pointer
+}
+#sisaPrivateVault .pv-primary{background:#8b35e8;border-color:#a75aff}
+#sisaPrivateVault .pv-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+#sisaPrivateVault .pv-item{
+  background:#100b19;border:1px solid #49345e;
+  border-radius:11px;padding:13px;margin:10px 0
+}
+#sisaPrivateVault .pv-item h3{font-size:15px;margin:0 0 8px}
+#sisaPrivateVault .pv-item p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.5}
+#sisaPrivateVault .pv-status{color:#d5b0ff;font-size:13px;margin-top:12px}
+#sisaPrivateVault .pv-warning{
+  border-left:3px solid #b783ff;padding:10px;
+  background:#20162d;border-radius:6px;font-size:12px;line-height:1.5
+}
+</style>
+
+<section id="sisaPrivateVault">
+  <div class="pv-wrap">
+    <div class="pv-top">
+      <div>
+        <h2>🔐 Private Notes Vault</h2>
+        <p class="pv-muted">A simple local notes locker.</p>
+      </div>
+      <button class="pv-btn" onclick="SISA_PRIVATE_VAULT.close()">✕ Close</button>
+    </div>
+
+    <div class="pv-card">
+      <div class="pv-warning">
+        Demo-level protection only. Notes are stored in browser storage without encryption.
+        Do not save passwords, financial details or sensitive personal information.
+      </div>
+
+      <label for="pvPasscode">Vault Passcode</label>
+      <input id="pvPasscode" type="password" autocomplete="new-password"
+        placeholder="Create a passcode for this session">
+
+      <div class="pv-actions">
+        <button class="pv-btn pv-primary" onclick="SISA_PRIVATE_VAULT.unlock()">Unlock Vault</button>
+        <button class="pv-btn" onclick="SISA_PRIVATE_VAULT.lock()">Lock</button>
+      </div>
+      <div id="pvStatus" class="pv-status" role="status">Vault locked.</div>
+    </div>
+
+    <div id="pvEditor" class="pv-card" style="display:none">
+      <h3 style="margin-top:0">＋ Add a Note</h3>
+
+      <label for="pvTitle">Note Title</label>
+      <input id="pvTitle" maxlength="100" placeholder="e.g. Content ideas">
+
+      <label for="pvContent">Note Text</label>
+      <textarea id="pvContent" maxlength="10000" placeholder="Write a note..."></textarea>
+
+      <div class="pv-actions">
+        <button class="pv-btn pv-primary" onclick="SISA_PRIVATE_VAULT.save()">Save Note</button>
+        <button class="pv-btn" onclick="SISA_PRIVATE_VAULT.clearForm()">Clear</button>
+      </div>
+    </div>
+
+    <div id="pvNotesCard" class="pv-card" style="display:none">
+      <h3 style="margin-top:0">📝 Saved Notes</h3>
+      <div id="pvNotes"></div>
+    </div>
+  </div>
+</section>
+
+<script>
+(function(){
+  const KEY = "sisa_private_vault_demo_v1";
+  const $ = id => document.getElementById(id);
+  let unlocked = false;
+  let sessionPasscode = "";
+  let notes = [];
+  let editingId = null;
+
+  function status(message){
+    $("pvStatus").textContent = message;
+  }
+
+  function render(){
+    const box = $("pvNotes");
+    box.replaceChildren();
+
+    if(!notes.length){
+      const p = document.createElement("p");
+      p.className = "pv-muted";
+      p.textContent = "No notes saved yet.";
+      box.appendChild(p);
+      return;
+    }
+
+    notes.forEach(note=>{
+      const item = document.createElement("article");
+      item.className = "pv-item";
+
+      const title = document.createElement("h3");
+      title.textContent = note.title;
+
+      const content = document.createElement("p");
+      content.textContent = note.content;
+
+      const actions = document.createElement("div");
+      actions.className = "pv-actions";
+
+      const edit = document.createElement("button");
+      edit.className = "pv-btn";
+      edit.textContent = "Edit";
+      edit.onclick = ()=>SISA_PRIVATE_VAULT.edit(note.id);
+
+      const del = document.createElement("button");
+      del.className = "pv-btn";
+      del.textContent = "Delete";
+      del.onclick = ()=>SISA_PRIVATE_VAULT.remove(note.id);
+
+      actions.append(edit,del);
+      item.append(title,content,actions);
+      box.appendChild(item);
+    });
+  }
+
+  window.SISA_PRIVATE_VAULT = {
+    open(){
+      $("sisaPrivateVault").style.display = "block";
+      this.lock();
+    },
+    close(){
+      this.lock();
+      $("sisaPrivateVault").style.display = "none";
+    },
+    unlock(){
+      const pass = $("pvPasscode").value;
+      if(!pass){
+        status("Enter a passcode first.");
+        return;
+      }
+      if(sessionPasscode && pass !== sessionPasscode){
+        status("Incorrect passcode for this session.");
+        return;
+      }
+      try{
+        const stored = JSON.parse(localStorage.getItem(KEY) || "[]");
+        if(!Array.isArray(stored)) throw new Error("Invalid data");
+        notes = stored;
+        sessionPasscode = pass;
+        unlocked = true;
+        $("pvEditor").style.display = "block";
+        $("pvNotesCard").style.display = "block";
+        $("pvPasscode").value = "";
+        status("Vault unlocked for this session. This is not encrypted storage.");
+        render();
+      }catch(e){
+        status("Unable to load notes from browser storage.");
+      }
+    },
+    lock(){
+      unlocked = false;
+      notes = [];
+      editingId = null;
+      $("pvPasscode").value = "";
+      $("pvTitle").value = "";
+      $("pvContent").value = "";
+      $("pvEditor").style.display = "none";
+      $("pvNotesCard").style.display = "none";
+      $("pvNotes").replaceChildren();
+      status("Vault locked. Remember: saved notes are not encrypted.");
+    },
+    save(){
+      if(!unlocked){
+        status("Unlock the vault first.");
+        return;
+      }
+      const title = $("pvTitle").value.trim();
+      const content = $("pvContent").value.trim();
+      if(!title || !content){
+        status("Enter both a title and note text.");
+        return;
+      }
+
+      if(editingId){
+        const i = notes.findIndex(n=>n.id === editingId);
+        if(i >= 0) notes[i] = {...notes[i],title,content};
+      }else{
+        notes.unshift({
+          id:Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7),
+          title,content
+        });
+      }
+
+      try{
+        localStorage.setItem(KEY,JSON.stringify(notes));
+        this.clearForm();
+        render();
+        status("Note saved locally. It is not encrypted.");
+      }catch(e){
+        status("Could not save. Browser storage may be full.");
+      }
+    },
+    edit(id){
+      if(!unlocked) return;
+      const note = notes.find(n=>n.id === id);
+      if(!note) return;
+      editingId = id;
+      $("pvTitle").value = note.title;
+      $("pvContent").value = note.content;
+      status("Editing note. Save to apply changes.");
+      $("pvTitle").scrollIntoView({behavior:"smooth",block:"center"});
+    },
+    remove(id){
+      if(!unlocked) return;
+      if(!confirm("Delete this note?")) return;
+      notes = notes.filter(n=>n.id !== id);
+      try{
+        localStorage.setItem(KEY,JSON.stringify(notes));
+        render();
+        status("Note deleted.");
+      }catch(e){
+        status("Unable to update local storage.");
+      }
+    },
+    clearForm(){
+      editingId = null;
+      $("pvTitle").value = "";
+      $("pvContent").value = "";
+    }
+  };
+})();
+</script>
+
+<!-- END PART 2AP -->
+  
 
 
 
