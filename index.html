@@ -6553,5 +6553,287 @@ renderSchedule();
 </script>
 
 <!-- =============== PART 2Q END =============== -->
+  <!-- =====================================================
+     SISA AI ASSISTANT — PART 2R
+     DATA BACKUP & RESTORE
+===================================================== -->
+
+<style>
+#sisaBackupOpen {
+  position:fixed;right:16px;bottom:220px;z-index:9998;
+  background:#8b5cf6;color:white;border:0;border-radius:12px;
+  padding:12px 15px;font-weight:700;box-shadow:0 5px 22px #0005;
+}
+#sisaBackupPanel {
+  display:none;position:fixed;inset:0;z-index:10000;
+  background:#080610ed;align-items:center;justify-content:center;
+  padding:16px;color:white;font-family:Arial,sans-serif;
+}
+#sisaBackupPanel .sb-card {
+  width:100%;max-width:430px;background:#171326;
+  border:1px solid #7044b9;border-radius:20px;padding:20px;
+}
+#sisaBackupPanel h2 {margin-top:0;color:#c4a5ff}
+#sisaBackupPanel p {color:#c9c2d9;font-size:13px;line-height:1.5}
+#sisaBackupPanel button,#sisaBackupPanel label.sb-file {
+  display:block;width:100%;box-sizing:border-box;margin-top:12px;
+  padding:12px;border:0;border-radius:10px;font-weight:700;
+  background:#8b5cf6;color:white;text-align:center;
+}
+#sisaBackupPanel button.sb-close {background:#302940}
+#sisaBackupStatus {font-size:13px;overflow-wrap:anywhere}
+</style>
+
+<button id="sisaBackupOpen" type="button">📦 Backup</button>
+
+<div id="sisaBackupPanel">
+  <div class="sb-card">
+    <h2 id="sisaBackupTitle">📦 Data Backup</h2>
+    <p id="sisaBackupInfo">
+      Export your drafts, schedules, calendar and settings to a JSON file.
+      Importing a backup replaces matching saved data in this browser.
+    </p>
+
+    <button id="sisaExportBtn" type="button">⬇ Export Backup</button>
+
+    <label class="sb-file" for="sisaImportFile" id="sisaImportLabel">
+      ⬆ Import Backup
+    </label>
+    <input id="sisaImportFile" type="file"
+      accept=".json,application/json"
+      style="display:none">
+
+    <p id="sisaBackupStatus" role="status"></p>
+
+    <button class="sb-close" id="sisaBackupClose" type="button">
+      Close
+    </button>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const panel = document.getElementById("sisaBackupPanel");
+  const status = document.getElementById("sisaBackupStatus");
+
+  const KEYS = [
+    "sisa_saved_drafts_v1",
+    "sisa_working_draft_v1",
+    "sisa_schedule_v1",
+    "sisa_settings_v1",
+    "sisa_content_calendar_v1",
+    "sisa_language"
+  ];
+
+  const TEXT = {
+    en: {
+      title:"📦 Data Backup",
+      info:"Export drafts, schedules, calendar and settings. Import replaces matching saved data.",
+      export:"⬇ Export Backup",import:"⬆ Import Backup",close:"Close",
+      saved:"Backup file downloaded.",choose:"Choose a valid SISA backup JSON file.",
+      confirm:"Import this backup? Matching saved data will be replaced.",
+      success:"Backup imported successfully. Refresh the page to apply all settings.",
+      failed:"Import failed. Please select a valid SISA backup file.",
+      empty:"No saved data found to export."
+    },
+    hi: {
+      title:"📦 डेटा बैकअप",
+      info:"ड्राफ्ट, शेड्यूल, कैलेंडर और सेटिंग्स की फाइल बनाएं। इम्पोर्ट करने पर समान सेव डेटा बदल जाएगा।",
+      export:"⬇ बैकअप डाउनलोड",import:"⬆ बैकअप इम्पोर्ट",close:"बंद करें",
+      saved:"बैकअप फाइल डाउनलोड हो गई।",choose:"सही SISA बैकअप JSON फाइल चुनें।",
+      confirm:"क्या यह बैकअप इम्पोर्ट करें? समान सेव डेटा बदल जाएगा।",
+      success:"बैकअप इम्पोर्ट हो गया। सेटिंग्स लागू करने के लिए पेज रिफ्रेश करें।",
+      failed:"इम्पोर्ट नहीं हुआ। सही SISA बैकअप फाइल चुनें।",
+      empty:"डाउनलोड करने के लिए कोई सेव डेटा नहीं मिला।"
+    },
+    fr: {
+      title:"📦 Sauvegarde",info:"Exportez vos brouillons, calendriers et paramètres. L’import remplace les données correspondantes.",
+      export:"⬇ Exporter",import:"⬆ Importer",close:"Fermer",
+      saved:"Sauvegarde téléchargée.",choose:"Choisissez un fichier JSON SISA valide.",
+      confirm:"Importer cette sauvegarde et remplacer les données correspondantes ?",
+      success:"Import réussi. Actualisez la page.",failed:"Échec de l’import.",
+      empty:"Aucune donnée enregistrée."
+    },
+    de: {
+      title:"📦 Datensicherung",info:"Entwürfe, Zeitpläne, Kalender und Einstellungen exportieren. Import ersetzt passende Daten.",
+      export:"⬇ Backup exportieren",import:"⬆ Backup importieren",close:"Schließen",
+      saved:"Backup heruntergeladen.",choose:"Wähle eine gültige SISA-JSON-Datei.",
+      confirm:"Backup importieren? Passende gespeicherte Daten werden ersetzt.",
+      success:"Import erfolgreich. Seite aktualisieren.",failed:"Import fehlgeschlagen.",
+      empty:"Keine gespeicherten Daten gefunden."
+    },
+    es: {
+      title:"📦 Copia de seguridad",info:"Exporta borradores, calendario y ajustes. La importación reemplaza los datos correspondientes.",
+      export:"⬇ Exportar copia",import:"⬆ Importar copia",close:"Cerrar",
+      saved:"Copia descargada.",choose:"Selecciona un archivo JSON SISA válido.",
+      confirm:"¿Importar y reemplazar los datos correspondientes?",
+      success:"Importación correcta. Actualiza la página.",failed:"Error al importar.",
+      empty:"No hay datos guardados."
+    },
+    zh: {
+      title:"📦 数据备份",info:"导出草稿、日程、日历和设置。导入会替换对应的已保存数据。",
+      export:"⬇ 导出备份",import:"⬆ 导入备份",close:"关闭",
+      saved:"备份已下载。",choose:"请选择有效的 SISA JSON 备份文件。",
+      confirm:"导入备份并替换对应的已保存数据？",
+      success:"导入成功，请刷新页面。",failed:"导入失败。",
+      empty:"没有找到已保存的数据。"
+    },
+    ja: {
+      title:"📦 データバックアップ",info:"下書き、予定、カレンダー、設定を保存します。読み込み時は該当データを置き換えます。",
+      export:"⬇ バックアップを保存",import:"⬆ バックアップを読み込む",close:"閉じる",
+      saved:"バックアップをダウンロードしました。",choose:"有効なSISA JSONファイルを選択してください。",
+      confirm:"バックアップを読み込み、該当データを置き換えますか？",
+      success:"読み込み成功。ページを更新してください。",failed:"読み込みに失敗しました。",
+      empty:"保存データがありません。"
+    },
+    ko: {
+      title:"📦 데이터 백업",info:"초안, 일정, 캘린더 및 설정을 내보냅니다. 가져오면 해당 저장 데이터가 교체됩니다.",
+      export:"⬇ 백업 내보내기",import:"⬆ 백업 가져오기",close:"닫기",
+      saved:"백업을 다운로드했습니다.",choose:"올바른 SISA JSON 파일을 선택하세요.",
+      confirm:"백업을 가져와 해당 데이터를 교체할까요?",
+      success:"가져오기 완료. 페이지를 새로고침하세요.",failed:"가져오기에 실패했습니다.",
+      empty:"저장된 데이터가 없습니다."
+    },
+    bn: {
+      title:"📦 ডেটা ব্যাকআপ",info:"ড্রাফট, সময়সূচি, ক্যালেন্ডার ও সেটিংস সংরক্ষণ করুন। ইমপোর্ট করলে সংশ্লিষ্ট ডেটা বদলে যাবে।",
+      export:"⬇ ব্যাকআপ ডাউনলোড",import:"⬆ ব্যাকআপ ইমপোর্ট",close:"বন্ধ করুন",
+      saved:"ব্যাকআপ ডাউনলোড হয়েছে।",choose:"একটি সঠিক SISA JSON ফাইল বেছে নিন।",
+      confirm:"ব্যাকআপ ইমপোর্ট করে সংশ্লিষ্ট ডেটা বদলাবেন?",
+      success:"ইমপোর্ট সফল। পেজ রিফ্রেশ করুন।",failed:"ইমপোর্ট ব্যর্থ হয়েছে।",
+      empty:"কোনো সংরক্ষিত ডেটা পাওয়া যায়নি।"
+    },
+    ru: {
+      title:"📦 Резервная копия",info:"Экспортируйте черновики, расписание, календарь и настройки. Импорт заменяет соответствующие данные.",
+      export:"⬇ Экспорт",import:"⬆ Импорт",close:"Закрыть",
+      saved:"Резервная копия скачана.",choose:"Выберите корректный JSON-файл SISA.",
+      confirm:"Импортировать копию и заменить соответствующие данные?",
+      success:"Импорт выполнен. Обновите страницу.",failed:"Ошибка импорта.",
+      empty:"Сохранённых данных нет."
+    }
+  };
+
+  function language() {
+    const code = (window.SISA_LANGUAGE && window.SISA_LANGUAGE.current)
+      || localStorage.getItem("sisa_language") || "en";
+    return TEXT[code] ? code : "en";
+  }
+
+  function translate() {
+    const t = TEXT[language()];
+    document.getElementById("sisaBackupTitle").textContent = t.title;
+    document.getElementById("sisaBackupInfo").textContent = t.info;
+    document.getElementById("sisaExportBtn").textContent = t.export;
+    document.getElementById("sisaImportLabel").textContent = t.import;
+    document.getElementById("sisaBackupClose").textContent = t.close;
+    document.getElementById("sisaBackupOpen").textContent =
+      language() === "hi" ? "📦 बैकअप" : "📦 Backup";
+  }
+
+  document.getElementById("sisaBackupOpen").onclick = function () {
+    translate();
+    panel.style.display = "flex";
+  };
+
+  document.getElementById("sisaBackupClose").onclick = function () {
+    panel.style.display = "none";
+  };
+
+  panel.addEventListener("click", function (event) {
+    if (event.target === panel) panel.style.display = "none";
+  });
+
+  document.getElementById("sisaExportBtn").onclick = function () {
+    const data = {};
+    let found = false;
+
+    KEYS.forEach(function (key) {
+      const value = localStorage.getItem(key);
+      if (value !== null) {
+        data[key] = value;
+        found = true;
+      }
+    });
+
+    if (!found) {
+      status.textContent = TEXT[language()].empty;
+      return;
+    }
+
+    const backup = {
+      app: "SISA AI Assistant",
+      version: 1,
+      createdAt: new Date().toISOString(),
+      data: data
+    };
+
+    const blob = new Blob(
+      [JSON.stringify(backup, null, 2)],
+      { type: "application/json" }
+    );
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "SISA-Backup-" +
+      new Date().toISOString().slice(0, 10) + ".json";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+
+    status.textContent = TEXT[language()].saved;
+  };
+
+  document.getElementById("sisaImportFile").onchange = async function (event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const t = TEXT[language()];
+
+    try {
+      if (file.size > 5 * 1024 * 1024) throw new Error("file too large");
+
+      const backup = JSON.parse(await file.text());
+
+      if (
+        backup.app !== "SISA AI Assistant" ||
+        backup.version !== 1 ||
+        !backup.data ||
+        typeof backup.data !== "object" ||
+        Array.isArray(backup.data)
+      ) throw new Error("invalid backup");
+
+      const validKeys = Object.keys(backup.data).filter(function (key) {
+        return KEYS.includes(key) &&
+          typeof backup.data[key] === "string";
+      });
+
+      if (validKeys.length === 0) throw new Error("empty backup");
+
+      if (!confirm(t.confirm)) return;
+
+      validKeys.forEach(function (key) {
+        localStorage.setItem(key, backup.data[key]);
+      });
+
+      status.textContent = t.success;
+    } catch (error) {
+      status.textContent = t.failed + " " + t.choose;
+    } finally {
+      event.target.value = "";
+    }
+  };
+
+  window.addEventListener("sisa:languageChanged", translate);
+  translate();
+
+  window.SISA_BACKUP = { exportKeys: KEYS.slice() };
+})();
+
+/* =============== PART 2R END — BACKUP & RESTORE =============== */
+</script>
+<!-- =============== PART 2R END =============== -->
 </body>
 </html>
