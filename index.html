@@ -9512,7 +9512,1658 @@ renderSchedule();
   /* =============== PART 2Y END =============== */
 })();
 </script>
-    
+ <!-- =====================================================
+ SISA AI ASSISTANT — PART 2Z
+ FULL-SCREEN TOOL INTEGRATION
+===================================================== -->
+
+<script>
+(function () {
+  "use strict";
+
+  if (window.SISA_FULL_TOOL_INTEGRATION) return;
+
+  const fullScreenTools = [
+    "AI Caption Studio",
+    "Hashtag Studio",
+    "Content Calendar",
+    "Bulk Planner",
+    "Performance",
+    "Hashtag Sets",
+    "Post Builder",
+    "Idea Vault",
+    "Publishing Checklist",
+    "Post Checklist",
+    "Media Caption",
+    "Media Details",
+    "Media Preview"
+  ];
+
+  const descriptions = {
+    "AI Caption Studio":
+      "Create and edit captions for your social media posts.",
+    "Hashtag Studio":
+      "Generate and organize hashtags for your content.",
+    "Content Calendar":
+      "Plan and review your upcoming content schedule.",
+    "Bulk Planner":
+      "Organize multiple post ideas in one workspace.",
+    "Performance":
+      "Review your saved post performance records.",
+    "Hashtag Sets":
+      "Manage reusable hashtag collections.",
+    "Post Builder":
+      "Prepare a post with its caption, hashtags and platform.",
+    "Idea Vault":
+      "Collect and organize ideas for future posts.",
+    "Publishing Checklist":
+      "Review your publishing steps before posting.",
+    "Post Checklist":
+      "Check that your post is ready to publish.",
+    "Media Caption":
+      "Choose media and prepare a caption.",
+    "Media Details":
+      "Select a media file to inspect its details.",
+    "Media Preview":
+      "Choose a media file to preview it."
+  };
+
+  function getApi(toolName) {
+    const apiNames = {
+      "AI Caption Studio": ["SISA_CAPTION_STUDIO"],
+      "Hashtag Studio": ["SISA_HASHTAGS"],
+      "Content Calendar": ["SISA_CONTENT_CALENDAR"],
+      "Bulk Planner": ["SISA_BULK_PLANNER"],
+      "Performance": ["SISA_PERFORMANCE"],
+      "Hashtag Sets": ["SISA_HASHTAG_COLLECTIONS"],
+      "Post Builder": ["SISA_POST_BUILDER"],
+      "Idea Vault": ["SISA_IDEA_VAULT"],
+      "Publishing Checklist": ["SISA_PUBLISHING_CHECKLIST"],
+      "Post Checklist": ["SISA_POST_CHECKLIST"],
+      "Media Caption": ["SISA_MEDIA_CAPTION"],
+      "Media Details": ["SISA_MEDIA_DETAILS"],
+      "Media Preview": ["SISA_MEDIA_PREVIEW"]
+    };
+
+    for (const name of (apiNames[toolName] || [])) {
+      const api = window[name];
+      if (api && typeof api.open === "function") return api;
+    }
+
+    return null;
+  }
+
+  function openFullScreenTool(toolName) {
+    const api = getApi(toolName);
+
+    /*
+      Use the existing feature if it provides an open() method.
+      Otherwise open the full-screen navigation shell.
+    */
+    if (api) {
+      api.open();
+      return;
+    }
+
+    if (
+      window.SISA_FULL_TOOL_NAV &&
+      typeof window.SISA_FULL_TOOL_NAV.open === "function"
+    ) {
+      window.SISA_FULL_TOOL_NAV.open(
+        toolName,
+        descriptions[toolName] || "Open this tool in its own workspace."
+      );
+      return;
+    }
+
+    alert("PART 2Y का Full-Screen Navigation उपलब्ध नहीं है।");
+  }
+
+  function connectToolButtons() {
+    const grid = document.getElementById("sisaToolsGrid");
+    if (!grid) return;
+
+    grid.querySelectorAll(".sisa-tool-card").forEach(card => {
+      const heading = card.querySelector(".sisa-tool-heading");
+      const button = card.querySelector(".sisa-tool-action");
+
+      if (!heading || !button || button.dataset.sisaFullScreenBound) {
+        return;
+      }
+
+      const toolName = (heading.innerText || "").replace(/\s+/g, " ").trim();
+
+      if (!fullScreenTools.includes(toolName)) return;
+
+      button.dataset.sisaFullScreenBound = "yes";
+
+      /*
+        Replace the card button handler with a single controlled
+        handler so it doesn't trigger duplicate actions.
+      */
+      const replacement = button.cloneNode(true);
+      replacement.dataset.sisaFullScreenBound = "yes";
+
+      replacement.addEventListener("click", function (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        openFullScreenTool(toolName);
+      });
+
+      button.replaceWith(replacement);
+    });
+  }
+
+  window.SISA_FULL_TOOL_INTEGRATION = {
+    connect: connectToolButtons,
+    open: openFullScreenTool
+  };
+
+  connectToolButtons();
+
+  if (window.SISA_TOOLS_PAGE) {
+    const previousRefresh = window.SISA_TOOLS_PAGE.refresh;
+
+    window.SISA_TOOLS_PAGE.refresh = function () {
+      if (typeof previousRefresh === "function") {
+        previousRefresh();
+      }
+      connectToolButtons();
+    };
+  }
+
+  const grid = document.getElementById("sisaToolsGrid");
+
+  if (grid) {
+    new MutationObserver(connectToolButtons).observe(grid, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  /* =============== PART 2Z END =============== */
+})();
+</script>
+  <!-- =====================================================
+ SISA AI ASSISTANT — PART 2AA
+ INTERACTIVE POST CHECKLIST
+===================================================== -->
+
+<style>
+#sisaPostChecklist {
+  color: #f7f3ff;
+}
+
+#sisaPostChecklist .check-progress-card {
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #493064;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #211431, #120e1c);
+}
+
+#sisaPostChecklist .check-progress-track {
+  height: 8px;
+  margin-top: 12px;
+  border-radius: 99px;
+  background: #30243f;
+  overflow: hidden;
+}
+
+#sisaPostChecklist .check-progress-fill {
+  width: 0;
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #8547df, #c19aff);
+  transition: width .2s ease;
+}
+
+#sisaPostChecklist .check-list {
+  display: grid;
+  gap: 9px;
+}
+
+#sisaPostChecklist .check-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 12px;
+  border: 1px solid #30243f;
+  border-radius: 12px;
+  background: #120e1c;
+  cursor: pointer;
+}
+
+#sisaPostChecklist .check-item input {
+  width: 20px;
+  height: 20px;
+  accent-color: #9a60ef;
+  flex-shrink: 0;
+}
+
+#sisaPostChecklist .check-item span {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#sisaPostChecklist .check-item:has(input:checked) {
+  border-color: #7541bd;
+  background: #1b1228;
+}
+
+#sisaPostChecklist .check-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+#sisaPostChecklist .check-action {
+  flex: 1 1 130px;
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid #7541bd;
+  border-radius: 11px;
+  background: #29183e;
+  color: #fff;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+#sisaPostChecklist .check-status {
+  margin-top: 12px;
+  color: #c5afdF;
+  font-size: 13px;
+}
+</style>
+
+<script>
+(function () {
+  "use strict";
+
+  if (window.SISA_POST_CHECKLIST) return;
+
+  const STORAGE_KEY = "sisa_post_checklist_v1";
+
+  const tasks = [
+    "Choose the correct social media platform",
+    "Check the post title",
+    "Review spelling and grammar",
+    "Check the caption",
+    "Review hashtags",
+    "Select the correct image or video",
+    "Check media quality and dimensions",
+    "Add a call to action if needed",
+    "Check links and mentions",
+    "Confirm the scheduled date and time",
+    "Preview the final post",
+    "Save a copy of the final content"
+  ];
+
+  function readState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      return saved && typeof saved === "object" ? saved : {};
+    } catch (error) {
+      return {};
+    }
+  }
+
+  function saveState(state) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function openChecklist() {
+    if (
+      !window.SISA_FULL_TOOL_NAV ||
+      typeof window.SISA_FULL_TOOL_NAV.open !== "function"
+    ) {
+      alert("पहले PART 2Y का Full-Screen Navigation जोड़ें।");
+      return;
+    }
+
+    window.SISA_FULL_TOOL_NAV.open(
+      "Post Checklist",
+      "Review each step before publishing your social media post."
+    );
+
+    const container = window.SISA_FULL_TOOL_NAV.getContent();
+    if (!container) return;
+
+    container.replaceChildren();
+
+    const wrapper = document.createElement("div");
+    wrapper.id = "sisaPostChecklist";
+
+    const progressCard = document.createElement("div");
+    progressCard.className = "check-progress-card";
+
+    const progressTitle = document.createElement("strong");
+    progressTitle.textContent = "Publishing progress";
+
+    const progressText = document.createElement("div");
+    progressText.style.marginTop = "8px";
+    progressText.textContent = "0 of " + tasks.length + " completed";
+
+    const track = document.createElement("div");
+    track.className = "check-progress-track";
+
+    const fill = document.createElement("div");
+    fill.className = "check-progress-fill";
+    track.appendChild(fill);
+
+    progressCard.append(progressTitle, progressText, track);
+
+    const list = document.createElement("div");
+    list.className = "check-list";
+
+    const status = document.createElement("div");
+    status.className = "check-status";
+    status.setAttribute("aria-live", "polite");
+
+    const actions = document.createElement("div");
+    actions.className = "check-actions";
+
+    const resetButton = document.createElement("button");
+    resetButton.type = "button";
+    resetButton.className = "check-action";
+    resetButton.textContent = "↻ Reset checklist";
+
+    const checkAllButton = document.createElement("button");
+    checkAllButton.type = "button";
+    checkAllButton.className = "check-action";
+    checkAllButton.textContent = "✓ Check all";
+
+    let state = readState();
+
+    function updateProgress() {
+      const completed = tasks.filter((task, index) =>
+        state[index] === true
+      ).length;
+
+      progressText.textContent =
+        completed + " of " + tasks.length + " completed";
+
+      fill.style.width =
+        Math.round(completed / tasks.length * 100) + "%";
+
+      status.textContent = completed === tasks.length
+        ? "All checks completed. Your post is ready for a final review."
+        : "Your checklist is saved on this device.";
+
+      checkAllButton.textContent = completed === tasks.length
+        ? "✓ All checked"
+        : "✓ Check all";
+    }
+
+    tasks.forEach((task, index) => {
+      const label = document.createElement("label");
+      label.className = "check-item";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = state[index] === true;
+
+      const text = document.createElement("span");
+      text.textContent = task;
+
+      checkbox.addEventListener("change", () => {
+        state[index] = checkbox.checked;
+
+        if (!saveState(state)) {
+          status.textContent = "Could not save. Check device storage.";
+        } else {
+          status.textContent = "Checklist saved.";
+        }
+
+        updateProgress();
+      });
+
+      label.append(checkbox, text);
+      list.appendChild(label);
+    });
+
+    checkAllButton.addEventListener("click", () => {
+      const allChecked = tasks.every((task, index) =>
+        state[index] === true
+      );
+
+      state = {};
+
+      tasks.forEach((task, index) => {
+        state[index] = !allChecked;
+      });
+
+      if (!saveState(state)) {
+        status.textContent = "Could not save. Check device storage.";
+      }
+
+      openChecklist();
+    });
+
+    resetButton.addEventListener("click", () => {
+      state = {};
+
+      if (!saveState(state)) {
+        status.textContent = "Could not save. Check device storage.";
+      }
+
+      openChecklist();
+    });
+
+    actions.append(checkAllButton, resetButton);
+    wrapper.append(progressCard, list, actions, status);
+    container.appendChild(wrapper);
+    updateProgress();
+  }
+
+  window.SISA_POST_CHECKLIST = {
+    open: openChecklist,
+    getTasks: function () {
+      return tasks.slice();
+    },
+    getState: readState,
+    reset: function () {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
+  };
+
+  /* =============== PART 2AA END =============== */
+})();
+</script>
+<!-- =====================================================
+ SISA AI ASSISTANT — PART 2AB
+ MEDIA PREVIEW STUDIO
+===================================================== -->
+
+<style>
+#sisaMediaPreview {
+  color: #f7f3ff;
+}
+
+#sisaMediaPreview .media-upload-box {
+  padding: 22px 16px;
+  border: 1px dashed #7541bd;
+  border-radius: 16px;
+  background: #120e1c;
+  text-align: center;
+}
+
+#sisaMediaPreview .media-upload-icon {
+  font-size: 38px;
+  margin-bottom: 10px;
+}
+
+#sisaMediaPreview .media-upload-box p {
+  color: #c5b7d8;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+#sisaMediaPreview .media-select-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #8d56d9;
+  border-radius: 11px;
+  background: #7137b7;
+  color: white;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+#sisaMediaPreview .media-preview-frame {
+  display: none;
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid #30243f;
+  border-radius: 14px;
+  background: #120e1c;
+}
+
+#sisaMediaPreview .media-preview-frame img,
+#sisaMediaPreview .media-preview-frame video {
+  display: block;
+  width: 100%;
+  max-height: 55vh;
+  object-fit: contain;
+  border-radius: 10px;
+  background: #08060c;
+}
+
+#sisaMediaPreview .media-file-details {
+  margin-top: 12px;
+  color: #c5b7d8;
+  font-size: 13px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+
+#sisaMediaPreview .media-clear-button {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 12px;
+  border: 1px solid #7541bd;
+  border-radius: 10px;
+  background: #29183e;
+  color: white;
+  font-weight: 650;
+  cursor: pointer;
+}
+</style>
+
+<script>
+(function () {
+  "use strict";
+
+  if (window.SISA_MEDIA_PREVIEW) return;
+
+  let currentObjectUrl = null;
+
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) {
+      return (bytes / 1024).toFixed(1) + " KB";
+    }
+    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+  }
+
+  function openMediaPreview() {
+    const navigation = window.SISA_FULL_TOOL_NAV;
+
+    if (!navigation || typeof navigation.open !== "function") {
+      alert("पहले PART 2Y का Full-Screen Navigation जोड़ें।");
+      return;
+    }
+
+    navigation.open(
+      "Media Preview",
+      "Select an image or video to preview it and inspect its file details."
+    );
+
+    const container = navigation.getContent();
+    if (!container) return;
+
+    container.replaceChildren();
+
+    const root = document.createElement("div");
+    root.id = "sisaMediaPreview";
+
+    const uploadBox = document.createElement("div");
+    uploadBox.className = "media-upload-box";
+
+    const icon = document.createElement("div");
+    icon.className = "media-upload-icon";
+    icon.textContent = "🖼️";
+
+    const heading = document.createElement("strong");
+    heading.textContent = "Preview your media";
+
+    const description = document.createElement("p");
+    description.textContent =
+      "Choose an image or video from your device. Files stay in this browser session.";
+
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*,video/*";
+    fileInput.hidden = true;
+
+    const selectButton = document.createElement("button");
+    selectButton.type = "button";
+    selectButton.className = "media-select-button";
+    selectButton.textContent = "＋ Choose Media";
+    selectButton.addEventListener("click", () => fileInput.click());
+
+    const previewFrame = document.createElement("div");
+    previewFrame.className = "media-preview-frame";
+
+    const details = document.createElement("div");
+    details.className = "media-file-details";
+
+    const clearButton = document.createElement("button");
+    clearButton.type = "button";
+    clearButton.className = "media-clear-button";
+    clearButton.textContent = "Remove selected media";
+
+    function clearPreview() {
+      if (currentObjectUrl) {
+        URL.revokeObjectURL(currentObjectUrl);
+        currentObjectUrl = null;
+      }
+
+      previewFrame.replaceChildren();
+      previewFrame.style.display = "none";
+      fileInput.value = "";
+    }
+
+    fileInput.addEventListener("change", () => {
+      clearPreview();
+
+      const file = fileInput.files && fileInput.files[0];
+      if (!file) return;
+
+      const isImage = file.type.startsWith("image/");
+      const isVideo = file.type.startsWith("video/");
+
+      if (!isImage && !isVideo) {
+        alert("कृपया image या video फ़ाइल चुनें।");
+        fileInput.value = "";
+        return;
+      }
+
+      currentObjectUrl = URL.createObjectURL(file);
+
+      const media = document.createElement(isImage ? "img" : "video");
+      media.src = currentObjectUrl;
+      media.alt = isImage ? "Selected image preview" : "";
+      if (isVideo) {
+        media.controls = true;
+        media.playsInline = true;
+      }
+
+      const name = document.createElement("div");
+      name.textContent = "File: " + file.name;
+
+      const type = document.createElement("div");
+      type.textContent = "Type: " + (file.type || "Unknown");
+
+      const size = document.createElement("div");
+      size.textContent = "Size: " + formatBytes(file.size);
+
+      const modified = document.createElement("div");
+      modified.textContent = "Last modified: " +
+        (file.lastModified
+          ? new Date(file.lastModified).toLocaleString()
+          : "Unknown");
+
+      details.replaceChildren(name, type, size, modified);
+      previewFrame.append(media, details);
+      previewFrame.style.display = "block";
+    });
+
+    clearButton.addEventListener("click", clearPreview);
+
+    uploadBox.append(
+      icon,
+      heading,
+      description,
+      selectButton,
+      fileInput
+    );
+
+    root.append(uploadBox, previewFrame, clearButton);
+    container.appendChild(root);
+  }
+
+  window.SISA_MEDIA_PREVIEW = {
+    open: openMediaPreview
+  };
+
+  /* =============== PART 2AB END =============== */
+})();
+        </script>
+  
+<!-- =====================================================
+     SISA AI ASSISTANT — PART 2AC
+     MEDIA DETAILS STUDIO
+===================================================== -->
+<style>
+#sisaMediaDetails {
+  padding: 16px;
+  color: #f5f0ff;
+  font-family: inherit;
+}
+#sisaMediaDetails .smd-card {
+  background: #171222;
+  border: 1px solid #39245a;
+  border-radius: 16px;
+  padding: 15px;
+  margin: 12px 0;
+}
+#sisaMediaDetails .smd-title {
+  font-size: 21px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+#sisaMediaDetails .smd-muted {
+  color: #b9aaca;
+  font-size: 13px;
+}
+#sisaMediaDetails input,
+#sisaMediaDetails textarea {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 8px;
+  padding: 12px;
+  color: white;
+  background: #0d0a14;
+  border: 1px solid #493064;
+  border-radius: 10px;
+  font: inherit;
+}
+#sisaMediaDetails button {
+  border: 0;
+  border-radius: 10px;
+  padding: 11px 14px;
+  margin: 8px 6px 0 0;
+  color: white;
+  background: #7c3aed;
+  font-weight: 700;
+}
+#sisaMediaDetails .smd-output {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+  color: #e8ddff;
+}
+</style>
+
+<section id="sisaMediaDetails" style="display:none">
+  <div class="smd-title">🖼️ Media Details Studio</div>
+  <div class="smd-muted">
+    अपनी image या video चुनें और उसकी जानकारी देखें।
+    फ़ाइल आपके डिवाइस पर ही रहेगी।
+  </div>
+
+  <div class="smd-card">
+    <label for="smdFile"><b>Image / Video चुनें</b></label>
+    <input id="smdFile" type="file" accept="image/*,video/*">
+
+    <div id="smdInfo" class="smd-output" style="margin-top:14px">
+      अभी कोई फ़ाइल नहीं चुनी गई।
+    </div>
+  </div>
+
+  <div class="smd-card">
+    <b>अपनी पोस्ट की जानकारी</b>
+    <input id="smdTitle" maxlength="120"
+      placeholder="पोस्ट का शीर्षक">
+    <textarea id="smdDescription" rows="3" maxlength="1000"
+      placeholder="पोस्ट का विवरण"></textarea>
+    <input id="smdAlt" maxlength="300"
+      placeholder="Alt text — image का छोटा विवरण">
+    <button type="button" id="smdSave">जानकारी सेव करें</button>
+    <button type="button" id="smdExport">टेक्स्ट डाउनलोड करें</button>
+    <div id="smdStatus" class="smd-muted" aria-live="polite"></div>
+  </div>
+</section>
+
+<script>
+(function () {
+  const page = document.getElementById("sisaMediaDetails");
+  if (!page || page.dataset.ready === "1") return;
+  page.dataset.ready = "1";
+
+  const $ = id => document.getElementById(id);
+  const STORAGE_KEY = "sisa_media_details_v1";
+  let selectedFile = null;
+
+  function readSaved() {
+    try {
+      const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+      $("smdTitle").value = data.title || "";
+      $("smdDescription").value = data.description || "";
+      $("smdAlt").value = data.alt || "";
+    } catch (_) {}
+  }
+
+  function getDetails() {
+    return {
+      title: $("smdTitle").value.trim(),
+      description: $("smdDescription").value.trim(),
+      alt: $("smdAlt").value.trim(),
+      fileName: selectedFile ? selectedFile.name : "",
+      fileType: selectedFile ? selectedFile.type : "",
+      fileSize: selectedFile ? selectedFile.size : 0,
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024)
+      return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+  }
+
+  $("smdFile").addEventListener("change", function () {
+    selectedFile = this.files && this.files[0] ? this.files[0] : null;
+    if (!selectedFile) {
+      $("smdInfo").textContent = "अभी कोई फ़ाइल नहीं चुनी गई।";
+      return;
+    }
+
+    $("smdInfo").textContent =
+      "फ़ाइल: " + selectedFile.name + "\n" +
+      "प्रकार: " + (selectedFile.type || "Unknown") + "\n" +
+      "साइज़: " + formatBytes(selectedFile.size) + "\n" +
+      "आख़िरी बदलाव: " +
+      new Date(selectedFile.lastModified).toLocaleString();
+  });
+
+  $("smdSave").addEventListener("click", function () {
+    try {
+      const details = getDetails();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(details));
+      $("smdStatus").textContent =
+        "जानकारी इस ब्राउज़र में सेव हो गई।";
+    } catch (_) {
+      $("smdStatus").textContent =
+        "सेव नहीं हो पाया। ब्राउज़र स्टोरेज उपलब्ध नहीं है।";
+    }
+  });
+
+  $("smdExport").addEventListener("click", function () {
+    const d = getDetails();
+    const text =
+      "SISA MEDIA DETAILS\n\n" +
+      "Title: " + d.title + "\n" +
+      "Description: " + d.description + "\n" +
+      "Alt text: " + d.alt + "\n" +
+      "File: " + (d.fileName || "Not selected") + "\n" +
+      "Type: " + (d.fileType || "N/A") + "\n" +
+      "Size: " + (d.fileSize ? formatBytes(d.fileSize) : "N/A") + "\n";
+
+    const blob = new Blob([text], {type: "text/plain;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sisa-media-details.txt";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    $("smdStatus").textContent = "टेक्स्ट फ़ाइल डाउनलोड शुरू हो गया।";
+  });
+
+  window.SISA_MEDIA_DETAILS = {
+    open: function () {
+      if (window.SISA_FULL_TOOL_NAV &&
+          typeof window.SISA_FULL_TOOL_NAV.open === "function") {
+        window.SISA_FULL_TOOL_NAV.open(
+          "Media Details",
+          "अपनी मीडिया फ़ाइल की जानकारी और पोस्ट विवरण तैयार करें।"
+        );
+      }
+
+      document.querySelectorAll(
+        "#sisaToolsPage, #sisaPostChecklist, #sisaMediaPreview"
+      ).forEach(el => el.style.display = "none");
+
+      page.style.display = "block";
+      readSaved();
+    },
+    close: function () {
+      page.style.display = "none";
+    }
+  };
+})();
+</script>
+<!-- END PART 2AC -->
+  
+<!-- =====================================================
+     SISA AI ASSISTANT — PART 2AD
+     AI CAPTION STUDIO
+===================================================== -->
+<style>
+#sisaCaptionStudio {
+  display: none;
+  padding: 16px;
+  color: #f5f0ff;
+  font-family: inherit;
+}
+#sisaCaptionStudio .scs-card {
+  background: #171222;
+  border: 1px solid #39245a;
+  border-radius: 16px;
+  padding: 15px;
+  margin: 12px 0;
+}
+#sisaCaptionStudio input,
+#sisaCaptionStudio textarea,
+#sisaCaptionStudio select {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  margin-top: 9px;
+  color: white;
+  background: #0d0a14;
+  border: 1px solid #493064;
+  border-radius: 10px;
+  font: inherit;
+}
+#sisaCaptionStudio button {
+  margin: 8px 6px 0 0;
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: #7c3aed;
+  color: white;
+  font-weight: 700;
+}
+#sisaCaptionStudio .scs-muted {
+  color: #b9aaca;
+  font-size: 13px;
+}
+#sisaCaptionStudio #scsOutput {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+</style>
+
+<section id="sisaCaptionStudio">
+  <h2>✨ AI Caption Studio</h2>
+  <p class="scs-muted">
+    पोस्ट की जानकारी भरें और कैप्शन के सुझाव बनाएँ।
+  </p>
+
+  <div class="scs-card">
+    <label for="scsTopic">पोस्ट किस बारे में है?</label>
+    <textarea id="scsTopic" rows="3"
+      placeholder="जैसे: जयपुर ट्रिप, नई फोटो, बिज़नेस लॉन्च..."></textarea>
+
+    <label for="scsPlatform">सोशल मीडिया प्लेटफ़ॉर्म</label>
+    <select id="scsPlatform">
+      <option value="Instagram">Instagram</option>
+      <option value="Facebook">Facebook</option>
+      <option value="YouTube">YouTube</option>
+      <option value="LinkedIn">LinkedIn</option>
+      <option value="X">X</option>
+    </select>
+
+    <label for="scsTone">कैप्शन का अंदाज़</label>
+    <select id="scsTone">
+      <option value="creative">Creative</option>
+      <option value="professional">Professional</option>
+      <option value="funny">Funny</option>
+      <option value="inspiring">Inspiring</option>
+      <option value="simple">Simple</option>
+    </select>
+
+    <label for="scsLanguage">कैप्शन की भाषा</label>
+    <select id="scsLanguage">
+      <option value="Hindi">हिंदी</option>
+      <option value="English">English</option>
+      <option value="Hinglish">Hinglish</option>
+    </select>
+
+    <button type="button" id="scsGenerate">कैप्शन बनाएँ</button>
+  </div>
+
+  <div class="scs-card">
+    <b>आपके कैप्शन सुझाव</b>
+    <div id="scsOutput" style="margin-top:12px">
+      आपके सुझाव यहाँ दिखाई देंगे।
+    </div>
+    <button type="button" id="scsCopy">कॉपी करें</button>
+    <button type="button" id="scsUse">मुख्य पोस्ट में इस्तेमाल करें</button>
+    <div id="scsStatus" class="scs-muted" aria-live="polite"></div>
+  </div>
+</section>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const page = $("sisaCaptionStudio");
+  if (!page || page.dataset.ready === "1") return;
+  page.dataset.ready = "1";
+
+  let generatedCaption = "";
+
+  function makeCaption(topic, tone, language, platform) {
+    const templates = {
+      Hindi: {
+        creative: [
+          "कुछ पल, जो याद बन जाते हैं ✨\n\n" + topic,
+          "हर तस्वीर की अपनी एक कहानी होती है 📸\n\n" + topic,
+          "आज का मूड, आज की कहानी 💜\n\n" + topic
+        ],
+        professional: [
+          topic + "\n\nहर नए कदम के साथ कुछ नया सीखने और आगे बढ़ने का अवसर।",
+          topic + "\n\nगुणवत्ता, रचनात्मकता और निरंतर प्रगति।"
+        ],
+        funny: [
+          "प्लान कुछ और था, हुआ कुछ और 😂\n\n" + topic,
+          "मूड अपना, अंदाज़ अपना 😎\n\n" + topic
+        ],
+        inspiring: [
+          "छोटे कदम भी बड़े सपनों तक ले जाते हैं 🚀\n\n" + topic,
+          "लगातार आगे बढ़ते रहो, हर दिन एक नया मौका है ✨\n\n" + topic
+        ],
+        simple: [
+          topic + " 💜",
+          "आज के कुछ खास पल ✨\n\n" + topic
+        ]
+      },
+      English: {
+        creative: [
+          "Every moment has a story ✨\n\n" + topic,
+          "A little glimpse into my world 📸\n\n" + topic
+        ],
+        professional: [
+          topic + "\n\nCreating value through creativity, quality, and consistency.",
+          topic + "\n\nOne step forward, one idea at a time."
+        ],
+        funny: [
+          "The plan was simple. The results were not 😂\n\n" + topic,
+          "Mood: doing my own thing 😎\n\n" + topic
+        ],
+        inspiring: [
+          "Small steps can lead to big things 🚀\n\n" + topic,
+          "Keep learning, keep growing, keep going ✨\n\n" + topic
+        ],
+        simple: [
+          topic + " 💜",
+          "A moment worth sharing ✨\n\n" + topic
+        ]
+      },
+      Hinglish: {
+        creative: [
+          "Har moment ki apni ek story hoti hai ✨\n\n" + topic,
+          "Aaj ka vibe, aaj ki memories 📸\n\n" + topic
+        ],
+        professional: [
+          topic + "\n\nCreativity, quality aur consistency — har step par.",
+          topic + "\n\nNaye ideas, naye goals, better results."
+        ],
+        funny: [
+          "Plan kuch aur tha, scene kuch aur ho gaya 😂\n\n" + topic,
+          "Apna mood, apna style 😎\n\n" + topic
+        ],
+        inspiring: [
+          "Small steps, big dreams 🚀\n\n" + topic,
+          "Bas seekhte raho aur aage badhte raho ✨\n\n" + topic
+        ],
+        simple: [
+          topic + " 💜",
+          "Kuch khaas moments ✨\n\n" + topic
+        ]
+      }
+    };
+
+    const choices = templates[language][tone] || templates.English.simple;
+    return choices.join("\n\n──────────\n\n") +
+      "\n\n#SISA #ContentCreation";
+  }
+
+  $("scsGenerate").addEventListener("click", function () {
+    const topic = $("scsTopic").value.trim();
+    if (!topic) {
+      $("scsStatus").textContent = "पहले पोस्ट का विषय लिखें।";
+      return;
+    }
+
+    generatedCaption = makeCaption(
+      topic,
+      $("scsTone").value,
+      $("scsLanguage").value,
+      $("scsPlatform").value
+    );
+
+    $("scsOutput").textContent = generatedCaption;
+    $("scsStatus").textContent =
+      "सुझाव तैयार हैं। यह स्थानीय टेम्पलेट आधारित जनरेशन है।";
+  });
+
+  $("scsCopy").addEventListener("click", async function () {
+    if (!generatedCaption) {
+      $("scsStatus").textContent = "पहले कैप्शन बनाएँ।";
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(generatedCaption);
+      $("scsStatus").textContent = "कैप्शन कॉपी हो गया।";
+    } catch (_) {
+      const area = document.createElement("textarea");
+      area.value = generatedCaption;
+      page.appendChild(area);
+      area.select();
+      const ok = document.execCommand("copy");
+      area.remove();
+      $("scsStatus").textContent =
+        ok ? "कैप्शन कॉपी हो गया।" : "कॉपी नहीं हुआ; टेक्स्ट चुनकर कॉपी करें।";
+    }
+  });
+
+  $("scsUse").addEventListener("click", function () {
+    if (!generatedCaption) {
+      $("scsStatus").textContent = "पहले कैप्शन बनाएँ।";
+      return;
+    }
+
+    const captionField = document.querySelector(
+      "#caption, textarea[name='caption'], #postCaption"
+    );
+
+    if (captionField) {
+      captionField.value = generatedCaption;
+      captionField.dispatchEvent(new Event("input", {bubbles:true}));
+      captionField.dispatchEvent(new Event("change", {bubbles:true}));
+      $("scsStatus").textContent = "कैप्शन मुख्य पोस्ट फ़ील्ड में डाल दिया गया।";
+    } else {
+      $("scsStatus").textContent =
+        "मुख्य पोस्ट फ़ील्ड नहीं मिला। कैप्शन कॉपी करके वहाँ पेस्ट करें।";
+    }
+  });
+
+  window.SISA_CAPTION_STUDIO = {
+    open: function () {
+      if (window.SISA_FULL_TOOL_NAV &&
+          typeof window.SISA_FULL_TOOL_NAV.open === "function") {
+        window.SISA_FULL_TOOL_NAV.open(
+          "AI Caption Studio",
+          "पोस्ट के लिए कैप्शन सुझाव तैयार करें।"
+        );
+      }
+      document.querySelectorAll(
+        "#sisaToolsPage, #sisaPostChecklist, #sisaMediaPreview, #sisaMediaDetails"
+      ).forEach(el => el.style.display = "none");
+      page.style.display = "block";
+    }
+  };
+})();
+</script>
+<!-- END PART 2AD -->
+  
+<!-- =====================================================
+     SISA AI ASSISTANT — PART 2AE
+     HASHTAG STUDIO
+===================================================== -->
+<style>
+#sisaHashtagStudio {
+  display: none;
+  padding: 16px;
+  color: #f5f0ff;
+  font-family: inherit;
+}
+#sisaHashtagStudio .shs-card {
+  background: #171222;
+  border: 1px solid #39245a;
+  border-radius: 16px;
+  padding: 15px;
+  margin: 12px 0;
+}
+#sisaHashtagStudio input,
+#sisaHashtagStudio select {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  margin-top: 9px;
+  color: white;
+  background: #0d0a14;
+  border: 1px solid #493064;
+  border-radius: 10px;
+  font: inherit;
+}
+#sisaHashtagStudio button {
+  margin: 8px 6px 0 0;
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: #7c3aed;
+  color: white;
+  font-weight: 700;
+}
+#sisaHashtagStudio .shs-muted {
+  color: #b9aaca;
+  font-size: 13px;
+}
+#sisaHashtagStudio #shsOutput {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+}
+</style>
+
+<section id="sisaHashtagStudio">
+  <h2>＃ Hashtag Studio</h2>
+  <p class="shs-muted">अपनी पोस्ट के विषय के अनुसार hashtag suggestions बनाएँ।</p>
+
+  <div class="shs-card">
+    <label for="shsTopic">पोस्ट का विषय</label>
+    <input id="shsTopic" placeholder="जैसे Jaipur travel, photography, fitness">
+
+    <label for="shsPlatform">प्लेटफ़ॉर्म</label>
+    <select id="shsPlatform">
+      <option value="instagram">Instagram</option>
+      <option value="facebook">Facebook</option>
+      <option value="youtube">YouTube</option>
+      <option value="linkedin">LinkedIn</option>
+      <option value="x">X</option>
+    </select>
+
+    <label for="shsCount">Hashtags की संख्या</label>
+    <select id="shsCount">
+      <option value="5">5 Hashtags</option>
+      <option value="10" selected>10 Hashtags</option>
+      <option value="15">15 Hashtags</option>
+      <option value="20">20 Hashtags</option>
+    </select>
+
+    <button type="button" id="shsGenerate">Hashtags बनाएँ</button>
+  </div>
+
+  <div class="shs-card">
+    <b>आपके Hashtag सुझाव</b>
+    <div id="shsOutput" style="margin-top:12px">
+      आपके hashtags यहाँ दिखाई देंगे।
+    </div>
+    <button type="button" id="shsCopy">कॉपी करें</button>
+    <button type="button" id="shsUse">Caption में जोड़ें</button>
+    <div id="shsStatus" class="shs-muted" aria-live="polite"></div>
+  </div>
+</section>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const page = $("sisaHashtagStudio");
+  if (!page || page.dataset.ready === "1") return;
+  page.dataset.ready = "1";
+
+  let result = "";
+
+  function makeHashtags(topic, count, platform) {
+    const words = topic
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .split(/[^a-zA-Z0-9\u0900-\u097F]+/)
+      .filter(Boolean);
+
+    const cleanTopic = words
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join("");
+
+    const common = {
+      instagram: ["ContentCreator", "InstaDaily", "ExploreMore", "CreativeContent"],
+      facebook: ["FacebookCommunity", "ShareYourStory", "DailyUpdates"],
+      youtube: ["YouTubeCreator", "NewVideo", "VideoContent", "Subscribe"],
+      linkedin: ["ProfessionalGrowth", "CareerDevelopment", "Networking", "Innovation"],
+      x: ["TrendingTopics", "DailyThoughts", "JoinTheConversation"]
+    };
+
+    const candidates = [
+      ...(cleanTopic ? [cleanTopic] : []),
+      ...words.map(w => w.charAt(0).toUpperCase() + w.slice(1)),
+      ...(common[platform] || common.instagram),
+      "SISA", "DigitalCreator", "CreativeIdeas", "ContentCreation",
+      "DiscoverMore", "Inspiration", "DailyInspiration"
+    ];
+
+    const unique = [];
+    candidates.forEach(tag => {
+      const value = "#" + tag.replace(/[^a-zA-Z0-9\u0900-\u097F]/g, "");
+      if (value.length > 1 && !unique.includes(value)) unique.push(value);
+    });
+
+    return unique.slice(0, count).join(" ");
+  }
+
+  $("shsGenerate").addEventListener("click", function () {
+    const topic = $("shsTopic").value.trim();
+    if (!topic) {
+      $("shsStatus").textContent = "पहले पोस्ट का विषय लिखें।";
+      return;
+    }
+
+    result = makeHashtags(
+      topic,
+      Number($("shsCount").value),
+      $("shsPlatform").value
+    );
+
+    $("shsOutput").textContent = result;
+    $("shsStatus").textContent =
+      "Hashtags तैयार हैं। ये विषय-आधारित सुझाव हैं, लाइव ट्रेंडिंग डेटा नहीं।";
+  });
+
+  $("shsCopy").addEventListener("click", async function () {
+    if (!result) {
+      $("shsStatus").textContent = "पहले hashtags बनाएँ।";
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(result);
+      $("shsStatus").textContent = "Hashtags कॉपी हो गए।";
+    } catch (_) {
+      const area = document.createElement("textarea");
+      area.value = result;
+      page.appendChild(area);
+      area.select();
+      const ok = document.execCommand("copy");
+      area.remove();
+      $("shsStatus").textContent =
+        ok ? "Hashtags कॉपी हो गए।" : "टेक्स्ट चुनकर कॉपी करें।";
+    }
+  });
+
+  $("shsUse").addEventListener("click", function () {
+    if (!result) {
+      $("shsStatus").textContent = "पहले hashtags बनाएँ।";
+      return;
+    }
+
+    const field = document.querySelector(
+      "#hashtags, textarea[name='hashtags'], #caption, textarea[name='caption']"
+    );
+
+    if (!field) {
+      $("shsStatus").textContent =
+        "Caption/Hashtags फ़ील्ड नहीं मिला। कॉपी करके वहाँ पेस्ट करें।";
+      return;
+    }
+
+    field.value = (field.value.trim() + " " + result).trim();
+    field.dispatchEvent(new Event("input", { bubbles: true }));
+    field.dispatchEvent(new Event("change", { bubbles: true }));
+    $("shsStatus").textContent = "Hashtags फ़ील्ड में जोड़ दिए गए।";
+  });
+
+  window.SISA_HASHTAGS = {
+    open: function () {
+      if (window.SISA_FULL_TOOL_NAV &&
+          typeof window.SISA_FULL_TOOL_NAV.open === "function") {
+        window.SISA_FULL_TOOL_NAV.open(
+          "Hashtag Studio",
+          "पोस्ट के विषय के अनुसार hashtag suggestions बनाएँ।"
+        );
+      }
+
+      document.querySelectorAll(
+        "#sisaToolsPage, #sisaPostChecklist, #sisaMediaPreview, #sisaMediaDetails, #sisaCaptionStudio"
+      ).forEach(el => el.style.display = "none");
+
+      page.style.display = "block";
+    },
+    generate: makeHashtags
+  };
+})();
+</script>
+<!-- END PART 2AE -->
+  
+<!-- =====================================================
+     SISA AI ASSISTANT — PART 2AF
+     CONTENT IDEA VAULT
+===================================================== -->
+<style>
+#sisaIdeaVault {
+  display: none;
+  padding: 16px;
+  color: #f5f0ff;
+  font-family: inherit;
+}
+#sisaIdeaVault .siv-card {
+  background: #171222;
+  border: 1px solid #39245a;
+  border-radius: 16px;
+  padding: 15px;
+  margin: 12px 0;
+}
+#sisaIdeaVault input,
+#sisaIdeaVault select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  margin-top: 9px;
+  background: #0d0a14;
+  color: white;
+  border: 1px solid #493064;
+  border-radius: 10px;
+  font: inherit;
+}
+#sisaIdeaVault button {
+  margin: 7px 5px 0 0;
+  padding: 10px 13px;
+  border: 0;
+  border-radius: 10px;
+  color: white;
+  background: #7c3aed;
+  font-weight: 700;
+}
+#sisaIdeaVault .siv-muted {
+  color: #b9aaca;
+  font-size: 13px;
+}
+#sisaIdeaVault .siv-idea {
+  background: #100c19;
+  border: 1px solid #39245a;
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+}
+</style>
+
+<section id="sisaIdeaVault">
+  <h2>💡 Content Idea Vault</h2>
+  <p class="siv-muted">अपने content ideas सेव करो और बाद में इस्तेमाल करो।</p>
+
+  <div class="siv-card">
+    <label for="sivCategory">Content category</label>
+    <select id="sivCategory">
+      <option>Instagram</option>
+      <option>YouTube</option>
+      <option>Business</option>
+      <option>Photography</option>
+      <option>Travel</option>
+      <option>Education</option>
+      <option>Motivation</option>
+      <option>Other</option>
+    </select>
+
+    <label for="sivIdea">अपना नया आइडिया</label>
+    <input id="sivIdea" maxlength="300"
+      placeholder="जैसे: Jaipur के hidden places पर पोस्ट">
+
+    <button type="button" id="sivAdd">＋ आइडिया सेव करें</button>
+    <button type="button" id="sivSuggest">आइडिया सुझाव</button>
+    <div id="sivStatus" class="siv-muted" aria-live="polite"></div>
+  </div>
+
+  <div class="siv-card">
+    <b>मेरे सेव किए गए आइडियाज़</b>
+    <div id="sivList"></div>
+    <button type="button" id="sivExport">आइडियाज़ डाउनलोड करें</button>
+  </div>
+</section>
+
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const page = $("sisaIdeaVault");
+  if (!page || page.dataset.ready === "1") return;
+  page.dataset.ready = "1";
+
+  const KEY = "sisa_idea_vault_v1";
+  let ideas = [];
+
+  function loadIdeas() {
+    try {
+      ideas = JSON.parse(localStorage.getItem(KEY) || "[]");
+      if (!Array.isArray(ideas)) ideas = [];
+    } catch (_) {
+      ideas = [];
+    }
+  }
+
+  function saveIdeas() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(ideas));
+      return true;
+    } catch (_) {
+      $("sivStatus").textContent =
+        "सेव नहीं हो पाया। ब्राउज़र स्टोरेज उपलब्ध नहीं है।";
+      return false;
+    }
+  }
+
+  function renderIdeas() {
+    const list = $("sivList");
+    list.replaceChildren();
+
+    if (!ideas.length) {
+      const empty = document.createElement("p");
+      empty.className = "siv-muted";
+      empty.textContent = "अभी कोई आइडिया सेव नहीं है।";
+      list.appendChild(empty);
+      return;
+    }
+
+    ideas.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "siv-idea";
+
+      const heading = document.createElement("b");
+      heading.textContent = item.category || "Other";
+
+      const body = document.createElement("p");
+      body.textContent = item.text;
+
+      const date = document.createElement("div");
+      date.className = "siv-muted";
+      date.textContent = item.date || "";
+
+      const useButton = document.createElement("button");
+      useButton.textContent = "Caption में इस्तेमाल करें";
+      useButton.addEventListener("click", function () {
+        const field = document.querySelector(
+          "#caption, textarea[name='caption'], #postCaption"
+        );
+        if (field) {
+          field.value = item.text;
+          field.dispatchEvent(new Event("input", { bubbles: true }));
+          field.dispatchEvent(new Event("change", { bubbles: true }));
+          $("sivStatus").textContent = "आइडिया Caption फ़ील्ड में डाल दिया।";
+        } else {
+          $("sivStatus").textContent =
+            "Caption फ़ील्ड नहीं मिला। आइडिया कॉपी करके पेस्ट करें।";
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(item.text).catch(() => {});
+          }
+        }
+      });
+
+      const deleteButton = document.createElement("button");
+      deleteButton.textContent = "हटाएँ";
+      deleteButton.addEventListener("click", function () {
+        ideas = ideas.filter(idea => idea.id !== item.id);
+        if (saveIdeas()) {
+          renderIdeas();
+          $("sivStatus").textContent = "आइडिया हटा दिया गया।";
+        }
+      });
+
+      card.append(heading, body, date, useButton, deleteButton);
+      list.appendChild(card);
+    });
+  }
+
+  $("sivAdd").addEventListener("click", function () {
+    const text = $("sivIdea").value.trim();
+    if (!text) {
+      $("sivStatus").textContent = "पहले अपना आइडिया लिखें।";
+      return;
+    }
+
+    ideas.unshift({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
+      category: $("sivCategory").value,
+      text,
+      date: new Date().toLocaleDateString()
+    });
+
+    if (saveIdeas()) {
+      $("sivIdea").value = "";
+      renderIdeas();
+      $("sivStatus").textContent = "आइडिया सेव हो गया।";
+    }
+  });
+
+  $("sivSuggest").addEventListener("click", function () {
+    const category = $("sivCategory").value;
+    const suggestions = {
+      Instagram: "एक दिन की झलक, फोटो के पीछे की कहानी, 3 उपयोगी टिप्स",
+      YouTube: "Beginner guide, step-by-step tutorial, एक दिन का अनुभव",
+      Business: "ग्राहक की समस्या का समाधान, उत्पाद की खासियत, FAQ पोस्ट",
+      Photography: "Before/after editing, photo composition tips, location shoot",
+      Travel: "Hidden places, travel budget, one-day itinerary",
+      Education: "एक concept आसान भाषा में, study tips, common mistakes",
+      Motivation: "सीखने का अनुभव, छोटे लक्ष्य, progress update",
+      Other: "एक उपयोगी टिप, personal experience, सवाल-जवाब पोस्ट"
+    };
+
+    const suggestion = suggestions[category] || suggestions.Other;
+    $("sivIdea").value = suggestion;
+    $("sivStatus").textContent =
+      "सुझाव तैयार है। सेव करने से पहले इसे अपने हिसाब से बदल सकते हैं।";
+  });
+
+  $("sivExport").addEventListener("click", function () {
+    const content = ideas.map((item, i) =>
+      (i + 1) + ". [" + item.category + "] " + item.text
+    ).join("\n\n");
+
+    if (!content) {
+      $("sivStatus").textContent = "डाउनलोड करने के लिए कोई आइडिया नहीं है।";
+      return;
+    }
+
+    const blob = new Blob([content], {
+      type: "text/plain;charset=utf-8"
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sisa-content-ideas.txt";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  window.SISA_IDEA_VAULT = {
+    open: function () {
+      document.querySelectorAll(
+        "#sisaToolsPage, #sisaPostChecklist, #sisaMediaPreview, #sisaMediaDetails, #sisaCaptionStudio, #sisaHashtagStudio"
+      ).forEach(el => el.style.display = "none");
+
+      if (window.SISA_FULL_TOOL_NAV &&
+          typeof window.SISA_FULL_TOOL_NAV.open === "function") {
+        window.SISA_FULL_TOOL_NAV.open(
+          "Idea Vault",
+          "अपने content ideas सेव करें और व्यवस्थित रखें।"
+        );
+      }
+
+      page.style.display = "block";
+      loadIdeas();
+      renderIdeas();
+    },
+    getIdeas: function () {
+      return ideas.slice();
+    }
+  };
+
+  loadIdeas();
+  renderIdeas();
+})();
+</script>
+<!-- END PART 2AF -->
+  
+
+
+
+  
 
 
 
