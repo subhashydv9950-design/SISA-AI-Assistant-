@@ -9189,6 +9189,28 @@ renderSchedule();
 
   /* =============== PART 2X END — TOOLS PAGE =============== */
 })();
+  /* =====================================================
+ SISA PART 2X FIX — HIDE FLOATING TOOL BUTTONS
+ Keep tool buttons only inside the Tools page
+===================================================== */
+
+/* Hide only the existing floating tool shortcuts */
+body .sisa-tools-managed-floating {
+  display: none !important;
+}
+
+/* Hide common floating shortcuts from earlier tool parts */
+body > button[id^="sisa"],
+body > div > button[id^="sisa"] {
+  /* Keep unrelated SISA controls unchanged */
+}
+
+/* The Tools page itself must remain visible when opened */
+#sisaToolsPage {
+  display: none;
+}
+
+/* =============== END FLOATING TOOLS FIX =============== */
 </script>
 
     
