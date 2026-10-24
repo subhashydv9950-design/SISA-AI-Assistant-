@@ -1846,5 +1846,159 @@ renderSchedule();
   }
 })();
   </script>
+  <script>
+/* =====================================================
+   SISA AI ASSISTANT — PART 2E
+   AUTO SAVE + RESTORE DRAFTS
+===================================================== */
+
+(function () {
+  const STORAGE_KEY = "sisa_saved_drafts_v1";
+
+  const fields = {
+    title: "#postTitle",
+    caption: "#caption",
+    hashtags: "#hashtags",
+    platform: "#platform",
+    type: "#contentType",
+    schedule: "#scheduleTime"
+  };
+
+  function getElement(selector) {
+    return document.querySelector(selector);
+  }
+
+  function readForm() {
+    const draft = {
+      id: Date.now(),
+      updatedAt: new Date().toISOString()
+    };
+
+    Object.entries(fields).forEach(([key, selector]) => {
+      const element = getElement(selector);
+      if (element) draft[key] = element.value || "";
+    });
+
+    return draft;
+  }
+
+  function getDrafts() {
+    try {
+      return JSON.parse(
+        localStorage.getItem(STORAGE_KEY) || "[]"
+      );
+    } catch {
+      return [];
+    }
+  }
+
+  function saveDraft(showMessage = true) {
+    const draft = readForm();
+
+    if (
+      !draft.title?.trim() &&
+      !draft.caption?.trim() &&
+      !draft.hashtags?.trim()
+    ) {
+      if (showMessage) {
+        alert("Please enter a title, caption, or hashtags first.");
+      }
+      return;
+    }
+
+    const drafts = getDrafts();
+    drafts.unshift(draft);
+
+    // Keep the most recent 100 drafts.
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(drafts.slice(0, 100))
+    );
+
+    if (showMessage) {
+      alert("Draft saved on this device!");
+    }
+
+    window.dispatchEvent(
+      new CustomEvent("sisa:draftSaved", {
+        detail: draft
+      })
+    );
+  }
+
+  function restoreLatestDraft() {
+    const drafts = getDrafts();
+    if (!drafts.length) return;
+
+    const latest = drafts[0];
+
+    Object.entries(fields).forEach(([key, selector]) => {
+      const element = getElement(selector);
+      if (element && latest[key] !== undefined) {
+        element.value = latest[key];
+      }
+    });
+  }
+
+  function enableAutoSave() {
+    Object.values(fields).forEach(selector => {
+      const element = getElement(selector);
+      if (!element) return;
+
+      element.addEventListener("change", () => {
+        // Save a working copy without showing repeated alerts.
+        const draft = readForm();
+        localStorage.setItem(
+          "sisa_working_draft_v1",
+          JSON.stringify(draft)
+        );
+      });
+    });
+
+    const button = getElement("#saveDraftButton");
+    if (button) {
+      button.addEventListener("click", event => {
+        event.preventDefault();
+        saveDraft(true);
+      });
+    }
+
+    try {
+      const working = JSON.parse(
+        localStorage.getItem("sisa_working_draft_v1") || "null"
+      );
+
+      if (working) {
+        Object.entries(fields).forEach(([key, selector]) => {
+          const element = getElement(selector);
+          if (
+            element &&
+            working[key] !== undefined &&
+            !element.value
+          ) {
+            element.value = working[key];
+          }
+        });
+      } else {
+        restoreLatestDraft();
+      }
+    } catch (error) {
+      console.warn("SISA draft restore issue:", error);
+    }
+  }
+
+  window.SISA_DRAFTS = {
+    save: saveDraft,
+    getAll: getDrafts,
+    restoreLatest: restoreLatestDraft
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", enableAutoSave);
+  } else {
+    enableAutoSave();
+  }
+})();
+  </script>
 </body>
 </html>
