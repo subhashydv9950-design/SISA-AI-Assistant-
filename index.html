@@ -5613,5 +5613,945 @@ renderSchedule();
 </script>
 
 <!-- =============== PART 2P END =============== -->
+  <!-- =====================================================
+     SISA AI ASSISTANT — PART 2Q
+     CONTENT CALENDAR + MONTHLY PLANNER
+===================================================== -->
+
+<style>
+#sisaCalendarOpen {
+  position: fixed;
+  right: 18px;
+  bottom: 445px;
+  z-index: 9986;
+  padding: 12px 15px;
+  border: 1px solid #c4b5fd;
+  border-radius: 12px;
+  background: linear-gradient(135deg,#312e81,#7c3aed);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#sisaCalendarPanel {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10004;
+  padding: 14px;
+  overflow-y: auto;
+  background: #080611ef;
+  color: white;
+}
+
+.sisa-calendar-box {
+  max-width: 950px;
+  margin: 20px auto;
+  padding: 20px;
+  border: 1px solid #553782;
+  border-radius: 18px;
+  background: #171020;
+}
+
+.sisa-calendar-box h2,
+.sisa-calendar-box h3 {
+  color: #c4b5fd;
+}
+
+.sisa-calendar-toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 16px 0;
+}
+
+.sisa-calendar-toolbar button,
+.sisa-calendar-actions button,
+#sisaCalendarForm button {
+  padding: 10px 13px;
+  border: 0;
+  border-radius: 9px;
+  background: #7c3aed;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sisa-calendar-toolbar button.secondary,
+.sisa-calendar-actions button.secondary {
+  background: #30243f;
+  border: 1px solid #59456e;
+}
+
+#sisaCalendarMonth {
+  color: #f5f3ff;
+  font-weight: 700;
+  min-width: 130px;
+  text-align: center;
+}
+
+#sisaCalendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7,minmax(0,1fr));
+  gap: 5px;
+  margin-top: 14px;
+}
+
+.sisa-calendar-weekday {
+  text-align: center;
+  padding: 8px 2px;
+  color: #c4b5fd;
+  font-size: 12px;
+}
+
+.sisa-calendar-day {
+  min-height: 70px;
+  padding: 7px;
+  border: 1px solid #39284e;
+  border-radius: 9px;
+  background: #211831;
+  color: white;
+  text-align: left;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.sisa-calendar-day:disabled {
+  opacity: .3;
+  cursor: default;
+}
+
+.sisa-calendar-day.selected {
+  border: 2px solid #a78bfa;
+  background: #39245c;
+}
+
+.sisa-calendar-day.today {
+  box-shadow: inset 0 0 0 1px #c4b5fd;
+}
+
+.sisa-calendar-day .day-number {
+  font-weight: 700;
+}
+
+.sisa-calendar-day .event-count {
+  display: block;
+  margin-top: 8px;
+  font-size: 10px;
+  color: #ddd6fe;
+}
+
+#sisaCalendarForm {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid #39284e;
+}
+
+#sisaCalendarForm label {
+  display: block;
+  margin-bottom: 6px;
+  color: #d8ccf3;
+  font-size: 13px;
+}
+
+#sisaCalendarForm input,
+#sisaCalendarForm select,
+#sisaCalendarForm textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 11px;
+  border: 1px solid #49365f;
+  border-radius: 9px;
+  background: #0d0915;
+  color: white;
+  font: inherit;
+}
+
+#sisaCalendarForm .full-width {
+  grid-column: 1 / -1;
+}
+
+.sisa-calendar-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#sisaCalendarEntries {
+  display: grid;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.sisa-calendar-entry {
+  padding: 13px;
+  border: 1px solid #49365f;
+  border-radius: 11px;
+  background: #211831;
+  overflow-wrap: anywhere;
+}
+
+.sisa-calendar-entry strong {
+  color: #ddd6fe;
+}
+
+.sisa-calendar-entry p {
+  white-space: pre-wrap;
+  font-size: 13px;
+}
+
+#sisaCalendarStatus {
+  color: #c4b5fd;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+@media(max-width:600px) {
+  .sisa-calendar-box {
+    margin: 6px auto;
+    padding: 12px;
+  }
+
+  #sisaCalendarGrid {
+    gap: 3px;
+  }
+
+  .sisa-calendar-day {
+    min-height: 52px;
+    padding: 4px;
+    font-size: 12px;
+  }
+
+  .sisa-calendar-day .event-count {
+    font-size: 9px;
+  }
+
+  #sisaCalendarForm {
+    grid-template-columns: 1fr;
+  }
+
+  #sisaCalendarForm .full-width {
+    grid-column: auto;
+  }
+
+  #sisaCalendarOpen {
+    right: 10px;
+    bottom: 440px;
+  }
+}
+</style>
+
+<button id="sisaCalendarOpen" type="button">
+  📅 Content Calendar
+</button>
+
+<div id="sisaCalendarPanel">
+  <div class="sisa-calendar-box">
+    <h2 id="sisaCalendarHeading">SISA Content Calendar</h2>
+
+    <p id="sisaCalendarDescription">
+      Plan your posts by date. Saved plans remain in this browser.
+    </p>
+
+    <div class="sisa-calendar-toolbar">
+      <button id="sisaCalendarPrev" class="secondary" type="button">←</button>
+      <div id="sisaCalendarMonth"></div>
+      <button id="sisaCalendarNext" class="secondary" type="button">→</button>
+      <button id="sisaCalendarToday" type="button">Today</button>
+      <button id="sisaCalendarClose" class="secondary" type="button">Close</button>
+    </div>
+
+    <div id="sisaCalendarGrid"></div>
+
+    <form id="sisaCalendarForm">
+      <div class="full-width">
+        <h3 id="sisaCalendarFormHeading">Add a content plan</h3>
+      </div>
+
+      <div>
+        <label id="sisaCalendarDateLabel" for="sisaCalendarDate">Post date</label>
+        <input id="sisaCalendarDate" type="date" required>
+      </div>
+
+      <div>
+        <label id="sisaCalendarTimeLabel" for="sisaCalendarTime">Planned time</label>
+        <input id="sisaCalendarTime" type="time" value="18:00">
+      </div>
+
+      <div>
+        <label id="sisaCalendarTitleLabel" for="sisaCalendarTitle">Post title</label>
+        <input id="sisaCalendarTitle" type="text" maxlength="150" required>
+      </div>
+
+      <div>
+        <label id="sisaCalendarPlatformLabel" for="sisaCalendarPlatform">
+          Platform
+        </label>
+        <select id="sisaCalendarPlatform">
+          <option>Instagram</option>
+          <option>Facebook</option>
+          <option>YouTube</option>
+          <option>TikTok</option>
+          <option>LinkedIn</option>
+          <option>X</option>
+        </select>
+      </div>
+
+      <div class="full-width">
+        <label id="sisaCalendarCaptionLabel" for="sisaCalendarCaption">
+          Caption / notes
+        </label>
+        <textarea id="sisaCalendarCaption" rows="3" maxlength="5000"></textarea>
+      </div>
+
+      <div class="full-width sisa-calendar-actions">
+        <button id="sisaCalendarSave" type="submit">Save Plan</button>
+        <button id="sisaCalendarLoadMain" type="button">Load into Main Form</button>
+        <button id="sisaCalendarNew" class="secondary" type="button">New Plan</button>
+      </div>
+    </form>
+
+    <h3 id="sisaCalendarEntriesHeading">Plans for selected date</h3>
+    <div id="sisaCalendarEntries"></div>
+    <div id="sisaCalendarStatus" aria-live="polite"></div>
+
+    <p style="color:#a99cbd;font-size:12px;margin-top:18px">
+      Calendar plans are stored locally in this browser. They do not
+      automatically publish posts or run in the background.
+    </p>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const panel = document.getElementById("sisaCalendarPanel");
+  const openButton = document.getElementById("sisaCalendarOpen");
+  const grid = document.getElementById("sisaCalendarGrid");
+  const form = document.getElementById("sisaCalendarForm");
+  const dateInput = document.getElementById("sisaCalendarDate");
+  const timeInput = document.getElementById("sisaCalendarTime");
+  const titleInput = document.getElementById("sisaCalendarTitle");
+  const platformInput = document.getElementById("sisaCalendarPlatform");
+  const captionInput = document.getElementById("sisaCalendarCaption");
+  const entriesBox = document.getElementById("sisaCalendarEntries");
+  const status = document.getElementById("sisaCalendarStatus");
+
+  if (!panel || !openButton || !grid || !form) return;
+
+  const STORAGE_KEY = "sisa_content_calendar_v1";
+  const localeMap = {
+    en: "en-US",
+    hi: "hi-IN",
+    fr: "fr-FR",
+    de: "de-DE",
+    es: "es-ES",
+    ja: "ja-JP",
+    zh: "zh-CN",
+    ko: "ko-KR",
+    bn: "bn-BD",
+    ru: "ru-RU"
+  };
+
+  const dictionaries = {
+    en: {
+      button: "📅 Content Calendar",
+      heading: "SISA Content Calendar",
+      description: "Plan your posts by date. Saved plans remain in this browser.",
+      prev: "←", next: "→", today: "Today", close: "Close",
+      formHeading: "Add a content plan",
+      date: "Post date", time: "Planned time", title: "Post title",
+      platform: "Platform", caption: "Caption / notes",
+      save: "Save Plan", load: "Load into Main Form", fresh: "New Plan",
+      entries: "Plans for selected date", empty: "No plans for this date.",
+      saved: "Plan saved in this browser.", deleted: "Plan deleted.",
+      required: "Enter a date and post title first.",
+      loaded: "Plan copied into available main-form fields.",
+      loadMissing: "Main form fields were not found.",
+      storageError: "Browser storage is unavailable; this plan could not be saved.",
+      edit: "Edit", remove: "Delete", noTitle: "Untitled",
+      weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    },
+    hi: {
+      button: "📅 कंटेंट कैलेंडर",
+      heading: "SISA कंटेंट कैलेंडर",
+      description: "तारीख के अनुसार पोस्ट प्लान करें। प्लान इसी ब्राउज़र में सेव होंगे।",
+      prev: "←", next: "→", today: "आज", close: "बंद करें",
+      formHeading: "नया कंटेंट प्लान",
+      date: "पोस्ट की तारीख", time: "पोस्ट का समय", title: "पोस्ट का शीर्षक",
+      platform: "प्लेटफ़ॉर्म", caption: "कैप्शन / नोट्स",
+      save: "प्लान सेव करें", load: "मुख्य फ़ॉर्म में डालें", fresh: "नया प्लान",
+      entries: "चुनी तारीख के प्लान", empty: "इस तारीख के लिए कोई प्लान नहीं है।",
+      saved: "प्लान इस ब्राउज़र में सेव हो गया।", deleted: "प्लान हटा दिया गया।",
+      required: "पहले तारीख और पोस्ट का शीर्षक भरें।",
+      loaded: "प्लान उपलब्ध मुख्य फ़ॉर्म फ़ील्ड में डाल दिया गया।",
+      loadMissing: "मुख्य फ़ॉर्म के फ़ील्ड नहीं मिले।",
+      storageError: "ब्राउज़र स्टोरेज उपलब्ध नहीं है; प्लान सेव नहीं हुआ।",
+      edit: "एडिट", remove: "हटाएँ", noTitle: "बिना शीर्षक",
+      weekdays: ["रवि", "सोम", "मंगल", "बुध", "गुरु", "शुक्र", "शनि"]
+    },
+    fr: {
+      button: "📅 Calendrier de contenu",
+      heading: "Calendrier de contenu SISA",
+      description: "Planifiez vos publications par date dans ce navigateur.",
+      prev: "←", next: "→", today: "Aujourd’hui", close: "Fermer",
+      formHeading: "Ajouter un plan", date: "Date", time: "Heure prévue",
+      title: "Titre", platform: "Plateforme", caption: "Légende / notes",
+      save: "Enregistrer", load: "Charger dans le formulaire", fresh: "Nouveau plan",
+      entries: "Plans de la date choisie", empty: "Aucun plan pour cette date.",
+      saved: "Plan enregistré.", deleted: "Plan supprimé.",
+      required: "Saisissez une date et un titre.",
+      loaded: "Plan chargé dans les champs disponibles.",
+      loadMissing: "Champs du formulaire principal introuvables.",
+      storageError: "Stockage du navigateur indisponible.",
+      edit: "Modifier", remove: "Supprimer", noTitle: "Sans titre",
+      weekdays: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"]
+    },
+    de: {
+      button: "📅 Inhaltskalender",
+      heading: "SISA-Inhaltskalender",
+      description: "Plane Beiträge nach Datum in diesem Browser.",
+      prev: "←", next: "→", today: "Heute", close: "Schließen",
+      formHeading: "Inhaltsplan hinzufügen", date: "Beitragsdatum",
+      time: "Geplante Uhrzeit", title: "Beitragstitel",
+      platform: "Plattform", caption: "Caption / Notizen",
+      save: "Plan speichern", load: "Ins Hauptformular laden", fresh: "Neuer Plan",
+      entries: "Pläne für das ausgewählte Datum", empty: "Keine Pläne für dieses Datum.",
+      saved: "Plan gespeichert.", deleted: "Plan gelöscht.",
+      required: "Bitte Datum und Titel eingeben.",
+      loaded: "Plan in verfügbare Hauptfelder geladen.",
+      loadMissing: "Hauptformularfelder nicht gefunden.",
+      storageError: "Browserspeicher nicht verfügbar.",
+      edit: "Bearbeiten", remove: "Löschen", noTitle: "Ohne Titel",
+      weekdays: ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"]
+    },
+    es: {
+      button: "📅 Calendario de contenido",
+      heading: "Calendario de contenido SISA",
+      description: "Planifica publicaciones por fecha en este navegador.",
+      prev: "←", next: "→", today: "Hoy", close: "Cerrar",
+      formHeading: "Añadir un plan", date: "Fecha", time: "Hora prevista",
+      title: "Título", platform: "Plataforma", caption: "Texto / notas",
+      save: "Guardar plan", load: "Cargar en formulario", fresh: "Nuevo plan",
+      entries: "Planes de la fecha seleccionada", empty: "No hay planes para esta fecha.",
+      saved: "Plan guardado.", deleted: "Plan eliminado.",
+      required: "Introduce una fecha y un título.",
+      loaded: "Plan cargado en los campos disponibles.",
+      loadMissing: "No se encontraron los campos principales.",
+      storageError: "El almacenamiento del navegador no está disponible.",
+      edit: "Editar", remove: "Eliminar", noTitle: "Sin título",
+      weekdays: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
+    },
+    ja: {
+      button: "📅 コンテンツカレンダー",
+      heading: "SISA コンテンツカレンダー",
+      description: "このブラウザーで投稿を日付ごとに計画します。",
+      prev: "←", next: "→", today: "今日", close: "閉じる",
+      formHeading: "投稿プランを追加", date: "投稿日", time: "予定時刻",
+      title: "投稿タイトル", platform: "プラットフォーム", caption: "キャプション / メモ",
+      save: "プランを保存", load: "メインフォームに読み込む", fresh: "新しいプラン",
+      entries: "選択日のプラン", empty: "この日のプランはありません。",
+      saved: "プランを保存しました。", deleted: "プランを削除しました。",
+      required: "日付とタイトルを入力してください。",
+      loaded: "利用可能なメインフォームに読み込みました。",
+      loadMissing: "メインフォームが見つかりません。",
+      storageError: "ブラウザーの保存領域を利用できません。",
+      edit: "編集", remove: "削除", noTitle: "無題",
+      weekdays: ["日", "月", "火", "水", "木", "金", "土"]
+    },
+    zh: {
+      button: "📅 内容日历",
+      heading: "SISA 内容日历",
+      description: "在此浏览器中按日期规划帖子。",
+      prev: "←", next: "→", today: "今天", close: "关闭",
+      formHeading: "添加内容计划", date: "发布日期", time: "计划时间",
+      title: "帖子标题", platform: "平台", caption: "文案 / 备注",
+      save: "保存计划", load: "加载到主表单", fresh: "新建计划",
+      entries: "所选日期的计划", empty: "此日期没有计划。",
+      saved: "计划已保存。", deleted: "计划已删除。",
+      required: "请先输入日期和标题。",
+      loaded: "已加载到可用的主表单字段。",
+      loadMissing: "未找到主表单字段。",
+      storageError: "浏览器存储不可用。",
+      edit: "编辑", remove: "删除", noTitle: "无标题",
+      weekdays: ["日", "一", "二", "三", "四", "五", "六"]
+    },
+    ko: {
+      button: "📅 콘텐츠 캘린더",
+      heading: "SISA 콘텐츠 캘린더",
+      description: "이 브라우저에서 날짜별 게시물을 계획하세요.",
+      prev: "←", next: "→", today: "오늘", close: "닫기",
+      formHeading: "콘텐츠 계획 추가", date: "게시 날짜", time: "예정 시간",
+      title: "게시물 제목", platform: "플랫폼", caption: "캡션 / 메모",
+      save: "계획 저장", load: "메인 양식에 불러오기", fresh: "새 계획",
+      entries: "선택한 날짜의 계획", empty: "이 날짜에는 계획이 없습니다.",
+      saved: "계획을 저장했습니다.", deleted: "계획을 삭제했습니다.",
+      required: "날짜와 제목을 입력하세요.",
+      loaded: "사용 가능한 메인 양식에 불러왔습니다.",
+      loadMissing: "메인 양식 필드를 찾지 못했습니다.",
+      storageError: "브라우저 저장소를 사용할 수 없습니다.",
+      edit: "수정", remove: "삭제", noTitle: "제목 없음",
+      weekdays: ["일", "월", "화", "수", "목", "금", "토"]
+    },
+    bn: {
+      button: "📅 কনটেন্ট ক্যালেন্ডার",
+      heading: "SISA কনটেন্ট ক্যালেন্ডার",
+      description: "এই ব্রাউজারে তারিখ অনুযায়ী পোস্ট পরিকল্পনা করুন।",
+      prev: "←", next: "→", today: "আজ", close: "বন্ধ করুন",
+      formHeading: "নতুন পরিকল্পনা", date: "পোস্টের তারিখ",
+      time: "নির্ধারিত সময়", title: "পোস্টের শিরোনাম",
+      platform: "প্ল্যাটফর্ম", caption: "ক্যাপশন / নোট",
+      save: "পরিকল্পনা সংরক্ষণ", load: "মূল ফর্মে নিন", fresh: "নতুন পরিকল্পনা",
+      entries: "নির্বাচিত তারিখের পরিকল্পনা", empty: "এই তারিখে কোনো পরিকল্পনা নেই।",
+      saved: "পরিকল্পনা সংরক্ষিত হয়েছে।", deleted: "পরিকল্পনা মুছে ফেলা হয়েছে।",
+      required: "আগে তারিখ ও শিরোনাম দিন।",
+      loaded: "উপলব্ধ মূল ফর্মে পরিকল্পনা যোগ করা হয়েছে।",
+      loadMissing: "মূল ফর্মের ক্ষেত্র পাওয়া যায়নি।",
+      storageError: "ব্রাউজারের স্টোরেজ ব্যবহার করা যাচ্ছে না।",
+      edit: "সম্পাদনা", remove: "মুছুন", noTitle: "শিরোনাম নেই",
+      weekdays: ["রবি", "সোম", "মঙ্গল", "বুধ", "বৃহস্পতি", "শুক্র", "শনি"]
+    },
+    ru: {
+      button: "📅 Контент-календарь",
+      heading: "Контент-календарь SISA",
+      description: "Планируйте публикации по датам в этом браузере.",
+      prev: "←", next: "→", today: "Сегодня", close: "Закрыть",
+      formHeading: "Добавить план", date: "Дата публикации",
+      time: "Планируемое время", title: "Название публикации",
+      platform: "Платформа", caption: "Подпись / заметки",
+      save: "Сохранить план", load: "Загрузить в основную форму", fresh: "Новый план",
+      entries: "Планы на выбранную дату", empty: "На эту дату планов нет.",
+      saved: "План сохранён.", deleted: "План удалён.",
+      required: "Сначала укажите дату и название.",
+      loaded: "План загружен в доступные поля основной формы.",
+      loadMissing: "Поля основной формы не найдены.",
+      storageError: "Хранилище браузера недоступно.",
+      edit: "Изменить", remove: "Удалить", noTitle: "Без названия",
+      weekdays: ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"]
+    }
+  };
+
+  let current = new Date();
+  current.setDate(1);
+
+  let selectedDate = localDateString(new Date());
+  let plans = loadPlans();
+  let editingId = null;
+
+  function localDateString(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return year + "-" + month + "-" + day;
+  }
+
+  function getText() {
+    let code = "en";
+
+    try {
+      code = (
+        localStorage.getItem("sisa_language") || "en"
+      ).split("-")[0].toLowerCase();
+    } catch (error) {}
+
+    return dictionaries[code] || dictionaries.en;
+  }
+
+  function getLocale() {
+    let code = "en";
+
+    try {
+      code = (
+        localStorage.getItem("sisa_language") || "en"
+      ).split("-")[0].toLowerCase();
+    } catch (error) {}
+
+    return localeMap[code] || "en-US";
+  }
+
+  function loadPlans() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      return Array.isArray(saved) ? saved : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function persistPlans() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(plans));
+      return true;
+    } catch (error) {
+      status.textContent = getText().storageError;
+      return false;
+    }
+  }
+
+  function renderCalendar() {
+    const t = getText();
+    const locale = getLocale();
+
+    document.getElementById("sisaCalendarHeading").textContent = t.heading;
+    document.getElementById("sisaCalendarDescription").textContent = t.description;
+    document.getElementById("sisaCalendarPrev").textContent = t.prev;
+    document.getElementById("sisaCalendarNext").textContent = t.next;
+    document.getElementById("sisaCalendarToday").textContent = t.today;
+    document.getElementById("sisaCalendarClose").textContent = t.close;
+    document.getElementById("sisaCalendarFormHeading").textContent = t.formHeading;
+    document.getElementById("sisaCalendarDateLabel").textContent = t.date;
+    document.getElementById("sisaCalendarTimeLabel").textContent = t.time;
+    document.getElementById("sisaCalendarTitleLabel").textContent = t.title;
+    document.getElementById("sisaCalendarPlatformLabel").textContent = t.platform;
+    document.getElementById("sisaCalendarCaptionLabel").textContent = t.caption;
+    document.getElementById("sisaCalendarSave").textContent = t.save;
+    document.getElementById("sisaCalendarLoadMain").textContent = t.load;
+    document.getElementById("sisaCalendarNew").textContent = t.fresh;
+    document.getElementById("sisaCalendarEntriesHeading").textContent = t.entries;
+    openButton.textContent = t.button;
+
+    document.getElementById("sisaCalendarMonth").textContent =
+      new Intl.DateTimeFormat(locale, {
+        month: "long",
+        year: "numeric"
+      }).format(current);
+
+    grid.replaceChildren();
+
+    t.weekdays.forEach(function (day) {
+      const heading = document.createElement("div");
+      heading.className = "sisa-calendar-weekday";
+      heading.textContent = day;
+      grid.appendChild(heading);
+    });
+
+    const year = current.getFullYear();
+    const month = current.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const today = localDateString(new Date());
+
+    for (let i = 0; i < firstDay; i++) {
+      const blank = document.createElement("div");
+      grid.appendChild(blank);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = localDateString(new Date(year, month, day));
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "sisa-calendar-day";
+
+      if (date === selectedDate) button.classList.add("selected");
+      if (date === today) button.classList.add("today");
+
+      const number = document.createElement("span");
+      number.className = "day-number";
+      number.textContent = day;
+      button.appendChild(number);
+
+      const count = plans.filter(function (plan) {
+        return plan.date === date;
+      }).length;
+
+      if (count) {
+        const eventCount = document.createElement("span");
+        eventCount.className = "event-count";
+        eventCount.textContent = "● " + count;
+        button.appendChild(eventCount);
+      }
+
+      button.addEventListener("click", function () {
+        selectedDate = date;
+        dateInput.value = date;
+        editingId = null;
+        renderCalendar();
+        renderEntries();
+      });
+
+      grid.appendChild(button);
+    }
+
+    renderEntries();
+  }
+
+  function renderEntries() {
+    const t = getText();
+    entriesBox.replaceChildren();
+
+    const selectedPlans = plans
+      .filter(function (plan) {
+        return plan.date === selectedDate;
+      })
+      .sort(function (a, b) {
+        return (a.time || "").localeCompare(b.time || "");
+      });
+
+    if (!selectedPlans.length) {
+      const empty = document.createElement("div");
+      empty.className = "sisa-calendar-entry";
+      empty.textContent = t.empty;
+      entriesBox.appendChild(empty);
+      return;
+    }
+
+    selectedPlans.forEach(function (plan) {
+      const card = document.createElement("div");
+      card.className = "sisa-calendar-entry";
+
+      const heading = document.createElement("strong");
+      heading.textContent =
+        (plan.time || "--:--") + " · " + (plan.title || t.noTitle);
+      card.appendChild(heading);
+
+      const meta = document.createElement("div");
+      meta.style.color = "#bba5e7";
+      meta.style.fontSize = "12px";
+      meta.style.marginTop = "5px";
+      meta.textContent = plan.platform || "";
+      card.appendChild(meta);
+
+      if (plan.caption) {
+        const description = document.createElement("p");
+        description.textContent = plan.caption;
+        card.appendChild(description);
+      }
+
+      const actions = document.createElement("div");
+      actions.className = "sisa-calendar-actions";
+
+      const edit = document.createElement("button");
+      edit.type = "button";
+      edit.textContent = t.edit;
+      edit.addEventListener("click", function () {
+        editingId = plan.id;
+        dateInput.value = plan.date;
+        timeInput.value = plan.time || "18:00";
+        titleInput.value = plan.title || "";
+        captionInput.value = plan.caption || "";
+
+        const option = Array.from(platformInput.options).find(
+          function (item) {
+            return item.value === plan.platform;
+          }
+        );
+
+        if (option) platformInput.value = option.value;
+
+        document.getElementById("sisaCalendarFormHeading").textContent = t.edit;
+        form.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "secondary";
+      remove.textContent = t.remove;
+      remove.addEventListener("click", function () {
+        plans = plans.filter(function (item) {
+          return item.id !== plan.id;
+        });
+
+        if (persistPlans()) {
+          status.textContent = t.deleted;
+          renderCalendar();
+        }
+      });
+
+      actions.appendChild(edit);
+      actions.appendChild(remove);
+      card.appendChild(actions);
+      entriesBox.appendChild(card);
+    });
+  }
+  function resetForm() {
+    editingId = null;
+    form.reset();
+    dateInput.value = selectedDate;
+    timeInput.value = "18:00";
+    document.getElementById("sisaCalendarFormHeading").textContent =
+      getText().formHeading;
+  }
+
+  form.addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    const t = getText();
+
+    if (!dateInput.value || !titleInput.value.trim()) {
+      status.textContent = t.required;
+      return;
+    }
+
+    const plan = {
+      id: editingId || (
+        "plan_" + Date.now() + "_" + Math.random().toString(36).slice(2, 8)
+      ),
+      date: dateInput.value,
+      time: timeInput.value || "18:00",
+      title: titleInput.value.trim(),
+      platform: platformInput.value,
+      caption: captionInput.value.trim(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const oldPlans = plans.slice();
+
+    if (editingId) {
+      plans = plans.map(function (item) {
+        return item.id === editingId ? plan : item;
+      });
+    } else {
+      plans.push(plan);
+    }
+
+    if (!persistPlans()) {
+      plans = oldPlans;
+      return;
+    }
+
+    selectedDate = plan.date;
+    current = new Date(plan.date + "T12:00:00");
+    current.setDate(1);
+
+    status.textContent = t.saved;
+    resetForm();
+    renderCalendar();
+  });
+  document.getElementById("sisaCalendarPrev").addEventListener(
+    "click",
+    function () {
+      current.setMonth(current.getMonth() - 1);
+      renderCalendar();
+    }
+  );
+
+  document.getElementById("sisaCalendarNext").addEventListener(
+    "click",
+    function () {
+      current.setMonth(current.getMonth() + 1);
+      renderCalendar();
+    }
+  );
+
+  document.getElementById("sisaCalendarToday").addEventListener(
+    "click",
+    function () {
+      const today = new Date();
+      current = new Date(today.getFullYear(), today.getMonth(), 1);
+      selectedDate = localDateString(today);
+      dateInput.value = selectedDate;
+      renderCalendar();
+    }
+  );
+
+  document.getElementById("sisaCalendarNew").addEventListener(
+    "click",
+    resetForm
+  );
+  document.getElementById("sisaCalendarLoadMain").addEventListener(
+    "click",
+    function () {
+      const t = getText();
+      const selectedPlan = plans.find(function (plan) {
+        return plan.id === editingId;
+      }) || plans.find(function (plan) {
+        return plan.date === selectedDate;
+      });
+
+      if (!selectedPlan) {
+        status.textContent = t.empty;
+        return;
+      }
+
+      const mainTitle = document.getElementById("postTitle");
+      const mainCaption = document.getElementById("caption");
+      const mainPlatform = document.getElementById("platform");
+      const mainSchedule = document.getElementById("scheduleTime");
+
+      let found = false;
+
+      if (mainTitle) {
+        mainTitle.value = selectedPlan.title;
+        mainTitle.dispatchEvent(new Event("input", { bubbles: true }));
+        found = true;
+      }
+
+      if (mainCaption) {
+        mainCaption.value = selectedPlan.caption || "";
+        mainCaption.dispatchEvent(new Event("input", { bubbles: true }));
+        found = true;
+      }
+
+      if (mainPlatform) {
+        const option = Array.from(mainPlatform.options || []).find(
+          function (item) {
+            return item.value === selectedPlan.platform ||
+              item.textContent.trim() === selectedPlan.platform;
+          }
+        );
+
+        if (option) {
+          mainPlatform.value = option.value;
+          mainPlatform.dispatchEvent(new Event("change", { bubbles: true }));
+          found = true;
+        }
+      }
+
+      if (mainSchedule) {
+        mainSchedule.value = selectedPlan.date + "T" + (selectedPlan.time || "18:00");
+        mainSchedule.dispatchEvent(new Event("input", { bubbles: true }));
+        mainSchedule.dispatchEvent(new Event("change", { bubbles: true }));
+        found = true;
+      }
+
+      status.textContent = found ? t.loaded : t.loadMissing;
+    }
+  );
+
+  openButton.addEventListener("click", function () {
+    panel.style.display = "block";
+    selectedDate = dateInput.value || selectedDate;
+    renderCalendar();
+  });
+
+  document.getElementById("sisaCalendarClose").addEventListener(
+    "click",
+    function () {
+      panel.style.display = "none";
+    }
+  );
+
+  panel.addEventListener("click", function (event) {
+    if (event.target === panel) panel.style.display = "none";
+  });
+
+ window.addEventListener("sisa:languageChanged", renderCalendar);
+
+  window.SISA_CONTENT_CALENDAR = {
+    open: function () {
+      panel.style.display = "block";
+      renderCalendar();
+    },
+    refresh: renderCalendar,
+    getPlans: function () {
+      return plans.map(function (plan) {
+        return Object.assign({}, plan);
+      });
+    }
+  };
+
+  dateInput.value = selectedDate;
+  renderCalendar();
+
+  /* =============== PART 2Q END =============== */
+})();
+</script>
+
+<!-- =============== PART 2Q END =============== -->
 </body>
 </html>
