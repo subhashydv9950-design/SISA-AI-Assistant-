@@ -7956,6 +7956,353 @@ renderSchedule();
 })();
 </script>
 <!-- =============== PART 2U END =============== -->
+  <!-- =====================================================
+     SISA AI ASSISTANT — PART 2V
+     POST CHECKLIST & PUBLISHING READINESS
+===================================================== -->
+
+<style>
+#sisaCheckOpen{
+ position:fixed;right:16px;bottom:420px;z-index:9994;
+ border:0;border-radius:12px;padding:12px 15px;
+ background:#7c3aed;color:#fff;font-weight:700;
+}
+#sisaCheckPanel{
+ display:none;position:fixed;inset:0;z-index:10004;
+ background:#080610f2;align-items:center;justify-content:center;
+ padding:14px;color:white;font-family:Arial,sans-serif;
+}
+.sisa-check-card{
+ width:100%;max-width:480px;max-height:90vh;overflow:auto;
+ box-sizing:border-box;padding:20px;border-radius:18px;
+ background:#171326;border:1px solid #7044b9;
+}
+.sisa-check-card h2{color:#c4a5ff;margin-top:0}
+.sisa-check-card input,.sisa-check-card select{
+ width:100%;box-sizing:border-box;padding:11px;margin:6px 0 12px;
+ border-radius:9px;border:1px solid #49375f;
+ background:#0e0b18;color:#fff;
+}
+.sisa-check-card button{
+ width:100%;padding:12px;margin-top:10px;border:0;
+ border-radius:9px;background:#8b5cf6;color:white;font-weight:700;
+}
+.sisa-check-card .sisa-check-close{background:#302940}
+.sisa-check-item{
+ display:flex;align-items:flex-start;gap:10px;
+ margin:12px 0;padding:12px;border-radius:10px;
+ background:#241b36;border:1px solid #49375f;
+}
+.sisa-check-item input{width:18px;height:18px;margin:2px 0 0;flex-shrink:0}
+.sisa-check-item span{line-height:1.4}
+#sisaCheckProgress{height:8px;background:#302940;border-radius:8px;overflow:hidden}
+#sisaCheckBar{height:100%;width:0;background:#a78bfa;transition:width .2s}
+#sisaCheckStatus{font-size:13px;color:#d8b4fe}
+</style>
+
+<button id="sisaCheckOpen" type="button">✅ Post Checklist</button>
+
+<div id="sisaCheckPanel">
+ <div class="sisa-check-card">
+  <h2 id="sisaCheckHeading">✅ Publishing Readiness</h2>
+  <p id="sisaCheckIntro">Check your content before publishing.</p>
+
+  <label id="sisaCheckTitleLabel" for="sisaCheckTitle">Post title</label>
+  <input id="sisaCheckTitle" maxlength="120" placeholder="Enter post title">
+
+  <label id="sisaCheckPlatformLabel" for="sisaCheckPlatform">Platform</label>
+  <select id="sisaCheckPlatform">
+   <option>Instagram</option>
+   <option>Facebook</option>
+   <option>YouTube</option>
+   <option>TikTok</option>
+   <option>LinkedIn</option>
+   <option>X</option>
+  </select>
+
+  <div id="sisaCheckProgress">
+   <div id="sisaCheckBar"></div>
+  </div>
+  <p id="sisaCheckCount">0 / 7 completed</p>
+
+  <div id="sisaCheckItems"></div>
+
+  <button id="sisaCheckSave" type="button">💾 Save Checklist</button>
+  <button id="sisaCheckLoad" type="button">📂 Load Saved Checklist</button>
+  <p id="sisaCheckStatus" role="status"></p>
+
+  <button id="sisaCheckClose" class="sisa-check-close" type="button">Close</button>
+ </div>
+</div>
+
+<script>
+(function(){
+ "use strict";
+
+ const $=id=>document.getElementById(id);
+ const KEY="sisa_publishing_checklist_v1";
+ const panel=$("sisaCheckPanel");
+
+ const translations={
+  en:{
+   heading:"✅ Publishing Readiness",intro:"Check your content before publishing.",
+   title:"Post title",platform:"Platform",save:"💾 Save Checklist",
+   load:"📂 Load Saved Checklist",close:"Close",button:"✅ Post Checklist",
+   items:[
+    "Caption is complete and proofread",
+    "Hashtags are relevant",
+    "Image or video is selected",
+    "Correct platform and account selected",
+    "Post format and dimensions checked",
+    "Links, mentions and spelling checked",
+    "Publishing date and time confirmed"
+   ],
+   count:n=>n+" / 7 completed",
+   saved:"Checklist saved on this device.",
+   loaded:"Saved checklist loaded.",
+   empty:"No saved checklist found.",
+   ready:"All checklist items completed. Review the post before publishing.",
+   missing:"Enter a post title before saving."
+  },
+  hi:{
+   heading:"✅ पोस्ट प्रकाशित करने की तैयारी",
+   intro:"पोस्ट प्रकाशित करने से पहले सभी चीजें जांचें।",
+   title:"पोस्ट का नाम",platform:"प्लेटफॉर्म",save:"💾 चेकलिस्ट सेव करें",
+   load:"📂 सेव चेकलिस्ट खोलें",close:"बंद करें",button:"✅ पोस्ट चेकलिस्ट",
+   items:[
+    "कैप्शन पूरा है और वर्तनी जांच ली है",
+    "हैशटैग विषय के अनुसार हैं",
+    "फोटो या वीडियो चुना हुआ है",
+    "सही प्लेटफॉर्म और अकाउंट चुना है",
+    "पोस्ट का फॉर्मेट और आकार जांच लिया है",
+    "लिंक, मेंशन और वर्तनी जांच ली है",
+    "पोस्ट की तारीख और समय सही हैं"
+   ],
+   count:n=>n+" / 7 पूरे",
+   saved:"चेकलिस्ट इस डिवाइस पर सेव हो गई।",
+   loaded:"सेव चेकलिस्ट खोल दी गई।",
+   empty:"कोई सेव चेकलिस्ट नहीं मिली।",
+   ready:"सभी बिंदु पूरे हैं। प्रकाशित करने से पहले पोस्ट की समीक्षा करें।",
+   missing:"सेव करने से पहले पोस्ट का नाम लिखें।"
+  },
+  fr:{
+   heading:"✅ Préparation à la publication",intro:"Vérifiez votre contenu avant publication.",
+   title:"Titre de la publication",platform:"Plateforme",save:"💾 Enregistrer la liste",
+   load:"📂 Charger la liste",close:"Fermer",button:"✅ Liste de contrôle",
+   items:["Légende relue","Hashtags pertinents","Image ou vidéo sélectionnée",
+   "Plateforme et compte corrects","Format vérifié","Liens et mentions vérifiés",
+   "Date et heure confirmées"],
+   count:n=>n+" / 7 terminés",saved:"Liste enregistrée sur cet appareil.",
+   loaded:"Liste chargée.",empty:"Aucune liste enregistrée.",
+   ready:"Tout est coché. Vérifiez la publication avant de publier.",
+   missing:"Saisissez un titre avant l’enregistrement."
+  },
+  de:{
+   heading:"✅ Veröffentlichungscheck",intro:"Prüfe deine Inhalte vor der Veröffentlichung.",
+   title:"Beitragstitel",platform:"Plattform",save:"💾 Checkliste speichern",
+   load:"📂 Checkliste laden",close:"Schließen",button:"✅ Beitragscheck",
+   items:["Caption geprüft","Passende Hashtags","Bild oder Video ausgewählt",
+   "Richtige Plattform und Konto","Format geprüft","Links und Erwähnungen geprüft",
+   "Datum und Uhrzeit bestätigt"],
+   count:n=>n+" / 7 erledigt",saved:"Checkliste auf diesem Gerät gespeichert.",
+   loaded:"Checkliste geladen.",empty:"Keine gespeicherte Checkliste.",
+   ready:"Alles erledigt. Prüfe den Beitrag vor der Veröffentlichung.",
+   missing:"Bitte vor dem Speichern einen Titel eingeben."
+  },
+  es:{
+   heading:"✅ Preparación de publicación",intro:"Revisa tu contenido antes de publicar.",
+   title:"Título de la publicación",platform:"Plataforma",save:"💾 Guardar lista",
+   load:"📂 Cargar lista guardada",close:"Cerrar",button:"✅ Lista de publicación",
+   items:["Revisar el texto","Hashtags relevantes","Imagen o vídeo seleccionado",
+   "Plataforma y cuenta correctas","Formato comprobado","Enlaces y menciones revisados",
+   "Fecha y hora confirmadas"],
+   count:n=>n+" / 7 completados",saved:"Lista guardada en este dispositivo.",
+   loaded:"Lista cargada.",empty:"No hay ninguna lista guardada.",
+   ready:"Todo está marcado. Revisa la publicación antes de publicar.",
+   missing:"Introduce un título antes de guardar."
+  },
+  zh:{
+   heading:"✅ 发布前检查",intro:"发布前检查你的内容。",
+   title:"帖子标题",platform:"平台",save:"💾 保存清单",
+   load:"📂 加载清单",close:"关闭",button:"✅ 发布检查",
+   items:["检查文案","确认标签相关","已选择图片或视频",
+   "平台和账号正确","检查内容格式","检查链接和提及",
+   "确认发布时间"],
+   count:n=>n+" / 7 已完成",saved:"清单已保存在此设备。",
+   loaded:"清单已加载。",empty:"没有找到已保存的清单。",
+   ready:"所有项目已完成。发布前请再次检查内容。",
+   missing:"保存前请输入帖子标题。"
+  },
+  ja:{
+   heading:"✅ 公開前チェック",intro:"公開前にコンテンツを確認してください。",
+   title:"投稿タイトル",platform:"プラットフォーム",save:"💾 チェックリスト保存",
+   load:"📂 保存したリストを読み込む",close:"閉じる",button:"✅ 投稿チェック",
+   items:["キャプションを確認","適切なハッシュタグ","画像または動画を選択",
+   "正しいプラットフォームとアカウント","形式を確認","リンクとメンションを確認",
+   "公開日時を確認"],
+   count:n=>n+" / 7 完了",saved:"この端末に保存しました。",
+   loaded:"チェックリストを読み込みました。",empty:"保存されたリストはありません。",
+   ready:"すべて完了しました。公開前に再確認してください。",
+   missing:"保存する前に投稿タイトルを入力してください。"
+  },
+  ko:{
+   heading:"✅ 게시 전 확인",intro:"게시하기 전에 콘텐츠를 확인하세요.",
+   title:"게시물 제목",platform:"플랫폼",save:"💾 체크리스트 저장",
+   load:"📂 저장된 목록 불러오기",close:"닫기",button:"✅ 게시 체크리스트",
+   items:["캡션 검토","관련 해시태그","이미지 또는 동영상 선택",
+   "올바른 플랫폼과 계정","형식 확인","링크와 멘션 확인","게시 날짜와 시간 확인"],
+   count:n=>n+" / 7 완료",saved:"이 기기에 저장했습니다.",
+   loaded:"체크리스트를 불러왔습니다.",empty:"저장된 목록이 없습니다.",
+   ready:"모든 항목을 완료했습니다. 게시 전에 다시 확인하세요.",
+   missing:"저장하기 전에 게시물 제목을 입력하세요."
+  },
+  bn:{
+   heading:"✅ প্রকাশের প্রস্তুতি",intro:"প্রকাশ করার আগে আপনার কনটেন্ট পরীক্ষা করুন।",
+   title:"পোস্টের শিরোনাম",platform:"প্ল্যাটফর্ম",save:"💾 চেকলিস্ট সংরক্ষণ",
+   load:"📂 সংরক্ষিত তালিকা খুলুন",close:"বন্ধ করুন",button:"✅ পোস্ট চেকলিস্ট",
+   items:["ক্যাপশন পরীক্ষা করা হয়েছে","প্রাসঙ্গিক হ্যাশট্যাগ",
+   "ছবি বা ভিডিও নির্বাচন করা হয়েছে","সঠিক প্ল্যাটফর্ম ও অ্যাকাউন্ট",
+   "ফরম্যাট পরীক্ষা করা হয়েছে","লিংক ও মেনশন পরীক্ষা করা হয়েছে",
+   "তারিখ ও সময় নিশ্চিত করা হয়েছে"],
+   count:n=>n+" / 7 সম্পন্ন",saved:"এই ডিভাইসে তালিকা সংরক্ষিত হয়েছে।",
+   loaded:"তালিকা খোলা হয়েছে।",empty:"কোনো সংরক্ষিত তালিকা নেই।",
+   ready:"সব কাজ সম্পন্ন। প্রকাশের আগে আবার পরীক্ষা করুন।",
+   missing:"সংরক্ষণের আগে পোস্টের শিরোনাম লিখুন।"
+  },
+  ru:{
+   heading:"✅ Проверка перед публикацией",intro:"Проверьте контент перед публикацией.",
+   title:"Название публикации",platform:"Платформа",save:"💾 Сохранить список",
+   load:"📂 Загрузить список",close:"Закрыть",button:"✅ Проверка публикации",
+   items:["Проверить подпись","Проверить хэштеги","Выбрать фото или видео",
+   "Проверить платформу и аккаунт","Проверить формат","Проверить ссылки и упоминания",
+   "Подтвердить дату и время"],
+   count:n=>n+" / 7 выполнено",saved:"Список сохранён на устройстве.",
+   loaded:"Список загружен.",empty:"Сохранённый список не найден.",
+   ready:"Все пункты выполнены. Проверьте публикацию перед размещением.",
+   missing:"Введите название публикации перед сохранением."
+  }
+ };
+
+ function language(){
+  const code=(window.SISA_LANGUAGE&&window.SISA_LANGUAGE.current)
+   ||localStorage.getItem("sisa_language")||"en";
+  return translations[code]?code:"en";
+ }
+ function t(){return translations[language()];}
+
+ function getSaved(){
+  try{return JSON.parse(localStorage.getItem(KEY)||"null");}
+  catch(e){return null;}
+ }
+
+ function renderItems(checkedList){
+  const box=$("sisaCheckItems");
+  box.replaceChildren();
+
+  t().items.forEach((label,index)=>{
+   const row=document.createElement("label");
+   row.className="sisa-check-item";
+
+   const input=document.createElement("input");
+   input.type="checkbox";
+   input.checked=Boolean(checkedList&&checkedList[index]);
+   input.dataset.checkIndex=index;
+   input.addEventListener("change",updateProgress);
+
+   const text=document.createElement("span");
+   text.textContent=label;
+   row.append(input,text);
+   box.appendChild(row);
+  });
+
+  updateProgress();
+ }
+
+ function currentChecks(){
+  return Array.from(
+   $("sisaCheckItems").querySelectorAll('input[type="checkbox"]')
+  ).map(input=>input.checked);
+ }
+
+ function updateProgress(){
+  const checks=currentChecks();
+  const done=checks.filter(Boolean).length;
+  $("sisaCheckCount").textContent=t().count(done);
+  $("sisaCheckBar").style.width=(done/7*100)+"%";
+  $("sisaCheckStatus").textContent=done===7?t().ready:"";
+ }
+
+ function applyLanguage(){
+  const x=t();
+  $("sisaCheckHeading").textContent=x.heading;
+  $("sisaCheckIntro").textContent=x.intro;
+  $("sisaCheckTitleLabel").textContent=x.title;
+  $("sisaCheckPlatformLabel").textContent=x.platform;
+  $("sisaCheckSave").textContent=x.save;
+  $("sisaCheckLoad").textContent=x.load;
+  $("sisaCheckClose").textContent=x.close;
+  $("sisaCheckOpen").textContent=x.button;
+  renderItems(currentChecksSafe());
+ }
+
+ function currentChecksSafe(){
+  const box=$("sisaCheckItems");
+  if(!box.children.length)return Array(7).fill(false);
+  return currentChecks();
+ }
+
+ $("sisaCheckOpen").onclick=()=>{
+  applyLanguage();
+  panel.style.display="flex";
+ };
+ $("sisaCheckClose").onclick=()=>panel.style.display="none";
+ panel.addEventListener("click",e=>{
+  if(e.target===panel)panel.style.display="none";
+ });
+
+ $("sisaCheckSave").onclick=()=>{
+  const title=$("sisaCheckTitle").value.trim();
+  if(!title){alert(t().missing);return;}
+
+  const data={
+   title:title,
+   platform:$("sisaCheckPlatform").value,
+   checks:currentChecks(),
+   updatedAt:new Date().toISOString()
+  };
+
+  try{
+   localStorage.setItem(KEY,JSON.stringify(data));
+   $("sisaCheckStatus").textContent=t().saved;
+  }catch(e){
+   $("sisaCheckStatus").textContent="Unable to save checklist.";
+  }
+ };
+
+ $("sisaCheckLoad").onclick=()=>{
+  const data=getSaved();
+  if(!data){
+   $("sisaCheckStatus").textContent=t().empty;
+   return;
+  }
+
+  $("sisaCheckTitle").value=data.title||"";
+  $("sisaCheckPlatform").value=data.platform||"Instagram";
+  renderItems(Array.isArray(data.checks)?data.checks:[]);
+  $("sisaCheckStatus").textContent=t().loaded;
+ };
+
+ window.addEventListener("sisa:languageChanged",applyLanguage);
+ applyLanguage();
+
+ window.SISA_PUBLISH_CHECKLIST={
+  open:()=>{applyLanguage();panel.style.display="flex";}
+ };
+
+ /* =============== PART 2V END — PUBLISHING CHECKLIST =============== */
+})();
+</script>
+<!-- =============== PART 2V END =============== -->
   
 </body>
 </html>
