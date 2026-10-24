@@ -4949,6 +4949,669 @@ renderSchedule();
 </script>
 
 <!-- =============== PART 2O END =============== -->
-  
+  <!-- =====================================================
+     SISA AI ASSISTANT — PART 2P
+     CAPTION + HASHTAG COMBINED POST BUILDER
+===================================================== -->
+
+<style>
+#sisaPostBuilderOpen {
+  position: fixed;
+  right: 18px;
+  bottom: 395px;
+  z-index: 9987;
+  padding: 12px 15px;
+  border: 1px solid #c4b5fd;
+  border-radius: 12px;
+  background: linear-gradient(135deg,#6d28d9,#312e81);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#sisaPostBuilderPanel {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 10003;
+  padding: 15px;
+  overflow-y: auto;
+  background: #080611ef;
+  color: white;
+}
+
+.sisa-builder-box {
+  max-width: 760px;
+  margin: 25px auto;
+  padding: 22px;
+  border: 1px solid #553782;
+  border-radius: 18px;
+  background: #171020;
+}
+
+.sisa-builder-box h2 {
+  color: #c4b5fd;
+}
+
+.sisa-builder-box label {
+  display: block;
+  margin: 15px 0 7px;
+  color: #d8ccf3;
+  font-size: 14px;
+}
+
+.sisa-builder-box input,
+.sisa-builder-box select,
+.sisa-builder-box textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #49365f;
+  border-radius: 10px;
+  background: #0d0915;
+  color: white;
+  font: inherit;
+}
+
+.sisa-builder-box textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.sisa-builder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 17px;
+}
+
+.sisa-builder-actions button {
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: #7c3aed;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sisa-builder-actions .secondary {
+  background: #30243f;
+  border: 1px solid #59456e;
+}
+
+#sisaBuilderStatus {
+  color: #c4b5fd;
+  font-size: 13px;
+  margin-top: 12px;
+}
+
+@media(max-width:600px) {
+  .sisa-builder-box {
+    margin: 10px auto;
+    padding: 15px;
+  }
+
+  #sisaPostBuilderOpen {
+    right: 10px;
+    bottom: 390px;
+  }
+}
+</style>
+
+<button id="sisaPostBuilderOpen" type="button">
+  📝 Post Builder
+</button>
+
+<div id="sisaPostBuilderPanel">
+  <div class="sisa-builder-box">
+    <h2 id="sisaBuilderHeading">Social Post Builder</h2>
+
+    <p id="sisaBuilderDescription">
+      Combine your caption and hashtags into one ready-to-copy draft.
+    </p>
+
+    <label id="sisaBuilderPlatformLabel" for="sisaBuilderPlatform">
+      Social platform
+    </label>
+
+    <select id="sisaBuilderPlatform">
+      <option value="Instagram">Instagram</option>
+      <option value="Facebook">Facebook</option>
+      <option value="YouTube">YouTube</option>
+      <option value="TikTok">TikTok</option>
+      <option value="LinkedIn">LinkedIn</option>
+      <option value="X">X</option>
+    </select>
+
+    <label id="sisaBuilderCaptionLabel" for="sisaBuilderCaption">
+      Caption
+    </label>
+
+    <textarea
+      id="sisaBuilderCaption"
+      maxlength="5000"
+      placeholder="Write or paste your caption..."
+    ></textarea>
+
+    <label id="sisaBuilderHashtagsLabel" for="sisaBuilderHashtags">
+      Hashtags
+    </label>
+
+    <textarea
+      id="sisaBuilderHashtags"
+      maxlength="2000"
+      placeholder="#travel #photography"
+    ></textarea>
+
+    <label id="sisaBuilderOutputLabel" for="sisaBuilderOutput">
+      Combined post draft
+    </label>
+
+    <textarea
+      id="sisaBuilderOutput"
+      readonly
+      placeholder="Your combined post will appear here..."
+    ></textarea>
+
+    <div class="sisa-builder-actions">
+      <button id="sisaBuilderCombine" type="button">Combine Draft</button>
+      <button id="sisaBuilderCopy" type="button">Copy Draft</button>
+      <button id="sisaBuilderUse" type="button">Use in Main Form</button>
+      <button id="sisaBuilderSave" type="button">Save Draft</button>
+      <button id="sisaBuilderClose" class="secondary" type="button">Close</button>
+    </div>
+
+    <div id="sisaBuilderStatus" aria-live="polite"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const panel = document.getElementById("sisaPostBuilderPanel");
+  const openButton = document.getElementById("sisaPostBuilderOpen");
+  const platform = document.getElementById("sisaBuilderPlatform");
+  const caption = document.getElementById("sisaBuilderCaption");
+  const hashtags = document.getElementById("sisaBuilderHashtags");
+  const output = document.getElementById("sisaBuilderOutput");
+  const status = document.getElementById("sisaBuilderStatus");
+
+  if (!panel || !openButton) return;
+
+  const dictionaries = {
+    en: {
+      button: "📝 Post Builder",
+      heading: "Social Post Builder",
+      description: "Combine your caption and hashtags into one ready-to-copy draft.",
+      platform: "Social platform",
+      caption: "Caption",
+      hashtags: "Hashtags",
+      output: "Combined post draft",
+      captionPlaceholder: "Write or paste your caption...",
+      hashtagPlaceholder: "#travel #photography",
+      outputPlaceholder: "Your combined post will appear here...",
+      combine: "Combine Draft",
+      copy: "Copy Draft",
+      use: "Use in Main Form",
+      save: "Save Draft",
+      close: "Close",
+      empty: "Enter a caption or hashtags first.",
+      combined: "Your draft is ready.",
+      copied: "Draft copied.",
+      copyError: "Automatic copying failed. Select the draft and copy it manually.",
+      used: "Draft copied into the main form where fields are available.",
+      saved: "Save requested. Check your saved drafts.",
+      noSave: "Main Save Draft button was not found.",
+      saveFailed: "The save action could not be completed.",
+      title: "Social post draft"
+    },
+    hi: {
+      button: "📝 पोस्ट बिल्डर",
+      heading: "सोशल पोस्ट बिल्डर",
+      description: "कैप्शन और हैशटैग को एक पोस्ट ड्राफ्ट में जोड़ें।",
+      platform: "सोशल प्लेटफ़ॉर्म",
+      caption: "कैप्शन",
+      hashtags: "हैशटैग",
+      output: "तैयार पोस्ट ड्राफ्ट",
+      captionPlaceholder: "अपना कैप्शन लिखें या पेस्ट करें...",
+      hashtagPlaceholder: "#यात्रा #फोटोग्राफी",
+      outputPlaceholder: "आपका पोस्ट ड्राफ्ट यहाँ दिखाई देगा...",
+      combine: "ड्राफ्ट जोड़ें",
+      copy: "ड्राफ्ट कॉपी करें",
+      use: "मुख्य फ़ॉर्म में डालें",
+      save: "ड्राफ्ट सेव करें",
+      close: "बंद करें",
+      empty: "पहले कैप्शन या हैशटैग लिखें।",
+      combined: "आपका ड्राफ्ट तैयार है।",
+      copied: "ड्राफ्ट कॉपी हो गया।",
+      copyError: "ऑटो-कॉपी नहीं हुआ। ड्राफ्ट चुनकर मैन्युअल कॉपी करें।",
+      used: "जहाँ फ़ील्ड उपलब्ध हैं, वहाँ ड्राफ्ट मुख्य फ़ॉर्म में डाल दिया गया।",
+      saved: "सेव करने का अनुरोध भेजा गया। Saved Drafts जाँचें।",
+      noSave: "मुख्य Save Draft बटन नहीं मिला।",
+      saveFailed: "ड्राफ्ट सेव नहीं हो सका।",
+      title: "सोशल पोस्ट ड्राफ्ट"
+    },
+    fr: {
+      button: "📝 Créateur de publication",
+      heading: "Créateur de publication",
+      description: "Combinez la légende et les hashtags dans un seul brouillon.",
+      platform: "Plateforme sociale",
+      caption: "Légende",
+      hashtags: "Hashtags",
+      output: "Brouillon combiné",
+      captionPlaceholder: "Écrivez ou collez votre légende...",
+      hashtagPlaceholder: "#voyage #photographie",
+      outputPlaceholder: "Votre brouillon apparaîtra ici...",
+      combine: "Assembler",
+      copy: "Copier le brouillon",
+      use: "Utiliser dans le formulaire",
+      save: "Enregistrer",
+      close: "Fermer",
+      empty: "Saisissez d’abord une légende ou des hashtags.",
+      combined: "Votre brouillon est prêt.",
+      copied: "Brouillon copié.",
+      copyError: "Copie automatique impossible.",
+      used: "Brouillon ajouté au formulaire principal si disponible.",
+      saved: "Demande d’enregistrement envoyée.",
+      noSave: "Bouton d’enregistrement principal introuvable.",
+      saveFailed: "Impossible d’enregistrer le brouillon.",
+      title: "Brouillon de publication"
+    },
+    de: {
+      button: "📝 Beitragseditor",
+      heading: "Social-Media-Beitragseditor",
+      description: "Kombiniere Caption und Hashtags zu einem Entwurf.",
+      platform: "Social-Media-Plattform",
+      caption: "Caption",
+      hashtags: "Hashtags",
+      output: "Kombinierter Entwurf",
+      captionPlaceholder: "Caption schreiben oder einfügen...",
+      hashtagPlaceholder: "#reisen #fotografie",
+      outputPlaceholder: "Dein Entwurf erscheint hier...",
+      combine: "Entwurf kombinieren",
+      copy: "Entwurf kopieren",
+      use: "Im Hauptformular verwenden",
+      save: "Entwurf speichern",
+      close: "Schließen",
+      empty: "Gib zuerst eine Caption oder Hashtags ein.",
+      combined: "Dein Entwurf ist fertig.",
+      copied: "Entwurf kopiert.",
+      copyError: "Automatisches Kopieren fehlgeschlagen.",
+      used: "Entwurf in verfügbare Hauptfelder übernommen.",
+      saved: "Speicheranfrage gesendet.",
+      noSave: "Hauptschaltfläche zum Speichern nicht gefunden.",
+      saveFailed: "Entwurf konnte nicht gespeichert werden.",
+      title: "Social-Media-Entwurf"
+    },
+    es: {
+      button: "📝 Editor de publicaciones",
+      heading: "Editor de publicaciones",
+      description: "Combina el texto y los hashtags en un solo borrador.",
+      platform: "Plataforma social",
+      caption: "Texto",
+      hashtags: "Hashtags",
+      output: "Borrador combinado",
+      captionPlaceholder: "Escribe o pega el texto...",
+      hashtagPlaceholder: "#viajes #fotografía",
+      outputPlaceholder: "El borrador aparecerá aquí...",
+      combine: "Combinar borrador",
+      copy: "Copiar borrador",
+      use: "Usar en el formulario",
+      save: "Guardar borrador",
+      close: "Cerrar",
+      empty: "Escribe primero un texto o hashtags.",
+      combined: "Tu borrador está listo.",
+      copied: "Borrador copiado.",
+      copyError: "No se pudo copiar automáticamente.",
+      used: "Borrador añadido a los campos disponibles.",
+      saved: "Solicitud de guardado enviada.",
+      noSave: "No se encontró el botón principal para guardar.",
+      saveFailed: "No se pudo guardar el borrador.",
+      title: "Borrador de publicación"
+    },
+    zh: {
+      button: "📝 帖子编辑器",
+      heading: "社交帖子编辑器",
+      description: "将文案和标签合并为一个帖子草稿。",
+      platform: "社交平台",
+      caption: "文案",
+      hashtags: "标签",
+      output: "合并后的帖子草稿",
+      captionPlaceholder: "输入或粘贴文案...",
+      hashtagPlaceholder: "#旅行 #摄影",
+      outputPlaceholder: "帖子草稿将显示在这里...",
+      combine: "合并草稿",
+      copy: "复制草稿",
+      use: "用于主表单",
+      save: "保存草稿",
+      close: "关闭",
+      empty: "请先输入文案或标签。",
+      combined: "草稿已准备好。",
+      copied: "草稿已复制。",
+      copyError: "无法自动复制。",
+      used: "草稿已填入可用的主表单字段。",
+      saved: "已请求保存。",
+      noSave: "找不到主保存按钮。",
+      saveFailed: "无法保存草稿。",
+      title: "社交帖子草稿"
+    },
+    ja: {
+      button: "📝 投稿ビルダー",
+      heading: "ソーシャル投稿ビルダー",
+      description: "キャプションとハッシュタグを一つの下書きにまとめます。",
+      platform: "SNSプラットフォーム",
+      caption: "キャプション",
+      hashtags: "ハッシュタグ",
+      output: "投稿の下書き",
+      captionPlaceholder: "キャプションを入力または貼り付け...",
+      hashtagPlaceholder: "#旅行 #写真",
+      outputPlaceholder: "下書きがここに表示されます...",
+      combine: "下書きを作成",
+      copy: "下書きをコピー",
+      use: "メインフォームに使用",
+      save: "下書きを保存",
+      close: "閉じる",
+      empty: "先にキャプションかハッシュタグを入力してください。",
+      combined: "下書きができました。",
+      copied: "下書きをコピーしました。",
+      copyError: "自動コピーできませんでした。",
+      used: "利用可能なメインフォームに入力しました。",
+      saved: "保存リクエストを送信しました。",
+      noSave: "保存ボタンが見つかりません。",
+      saveFailed: "下書きを保存できませんでした。",
+      title: "SNS投稿の下書き"
+    },
+    ko: {
+      button: "📝 게시물 작성기",
+      heading: "소셜 게시물 작성기",
+      description: "캡션과 해시태그를 하나의 초안으로 합칩니다.",
+      platform: "소셜 플랫폼",
+      caption: "캡션",
+      hashtags: "해시태그",
+      output: "게시물 초안",
+      captionPlaceholder: "캡션을 입력하거나 붙여넣으세요...",
+      hashtagPlaceholder: "#여행 #사진",
+      outputPlaceholder: "초안이 여기에 표시됩니다...",
+      combine: "초안 합치기",
+      copy: "초안 복사",
+      use: "메인 양식에 사용",
+      save: "초안 저장",
+      close: "닫기",
+      empty: "먼저 캡션이나 해시태그를 입력하세요.",
+      combined: "초안이 준비되었습니다.",
+      copied: "초안을 복사했습니다.",
+      copyError: "자동 복사에 실패했습니다.",
+      used: "사용 가능한 메인 입력란에 초안을 넣었습니다.",
+      saved: "저장 요청을 보냈습니다.",
+      noSave: "메인 저장 버튼을 찾을 수 없습니다.",
+      saveFailed: "초안을 저장하지 못했습니다.",
+      title: "소셜 게시물 초안"
+    },
+    bn: {
+      button: "📝 পোস্ট বিল্ডার",
+      heading: "সোশ্যাল পোস্ট বিল্ডার",
+      description: "ক্যাপশন ও হ্যাশট্যাগ একসঙ্গে একটি খসড়ায় যোগ করুন।",
+      platform: "সোশ্যাল প্ল্যাটফর্ম",
+      caption: "ক্যাপশন",
+      hashtags: "হ্যাশট্যাগ",
+      output: "একত্রিত পোস্টের খসড়া",
+      captionPlaceholder: "ক্যাপশন লিখুন বা পেস্ট করুন...",
+      hashtagPlaceholder: "#ভ্রমণ #ফটোগ্রাফি",
+      outputPlaceholder: "খসড়া এখানে দেখা যাবে...",
+      combine: "খসড়া একত্র করুন",
+      copy: "খসড়া কপি করুন",
+      use: "মূল ফর্মে ব্যবহার করুন",
+      save: "খসড়া সংরক্ষণ করুন",
+      close: "বন্ধ করুন",
+      empty: "আগে ক্যাপশন বা হ্যাশট্যাগ লিখুন।",
+      combined: "খসড়া তৈরি হয়েছে।",
+      copied: "খসড়া কপি হয়েছে।",
+      copyError: "স্বয়ংক্রিয় কপি করা যায়নি।",
+      used: "উপলব্ধ মূল ফর্মে খসড়া যোগ করা হয়েছে।",
+      saved: "সংরক্ষণের অনুরোধ পাঠানো হয়েছে।",
+      noSave: "মূল সংরক্ষণ বোতাম পাওয়া যায়নি।",
+      saveFailed: "খসড়া সংরক্ষণ করা যায়নি।",
+      title: "সোশ্যাল পোস্টের খসড়া"
+    },
+    ru: {
+      button: "📝 Редактор публикаций",
+      heading: "Редактор публикаций",
+      description: "Объедините подпись и хэштеги в один черновик.",
+      platform: "Социальная платформа",
+      caption: "Подпись",
+      hashtags: "Хэштеги",
+      output: "Общий черновик",
+      captionPlaceholder: "Введите или вставьте подпись...",
+      hashtagPlaceholder: "#путешествия #фото",
+      outputPlaceholder: "Черновик появится здесь...",
+      combine: "Объединить",
+      copy: "Копировать черновик",
+      use: "Использовать в основной форме",
+      save: "Сохранить черновик",
+      close: "Закрыть",
+      empty: "Сначала введите подпись или хэштеги.",
+      combined: "Черновик готов.",
+      copied: "Черновик скопирован.",
+      copyError: "Не удалось скопировать автоматически.",
+      used: "Черновик добавлен в доступные поля основной формы.",
+      saved: "Запрос на сохранение отправлен.",
+      noSave: "Основная кнопка сохранения не найдена.",
+      saveFailed: "Не удалось сохранить черновик.",
+      title: "Черновик публикации"
+    }
+  };
+
+  function getText() {
+    let code = "en";
+
+    try {
+      code = (
+        localStorage.getItem("sisa_language") || "en"
+      ).split("-")[0].toLowerCase();
+    } catch (error) {}
+
+    return dictionaries[code] || dictionaries.en;
+  }
+
+  function translateUI() {
+    const t = getText();
+
+    openButton.textContent = t.button;
+    document.getElementById("sisaBuilderHeading").textContent = t.heading;
+    document.getElementById("sisaBuilderDescription").textContent = t.description;
+    document.getElementById("sisaBuilderPlatformLabel").textContent = t.platform;
+    document.getElementById("sisaBuilderCaptionLabel").textContent = t.caption;
+    document.getElementById("sisaBuilderHashtagsLabel").textContent = t.hashtags;
+    document.getElementById("sisaBuilderOutputLabel").textContent = t.output;
+
+    caption.placeholder = t.captionPlaceholder;
+    hashtags.placeholder = t.hashtagPlaceholder;
+    output.placeholder = t.outputPlaceholder;
+
+    document.getElementById("sisaBuilderCombine").textContent = t.combine;
+    document.getElementById("sisaBuilderCopy").textContent = t.copy;
+    document.getElementById("sisaBuilderUse").textContent = t.use;
+    document.getElementById("sisaBuilderSave").textContent = t.save;
+    document.getElementById("sisaBuilderClose").textContent = t.close;
+  }
+
+  function combineDraft() {
+    const t = getText();
+    const captionText = caption.value.trim();
+    const hashtagText = hashtags.value.trim();
+
+    if (!captionText && !hashtagText) {
+      status.textContent = t.empty;
+      return false;
+    }
+
+    output.value = [
+      captionText,
+      hashtagText
+    ].filter(Boolean).join("\n\n");
+
+    status.textContent = t.combined;
+    return true;
+  }
+
+  function useInMainForm() {
+    const t = getText();
+
+    if (!output.value.trim() && !combineDraft()) return;
+
+    const mainCaption = document.getElementById("caption");
+    const mainHashtags = document.getElementById("hashtags");
+    const mainPlatform = document.getElementById("platform");
+
+    if (mainCaption) {
+      mainCaption.value = caption.value.trim();
+      mainCaption.dispatchEvent(new Event("input", { bubbles: true }));
+      mainCaption.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    if (mainHashtags) {
+      mainHashtags.value = hashtags.value.trim();
+      mainHashtags.dispatchEvent(new Event("input", { bubbles: true }));
+      mainHashtags.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    if (mainPlatform && platform.value) {
+      const exists = Array.from(mainPlatform.options || [])
+        .some(function (option) {
+          return option.value.toLowerCase() === platform.value.toLowerCase() ||
+                 option.textContent.trim().toLowerCase() === platform.value.toLowerCase();
+        });
+
+      if (exists) {
+        const matchingOption = Array.from(mainPlatform.options).find(
+          function (option) {
+            return option.value.toLowerCase() === platform.value.toLowerCase() ||
+                   option.textContent.trim().toLowerCase() === platform.value.toLowerCase();
+          }
+        );
+
+        mainPlatform.value = matchingOption.value;
+        mainPlatform.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    }
+
+    status.textContent = t.used;
+  }
+
+  function saveDraft() {
+    const t = getText();
+
+    if (!output.value.trim() && !combineDraft()) return;
+
+    const mainCaption = document.getElementById("caption");
+    const mainHashtags = document.getElementById("hashtags");
+    const mainPlatform = document.getElementById("platform");
+    const mainTitle = document.getElementById("postTitle");
+
+    if (mainCaption) mainCaption.value = caption.value.trim();
+    if (mainHashtags) mainHashtags.value = hashtags.value.trim();
+
+    if (mainPlatform) {
+      const option = Array.from(mainPlatform.options || []).find(
+        function (item) {
+          return item.value.toLowerCase() === platform.value.toLowerCase() ||
+                 item.textContent.trim().toLowerCase() === platform.value.toLowerCase();
+        }
+      );
+
+      if (option) mainPlatform.value = option.value;
+    }
+
+    if (mainTitle && !mainTitle.value.trim()) {
+      mainTitle.value = t.title;
+    }
+
+    [mainCaption, mainHashtags, mainPlatform, mainTitle].forEach(
+      function (field) {
+        if (!field) return;
+        field.dispatchEvent(new Event("input", { bubbles: true }));
+        field.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    );
+
+    const saveButton = document.getElementById("saveDraftButton");
+
+    if (saveButton) {
+      saveButton.click();
+      status.textContent = t.saved;
+    } else {
+      status.textContent = t.noSave;
+    }
+  }
+
+  openButton.addEventListener("click", function () {
+    translateUI();
+    panel.style.display = "block";
+  });
+
+  document.getElementById("sisaBuilderCombine").addEventListener(
+    "click",
+    combineDraft
+  );
+
+  document.getElementById("sisaBuilderCopy").addEventListener(
+    "click",
+    async function () {
+      const t = getText();
+
+      if (!output.value.trim() && !combineDraft()) return;
+
+      try {
+        await navigator.clipboard.writeText(output.value);
+        status.textContent = t.copied;
+      } catch (error) {
+        output.focus();
+        output.select();
+        status.textContent = t.copyError;
+      }
+    }
+  );
+
+  document.getElementById("sisaBuilderUse").addEventListener(
+    "click",
+    useInMainForm
+  );
+
+  document.getElementById("sisaBuilderSave").addEventListener(
+    "click",
+    saveDraft
+  );
+
+  document.getElementById("sisaBuilderClose").addEventListener(
+    "click",
+    function () {
+      panel.style.display = "none";
+    }
+  );
+
+  panel.addEventListener("click", function (event) {
+    if (event.target === panel) panel.style.display = "none";
+  });
+
+  window.addEventListener("sisa:languageChanged", translateUI);
+
+  window.SISA_POST_BUILDER = {
+    open: function () {
+      translateUI();
+      panel.style.display = "block";
+    },
+    combine: combineDraft,
+    useInMainForm: useInMainForm
+  };
+
+  translateUI();
+
+  /* =============== PART 2P END =============== */
+})();
+</script>
+
+<!-- =============== PART 2P END =============== -->
 </body>
 </html>
